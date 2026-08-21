@@ -1,11 +1,12 @@
 import { app, BrowserWindow, clipboard, dialog, globalShortcut, ipcMain, Menu, nativeImage, Notification, screen, Tray } from 'electron';
 import { existsSync } from 'node:fs';
-import { copyFile, rm } from 'node:fs/promises';
+import { randomUUID } from 'node:crypto';
+import { copyFile, mkdir, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { onWindowDrag } from 'electron-drag-window/electron';
 import { shredPaths } from './shredder';
-import { AppStore, type AppSettings, type ShredLog } from './store';
+import { AppStore, type AppSettings, type ShredLog, type UploadedPetImage } from './store';
 import { installContextMenu, isContextMenuInstalled, removeContextMenu } from './windows-integration';
 import { getExplorerSelection } from './windows-selection';
 
@@ -19,17 +20,35 @@ let isQuitting = false;
 let isShredding = false;
 let launchTimer: NodeJS.Timeout | undefined;
 let petHitTestTimer: NodeJS.Timeout | undefined;
+let petFadeTimer: NodeJS.Timeout | undefined;
+let petPositionSaveTimer: NodeJS.Timeout | undefined;
 let queuedLaunchPaths: string[] = [];
-type PetBubblePlacement = 'above' | 'left' | 'right' | 'below';
+type PetBubblePlacement = 'left' | 'right';
+interface PetImageTemplate {
+  id: string;
+  name: string;
+  image: string;
+  builtIn: boolean;
+  active: boolean;
+  deletable: boolean;
+}
+
+const BUILT_IN_PET_IMAGES = [
+  { id: 'built-in-portrait-1', name: '半身近照', fileName: 'portrait-template-1.png' },
+  { id: 'built-in-portrait-2', name: '双手提带', fileName: 'portrait-template-2.png' },
+  { id: 'built-in-portrait-3', name: '湖畔抬手', fileName: 'portrait-template-3.png' },
+] as const;
 // 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
 const PET_WINDOW_SIZE = { width: 960, height: 1160 };
-const PET_BUBBLE_SIZE = { width: 304, height: 340 };
+const PET_BUBBLE_SIZE = { width: 288, height: 340 };
 const PET_SIZE_MIN = 120;
 const PET_SIZE_MAX = 320;
-let petBubblePlacement: PetBubblePlacement = 'above';
+const PET_FADE_DURATION_MS = 180;
+let petBubblePlacement: PetBubblePlacement = 'left';
 let isPetExpanded = false;
 let isPetWindowMouseThrough = false;
 let isPetDragging = false;
+let petBubbleBounds: Electron.Rectangle | null = null;
 
 // vite-plugin-electron 会在 preload 重新构建后通知主进程，刷新窗口即可载入新桥接代码。
 if (process.env.VITE_DEV_SERVER_URL) {
@@ -50,19 +69,80 @@ function getIconPath(): string {
     : join(app.getAppPath(), 'src', 'assets', 'app-icon.png');
 }
 
-function getCustomPetImagePath(): string {
-  return join(app.getPath('userData'), 'custom-pet.png');
+function getPetImagesDirectory(): string {
+  return join(app.getPath('userData'), 'pet-templates');
 }
 
-function getCustomPetImageDataUrl(): string {
-  const imagePath = currentSettings.customPetImagePath;
+function getBuiltInPetImagePath(fileName: string): string {
+  return app.isPackaged
+    ? join(process.resourcesPath, 'pet-templates', fileName)
+    : join(app.getAppPath(), 'src', 'assets', 'pet-templates', fileName);
+}
+
+function getUploadedPetImagePath(image: UploadedPetImage): string {
+  return join(getPetImagesDirectory(), image.fileName);
+}
+
+function getActivePetImagePath(): string {
+  const builtIn = BUILT_IN_PET_IMAGES.find((image) => image.id === currentSettings.petImageTemplateId);
+  if (builtIn) return getBuiltInPetImagePath(builtIn.fileName);
+  const uploaded = currentSettings.uploadedPetImages.find((image) => image.id === currentSettings.petImageTemplateId);
+  if (uploaded) return getUploadedPetImagePath(uploaded);
+  if (currentSettings.customPetImagePath && existsSync(currentSettings.customPetImagePath)) return currentSettings.customPetImagePath;
+  return getBuiltInPetImagePath(BUILT_IN_PET_IMAGES[0].fileName);
+}
+
+function imagePathToDataUrl(imagePath: string): string {
   if (!imagePath || !existsSync(imagePath)) return '';
   const image = nativeImage.createFromPath(imagePath);
   return image.isEmpty() ? '' : image.toDataURL();
 }
 
+function getPetImageDataUrl(): string {
+  return imagePathToDataUrl(getActivePetImagePath());
+}
+
+function getPetImageTemplates(): PetImageTemplate[] {
+  const activeId = currentSettings.petImageTemplateId;
+  const builtInTemplates = BUILT_IN_PET_IMAGES.map((image) => ({
+    id: image.id,
+    name: image.name,
+    image: imagePathToDataUrl(getBuiltInPetImagePath(image.fileName)),
+    builtIn: true,
+    active: image.id === activeId,
+    deletable: false,
+  }));
+  const uploadedTemplates = currentSettings.uploadedPetImages
+    .filter((image) => existsSync(getUploadedPetImagePath(image)))
+    .map((image) => ({
+      id: image.id,
+      name: image.name,
+      image: imagePathToDataUrl(getUploadedPetImagePath(image)),
+      builtIn: false,
+      active: image.id === activeId,
+      deletable: true,
+    }));
+  // 配置中的模板丢失时，界面和桌宠都回退到第一个内置形象。
+  if (![...builtInTemplates, ...uploadedTemplates].some((image) => image.active)) builtInTemplates[0].active = true;
+  return [...builtInTemplates, ...uploadedTemplates];
+}
+
+async function migrateLegacyPetImage(): Promise<void> {
+  if (!currentSettings.customPetImagePath || !existsSync(currentSettings.customPetImagePath) || currentSettings.uploadedPetImages.length > 0) return;
+  const id = randomUUID();
+  const fileName = `${id}.png`;
+  await mkdir(getPetImagesDirectory(), { recursive: true });
+  await copyFile(currentSettings.customPetImagePath, join(getPetImagesDirectory(), fileName));
+  currentSettings = await store.updateSettings({
+    customPetImagePath: '',
+    petImageTemplateId: id,
+    uploadedPetImages: [{ id, name: '我的桌宠', fileName }],
+  });
+}
+
 function notifyPetAppearanceChanged(): void {
   petWindow?.webContents.send('settings:changed');
+  settingsWindow?.webContents.send('settings:changed');
 }
 
 function parseLaunchPaths(argv: string[]): string[] {
@@ -89,24 +169,68 @@ async function loadView(window: BrowserWindow, view: 'pet' | 'settings'): Promis
   await window.loadFile(join(currentDirectory, '../dist-renderer/index.html'), { query: { view } });
 }
 
+function animatePetOpacity(targetOpacity: number, onComplete?: () => void): void {
+  const window = petWindow;
+  if (!window || window.isDestroyed()) return;
+  clearInterval(petFadeTimer);
+  const startOpacity = window.getOpacity();
+  const startedAt = Date.now();
+  petFadeTimer = setInterval(() => {
+    if (window.isDestroyed() || petWindow !== window) {
+      clearInterval(petFadeTimer);
+      petFadeTimer = undefined;
+      return;
+    }
+    const progress = Math.min(1, (Date.now() - startedAt) / PET_FADE_DURATION_MS);
+    const easedProgress = 1 - (1 - progress) ** 3;
+    window.setOpacity(startOpacity + (targetOpacity - startOpacity) * easedProgress);
+    if (progress < 1) return;
+    clearInterval(petFadeTimer);
+    petFadeTimer = undefined;
+    onComplete?.();
+  }, 16);
+}
+
 function showPet(): void {
-  petWindow?.showInactive();
+  if (!petWindow) return;
+  if (!petWindow.isVisible()) {
+    petWindow.setOpacity(0);
+    petWindow.showInactive();
+    refreshTray();
+  }
+  animatePetOpacity(1);
+}
+
+function hidePet(): void {
+  if (!petWindow?.isVisible()) return;
+  const window = petWindow;
+  animatePetOpacity(0, () => {
+    if (window.isDestroyed()) return;
+    window.hide();
+    window.setOpacity(1);
+    refreshTray();
+  });
 }
 
 function getPetCharacterSize(): Electron.Size {
   const width = Math.min(PET_SIZE_MAX, Math.max(PET_SIZE_MIN, Math.round(currentSettings.petSize)));
-  const customImage = currentSettings.customPetImagePath
-    ? nativeImage.createFromPath(currentSettings.customPetImagePath)
-    : null;
-  const imageSize = customImage && !customImage.isEmpty() ? customImage.getSize() : { width: 594, height: 840 };
+  const activeImage = nativeImage.createFromPath(getActivePetImagePath());
+  const imageSize = !activeImage.isEmpty() ? activeImage.getSize() : { width: 594, height: 840 };
   return { width, height: Math.round(width * imageSize.height / imageSize.width) };
 }
 
+function getPetWindowSize(): Electron.Size {
+  if (!petWindow) return PET_WINDOW_SIZE;
+  const bounds = petWindow.getContentBounds();
+  return { width: bounds.width, height: bounds.height };
+}
+
 function getLocalPetCharacterBounds(): Electron.Rectangle {
+  const windowSize = getPetWindowSize();
   const size = getPetCharacterSize();
   return {
-    x: Math.round((PET_WINDOW_SIZE.width - size.width) / 2),
-    y: Math.round((PET_WINDOW_SIZE.height - size.height) / 2),
+    x: Math.round((windowSize.width - size.width) / 2),
+    y: Math.round((windowSize.height - size.height) / 2),
     ...size,
   };
 }
@@ -118,16 +242,74 @@ function getPetCharacterBounds(): Electron.Rectangle | null {
   return { ...character, x: windowBounds.x + character.x, y: windowBounds.y + character.y };
 }
 
+function getRestoredPetWindowPosition(characterSize: Electron.Size, windowSize: Electron.Size): Electron.Point {
+  const displays = screen.getAllDisplays();
+  const savedDisplay = displays.find((display) => display.id === currentSettings.petDisplayId);
+  const display = savedDisplay ?? screen.getPrimaryDisplay();
+  const { workArea } = display;
+  const hasSavedPosition = Number.isFinite(currentSettings.petPositionX) && Number.isFinite(currentSettings.petPositionY);
+  let characterX = workArea.x + workArea.width - 225;
+  let characterY = workArea.y + workArea.height - 290;
+  if (hasSavedPosition) {
+    const relativeX = Math.min(1, Math.max(0, currentSettings.petPositionX as number));
+    const relativeY = Math.min(1, Math.max(0, currentSettings.petPositionY as number));
+    characterX = Math.round(workArea.x + relativeX * workArea.width - characterSize.width / 2);
+    characterY = Math.round(workArea.y + relativeY * workArea.height - characterSize.height / 2);
+  }
+  // 只限制可见人物，允许用于气泡布局的透明画布自然延伸到工作区外。
+  characterX = Math.min(workArea.x + Math.max(0, workArea.width - characterSize.width), Math.max(workArea.x, characterX));
+  characterY = Math.min(workArea.y + Math.max(0, workArea.height - characterSize.height), Math.max(workArea.y, characterY));
+  return {
+    x: characterX - Math.round((windowSize.width - characterSize.width) / 2),
+    y: characterY - Math.round((windowSize.height - characterSize.height) / 2),
+  };
+}
+
+async function savePetPosition(): Promise<void> {
+  if (!petWindow || petWindow.isDestroyed() || isPetDragging) return;
+  const bounds = getPetCharacterBounds();
+  if (!bounds) return;
+  const display = screen.getDisplayMatching(bounds);
+  const centerX = bounds.x + bounds.width / 2;
+  const centerY = bounds.y + bounds.height / 2;
+  const relativeX = Math.min(1, Math.max(0, (centerX - display.workArea.x) / display.workArea.width));
+  const relativeY = Math.min(1, Math.max(0, (centerY - display.workArea.y) / display.workArea.height));
+  currentSettings = await store.updateSettings({
+    petDisplayId: display.id,
+    petPositionX: relativeX,
+    petPositionY: relativeY,
+  });
+}
+
+function schedulePetPositionSave(delay = 250): void {
+  clearTimeout(petPositionSaveTimer);
+  petPositionSaveTimer = setTimeout(async () => {
+    petPositionSaveTimer = undefined;
+    try {
+      await savePetPosition();
+    } catch (error) {
+      console.error('保存桌宠位置失败', error);
+    }
+  }, delay);
+}
+
+function restorePetPosition(): void {
+  if (!petWindow || petWindow.isDestroyed()) return;
+  const [width, height] = petWindow.getSize();
+  const position = getRestoredPetWindowPosition(getPetCharacterSize(), { width, height });
+  petWindow.setPosition(position.x, position.y);
+  schedulePetPositionSave();
+}
+
 function getLocalPetBubbleBounds(): Electron.Rectangle {
+  const windowSize = getPetWindowSize();
   const character = getLocalPetCharacterBounds();
-  const centerX = PET_WINDOW_SIZE.width / 2;
-  const centerY = PET_WINDOW_SIZE.height / 2;
+  const centerX = windowSize.width / 2;
+  const centerY = windowSize.height / 2;
   const gap = 14;
   const bubbles: Record<PetBubblePlacement, Electron.Rectangle> = {
-    above: { x: Math.round(centerX - PET_BUBBLE_SIZE.width / 2), y: Math.round(centerY - character.height / 2 - gap - PET_BUBBLE_SIZE.height), ...PET_BUBBLE_SIZE },
     left: { x: Math.round(centerX - character.width / 2 - gap - PET_BUBBLE_SIZE.width), y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2), ...PET_BUBBLE_SIZE },
     right: { x: Math.round(centerX + character.width / 2 + gap), y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2), ...PET_BUBBLE_SIZE },
-    below: { x: Math.round(centerX - PET_BUBBLE_SIZE.width / 2), y: Math.round(centerY + character.height / 2 + gap), ...PET_BUBBLE_SIZE },
   };
   return bubbles[petBubblePlacement];
 }
@@ -137,13 +319,23 @@ function containsPoint(bounds: Electron.Rectangle, point: Electron.Point): boole
     && point.y >= bounds.y && point.y <= bounds.y + bounds.height;
 }
 
+function expandBounds(bounds: Electron.Rectangle, padding: number): Electron.Rectangle {
+  return {
+    x: bounds.x - padding,
+    y: bounds.y - padding,
+    width: bounds.width + padding * 2,
+    height: bounds.height + padding * 2,
+  };
+}
+
 function updatePetWindowMouseThrough(): void {
   if (!petWindow || isPetDragging) return;
   const windowBounds = petWindow.getBounds();
   const cursor = screen.getCursorScreenPoint();
   const localCursor = { x: cursor.x - windowBounds.x, y: cursor.y - windowBounds.y };
-  const isInteractive = containsPoint(getLocalPetCharacterBounds(), localCursor)
-    || (isPetExpanded && containsPoint(getLocalPetBubbleBounds(), localCursor));
+  const bubbleBounds = petBubbleBounds ?? getLocalPetBubbleBounds();
+  const isInteractive = containsPoint(expandBounds(getLocalPetCharacterBounds(), 10), localCursor)
+    || (isPetExpanded && containsPoint(expandBounds(bubbleBounds, 6), localCursor));
   if (isPetWindowMouseThrough === !isInteractive) return;
   isPetWindowMouseThrough = !isInteractive;
   // 透明画布区域点击穿透；forward 保留鼠标移动，以便光标重新进入人物或气泡时恢复交互。
@@ -160,27 +352,22 @@ function setPetExpanded(expanded: boolean): void {
   const bounds = getPetCharacterBounds();
   if (!bounds) return;
   const workArea = screen.getDisplayMatching(bounds).workArea;
-  const availableAbove = bounds.y - workArea.y;
   const availableLeft = bounds.x - workArea.x;
   const availableRight = workArea.x + workArea.width - bounds.x - bounds.width;
-  const availableBelow = workArea.y + workArea.height - bounds.y - bounds.height;
-  if (availableAbove >= PET_BUBBLE_SIZE.height + 14) petBubblePlacement = 'above';
-  else if (availableLeft >= PET_BUBBLE_SIZE.width + 14) petBubblePlacement = 'left';
-  else if (availableRight >= PET_BUBBLE_SIZE.width + 14) petBubblePlacement = 'right';
-  else petBubblePlacement = availableBelow >= PET_BUBBLE_SIZE.height + 14 ? 'below' : 'above';
+  // 气泡始终贴在人物侧面，空间不足时选择剩余区域更大的一侧。
+  petBubblePlacement = availableLeft >= PET_BUBBLE_SIZE.width + 14 || availableLeft >= availableRight
+    ? 'left'
+    : 'right';
   updatePetWindowMouseThrough();
   petWindow.webContents.send('pet:placement', petBubblePlacement);
 }
 
 function createPetWindow(): void {
-  const workArea = screen.getPrimaryDisplay().workArea;
-  const petX = workArea.x + workArea.width - 225;
-  const petY = workArea.y + workArea.height - 290;
   const characterSize = getPetCharacterSize();
+  const initialPosition = getRestoredPetWindowPosition(characterSize, PET_WINDOW_SIZE);
   petWindow = new BrowserWindow({
     ...PET_WINDOW_SIZE,
-    x: petX - Math.round((PET_WINDOW_SIZE.width - characterSize.width) / 2),
-    y: petY - Math.round((PET_WINDOW_SIZE.height - characterSize.height) / 2),
+    ...initialPosition,
     transparent: true,
     backgroundColor: '#00000000',
     frame: false,
@@ -191,10 +378,17 @@ function createPetWindow(): void {
     show: !process.argv.includes('--background'),
     webPreferences: { preload: join(currentDirectory, 'preload.mjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
+  // Windows 可能按工作区限制超大透明窗口，创建后使用真实尺寸重新保持人物锚点。
+  const actualWindowSize = petWindow.getSize();
+  const actualPosition = getRestoredPetWindowPosition(characterSize, { width: actualWindowSize[0], height: actualWindowSize[1] });
+  petWindow.setPosition(actualPosition.x, actualPosition.y);
   // Windows 合成器偶尔会在首帧回退为不透明底色，加载后再次明确透明色。
   petWindow.webContents.once('did-finish-load', () => petWindow?.setBackgroundColor('#00000000'));
   loadView(petWindow, 'pet');
   petHitTestTimer = setInterval(updatePetWindowMouseThrough, 8);
+  petWindow.on('move', () => schedulePetPositionSave());
+  petWindow.on('resize', () => schedulePetPositionSave());
+  schedulePetPositionSave();
   petWindow.on('close', (event) => {
     if (!isQuitting) {
       event.preventDefault();
@@ -203,7 +397,11 @@ function createPetWindow(): void {
   });
   petWindow.on('closed', () => {
     clearInterval(petHitTestTimer);
+    clearInterval(petFadeTimer);
+    clearTimeout(petPositionSaveTimer);
     petHitTestTimer = undefined;
+    petFadeTimer = undefined;
+    petPositionSaveTimer = undefined;
     petWindow = null;
   });
 }
@@ -335,11 +533,10 @@ async function setContextMenuEnabled(enabled: boolean): Promise<void> {
 function buildTrayMenu(): Menu {
   return Menu.buildFromTemplate([
     { label: petWindow?.isVisible() ? '隐藏桌宠' : '显示桌宠', click: () => {
-      if (petWindow?.isVisible()) petWindow.hide();
+      if (petWindow?.isVisible()) hidePet();
       else showPet();
-      refreshTray();
     } },
-    { label: '设置与日志…', click: showSettingsWindow },
+    { label: '设置', click: showSettingsWindow },
   ]);
 }
 
@@ -361,8 +558,11 @@ else {
   app.on('second-instance', (_event, argv) => queueLaunchPaths(parseLaunchPaths(argv)));
   app.whenReady().then(async () => {
     currentSettings = await store.getSettings();
+    await migrateLegacyPetImage();
     createPetWindow();
     onWindowDrag();
+    screen.on('display-removed', restorePetPosition);
+    screen.on('display-metrics-changed', restorePetPosition);
     createTray();
     if (!registerShortcut(currentSettings.shortcut)) {
       currentSettings = await store.updateSettings({ shortcut: 'CommandOrControl+Alt+X' });
@@ -393,6 +593,23 @@ ipcMain.handle('shred:start', async (_event, paths: unknown, passes: unknown) =>
   return requestShred(paths, passes);
 });
 ipcMain.on('pet:expanded', (_event, expanded: boolean) => setPetExpanded(Boolean(expanded)));
+ipcMain.on('pet:bubble-bounds', (_event, bounds: unknown) => {
+  if (bounds === null) {
+    petBubbleBounds = null;
+    updatePetWindowMouseThrough();
+    return;
+  }
+  if (!bounds || typeof bounds !== 'object') return;
+  const candidate = bounds as Partial<Electron.Rectangle>;
+  if (![candidate.x, candidate.y, candidate.width, candidate.height].every(Number.isFinite)) return;
+  petBubbleBounds = {
+    x: Math.round(candidate.x as number),
+    y: Math.round(candidate.y as number),
+    width: Math.round(candidate.width as number),
+    height: Math.round(candidate.height as number),
+  };
+  updatePetWindowMouseThrough();
+});
 ipcMain.on('ELECTRON_DRAG_START', (event) => {
   if (!petWindow || event.sender !== petWindow.webContents) return;
   isPetDragging = true;
@@ -403,6 +620,7 @@ ipcMain.on('ELECTRON_DRAG_OVER', (event) => {
   if (!petWindow || event.sender !== petWindow.webContents) return;
   isPetDragging = false;
   updatePetWindowMouseThrough();
+  schedulePetPositionSave(0);
 });
 ipcMain.handle('context-menu:install', async () => { await setContextMenuEnabled(true); return true; });
 ipcMain.handle('context-menu:remove', async () => { await setContextMenuEnabled(false); return true; });
@@ -411,6 +629,8 @@ ipcMain.handle('settings:get', () => currentSettings);
 ipcMain.handle('settings:update', async (_event, patch: Partial<AppSettings>) => {
   const safePatch = { ...patch };
   delete safePatch.customPetImagePath;
+  delete safePatch.petImageTemplateId;
+  delete safePatch.uploadedPetImages;
   if (typeof safePatch.petSize === 'number') {
     safePatch.petSize = Math.min(PET_SIZE_MAX, Math.max(PET_SIZE_MIN, Math.round(safePatch.petSize)));
   }
@@ -428,7 +648,8 @@ ipcMain.handle('settings:update', async (_event, patch: Partial<AppSettings>) =>
   refreshTray();
   return currentSettings;
 });
-ipcMain.handle('pet-image:get', () => getCustomPetImageDataUrl());
+ipcMain.handle('pet-image:get', () => getPetImageDataUrl());
+ipcMain.handle('pet-image:list', () => getPetImageTemplates());
 ipcMain.handle('pet-image:choose', async () => {
   const result = await dialog.showOpenDialog({
     title: '选择桌宠 PNG 图片',
@@ -438,17 +659,45 @@ ipcMain.handle('pet-image:choose', async () => {
   if (result.canceled || result.filePaths.length === 0) return null;
   const sourcePath = result.filePaths[0];
   if (nativeImage.createFromPath(sourcePath).isEmpty()) throw new Error('无法读取这张 PNG 图片');
-  const targetPath = getCustomPetImagePath();
+  const id = randomUUID();
+  const fileName = `${id}.png`;
+  await mkdir(getPetImagesDirectory(), { recursive: true });
+  const targetPath = join(getPetImagesDirectory(), fileName);
   await copyFile(sourcePath, targetPath);
-  currentSettings = await store.updateSettings({ customPetImagePath: targetPath });
+  const uploadedPetImages = [...currentSettings.uploadedPetImages, {
+    id,
+    name: result.filePaths[0].split(/[\\/]/).pop()?.replace(/\.png$/i, '') || '我的桌宠',
+    fileName,
+  }];
+  currentSettings = await store.updateSettings({
+    customPetImagePath: '',
+    petImageTemplateId: id,
+    uploadedPetImages,
+  });
   notifyPetAppearanceChanged();
-  return getCustomPetImageDataUrl();
+  return getPetImageTemplates();
 });
-ipcMain.handle('pet-image:reset', async () => {
-  await rm(getCustomPetImagePath(), { force: true });
-  currentSettings = await store.updateSettings({ customPetImagePath: '' });
+ipcMain.handle('pet-image:select', async (_event, id: unknown) => {
+  if (typeof id !== 'string') throw new Error('无效的桌宠模板');
+  const exists = BUILT_IN_PET_IMAGES.some((image) => image.id === id)
+    || currentSettings.uploadedPetImages.some((image) => image.id === id && existsSync(getUploadedPetImagePath(image)));
+  if (!exists) throw new Error('桌宠模板不存在');
+  currentSettings = await store.updateSettings({ petImageTemplateId: id });
   notifyPetAppearanceChanged();
-  return '';
+  return getPetImageTemplates();
+});
+ipcMain.handle('pet-image:delete', async (_event, id: unknown) => {
+  if (typeof id !== 'string') throw new Error('无效的桌宠模板');
+  const target = currentSettings.uploadedPetImages.find((image) => image.id === id);
+  if (!target) throw new Error('内置模板不能删除');
+  await rm(getUploadedPetImagePath(target), { force: true });
+  const uploadedPetImages = currentSettings.uploadedPetImages.filter((image) => image.id !== id);
+  currentSettings = await store.updateSettings({
+    petImageTemplateId: currentSettings.petImageTemplateId === id ? BUILT_IN_PET_IMAGES[0].id : currentSettings.petImageTemplateId,
+    uploadedPetImages,
+  });
+  notifyPetAppearanceChanged();
+  return getPetImageTemplates();
 });
 ipcMain.handle('logs:get', () => store.getLogs());
 ipcMain.handle('logs:clear', async () => { await store.clearLogs(); return true; });
@@ -464,6 +713,8 @@ ipcMain.on('window:hide', (event) => BrowserWindow.fromWebContents(event.sender)
 app.on('window-all-closed', () => undefined);
 app.on('will-quit', () => {
   clearTimeout(launchTimer);
+  clearTimeout(petPositionSaveTimer);
   clearInterval(petHitTestTimer);
+  clearInterval(petFadeTimer);
   globalShortcut.unregisterAll();
 });

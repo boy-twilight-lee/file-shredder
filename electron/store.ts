@@ -12,7 +12,18 @@ export interface AppSettings {
   contextMenuInstalled: boolean;
   contextMenuAutoInstall: boolean;
   customPetImagePath: string;
+  petImageTemplateId: string;
+  uploadedPetImages: UploadedPetImage[];
   petSize: number;
+  petDisplayId: number | null;
+  petPositionX: number | null;
+  petPositionY: number | null;
+}
+
+export interface UploadedPetImage {
+  id: string;
+  name: string;
+  fileName: string;
 }
 
 export interface ShredLog {
@@ -33,19 +44,26 @@ const DEFAULT_SETTINGS: AppSettings = {
   contextMenuInstalled: false,
   contextMenuAutoInstall: false,
   customPetImagePath: '',
+  petImageTemplateId: 'built-in-portrait-1',
+  uploadedPetImages: [],
   petSize: 200,
+  petDisplayId: null,
+  petPositionX: null,
+  petPositionY: null,
 };
 
 export class AppStore {
   private readonly settingsPath: string;
   private readonly logsPath: string;
   private readonly petImagePath: string;
+  private readonly petImagesDirectory: string;
 
   constructor(app: App) {
     const dataDirectory = app.getPath('userData');
     this.settingsPath = join(dataDirectory, 'settings.json');
     this.logsPath = join(dataDirectory, 'shred-logs.json');
     this.petImagePath = join(dataDirectory, 'custom-pet.png');
+    this.petImagesDirectory = join(dataDirectory, 'pet-templates');
   }
 
   private async readJson<T>(path: string, fallback: T): Promise<T> {
@@ -95,6 +113,7 @@ export class AppStore {
       rm(this.settingsPath, { force: true }),
       rm(this.logsPath, { force: true }),
       rm(this.petImagePath, { force: true }),
+      rm(this.petImagesDirectory, { force: true, recursive: true }),
     ]);
   }
 }

@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Message, Modal } from '@arco-design/web-vue';
-import type { AppSettings, SettingBooleanKey, ShredLog } from '@/type';
-import defaultPetImage from '@/assets/pet.png';
+import { IconCheck, IconDelete, IconPlus } from '@arco-design/web-vue/es/icon';
+import type { AppSettings, PetImageTemplate, SettingBooleanKey, ShredLog } from '@/type';
 
 const defaultSettings: AppSettings = {
   shortcut: 'CommandOrControl+Shift+Delete',
@@ -13,10 +13,15 @@ const defaultSettings: AppSettings = {
   contextMenuInstalled: false,
   contextMenuAutoInstall: false,
   customPetImagePath: '',
+  petImageTemplateId: 'built-in-portrait-1',
+  uploadedPetImages: [],
   petSize: 200,
+  petDisplayId: null,
+  petPositionX: null,
+  petPositionY: null,
 };
 const settings = ref<AppSettings>({ ...defaultSettings });
-const petImageSource = ref(defaultPetImage);
+const petImageTemplates = ref<PetImageTemplate[]>([]);
 const logs = ref<ShredLog[]>([]);
 const isLoading = ref(true);
 const isChoosingPetImage = ref(false);
@@ -29,14 +34,14 @@ const disposers: Array<() => void> = [];
 let petSizeSaveTimer: ReturnType<typeof setTimeout> | undefined;
 
 async function refreshData(): Promise<void> {
-  const [storedSettings, contextMenuInstalled, storedLogs, customPetImage] = await Promise.all([
+  const [storedSettings, contextMenuInstalled, storedLogs, storedPetImageTemplates] = await Promise.all([
     window.shredderApi.getSettings(),
     window.shredderApi.getContextMenuStatus(),
     window.shredderApi.getLogs(),
-    window.shredderApi.getPetImage(),
+    window.shredderApi.getPetImageTemplates(),
   ]);
   settings.value = { ...storedSettings, contextMenuInstalled };
-  petImageSource.value = customPetImage || defaultPetImage;
+  petImageTemplates.value = storedPetImageTemplates;
   logs.value = storedLogs;
   isLoading.value = false;
 }
@@ -76,11 +81,11 @@ function updatePetSize(value: number | [number, number]): void {
 async function choosePetImage(): Promise<void> {
   isChoosingPetImage.value = true;
   try {
-    const image = await window.shredderApi.choosePetImage();
-    if (image) {
-      petImageSource.value = image;
+    const templates = await window.shredderApi.choosePetImage();
+    if (templates) {
+      petImageTemplates.value = templates;
       settings.value = await window.shredderApi.getSettings();
-      Message.success('桌宠形象已更新');
+      Message.success('已上传并设为当前桌宠');
     }
   } catch (error) {
     Message.error(error instanceof Error ? error.message : 'PNG 图片读取失败');
@@ -89,10 +94,23 @@ async function choosePetImage(): Promise<void> {
   }
 }
 
-async function resetPetImage(): Promise<void> {
-  await window.shredderApi.resetPetImage();
-  petImageSource.value = defaultPetImage;
-  settings.value = await window.shredderApi.getSettings();
+async function selectPetImage(id: string): Promise<void> {
+  try {
+    petImageTemplates.value = await window.shredderApi.selectPetImage(id);
+    settings.value = await window.shredderApi.getSettings();
+  } catch (error) {
+    Message.error(error instanceof Error ? error.message : '桌宠形象切换失败');
+  }
+}
+
+async function deletePetImage(id: string): Promise<void> {
+  try {
+    petImageTemplates.value = await window.shredderApi.deletePetImage(id);
+    settings.value = await window.shredderApi.getSettings();
+    Message.success('自定义形象已删除');
+  } catch (error) {
+    Message.error(error instanceof Error ? error.message : '自定义形象删除失败');
+  }
 }
 
 async function clearLogs(): Promise<void> {
@@ -133,23 +151,34 @@ onBeforeUnmount(() => {
         <a-tab-pane key="general" title="常规设置">
           <section class="settings-view-card">
             <h2>桌宠形象</h2>
-            <div class="settings-view-pet-customizer">
-              <div class="settings-view-pet-preview">
-                <img
-                  :src="petImageSource"
-                  :style="{ width: `${Math.round(settings.petSize * 0.5)}px` }"
-                  alt="桌宠形象预览"
-                />
+            <div class="settings-view-pet-template-list">
+              <button
+                v-for="item in petImageTemplates"
+                :key="item.id"
+                type="button"
+                class="settings-view-pet-template"
+                :class="{ 'settings-view-pet-template-active': item.active }"
+                @click="selectPetImage(item.id)"
+              >
+                <span class="settings-view-pet-template-preview"><img :src="item.image" :alt="item.name" /></span>
+                <span class="settings-view-pet-template-name" :title="item.name">{{ item.name }}</span>
+                <span v-if="item.active" class="settings-view-pet-template-selected"><icon-check /></span>
+                <a-popconfirm v-if="item.deletable" content="删除这个自定义形象？" @ok="deletePetImage(item.id)">
+                  <span class="settings-view-pet-template-delete" title="删除" @click.stop><icon-delete /></span>
+                </a-popconfirm>
+              </button>
+              <button type="button" class="settings-view-pet-template settings-view-pet-template-upload" :disabled="isChoosingPetImage" @click="choosePetImage">
+                <icon-plus />
+                <span>{{ isChoosingPetImage ? '正在读取' : '上传 PNG' }}</span>
+              </button>
+            </div>
+            <div class="settings-view-pet-controls">
+              <div class="settings-view-pet-size-label">
+                <span>桌宠大小</span>
+                <strong>{{ settings.petSize }} px</strong>
               </div>
-              <div class="settings-view-pet-controls">
-                <div class="settings-view-pet-upload">
-                  <a-button type="primary" :loading="isChoosingPetImage" @click="choosePetImage">上传 PNG</a-button>
-                  <a-button type="text" :disabled="!settings.customPetImagePath" @click="resetPetImage">恢复默认</a-button>
-                </div>
-                <span>建议使用透明背景 PNG，上传后立即应用。</span>
-                <label>桌宠大小 <strong>{{ settings.petSize }} px</strong></label>
-                <a-slider :model-value="settings.petSize" :min="120" :max="320" :step="4" @change="updatePetSize" />
-              </div>
+              <a-slider :model-value="settings.petSize" :min="120" :max="320" :step="4" @change="updatePetSize" />
+              <p>上传透明背景 PNG 后会加入列表并自动设为当前形象。</p>
             </div>
           </section>
 
@@ -232,10 +261,44 @@ onBeforeUnmount(() => {
     span { margin-top: 3px; color: #99a1ad; font-size: 12px; }
   }
 
-  .settings-view-pet-customizer { display: flex; gap: 22px; align-items: center; }
-  .settings-view-pet-preview { display: flex; align-items: center; justify-content: center; width: 190px; height: 220px; overflow: hidden; border-radius: 12px; background: linear-gradient(135deg, #edf1f7 25%, transparent 25%) 0 0 / 16px 16px, linear-gradient(315deg, #edf1f7 25%, transparent 25%) 0 0 / 16px 16px, #fff; img { max-width: 176px; max-height: 208px; object-fit: contain; } }
-  .settings-view-pet-controls { flex: 1; min-width: 0; span, label { display: block; } span { margin: 8px 0 22px; color: #99a1ad; font-size: 12px; } label { margin-bottom: 10px; color: #474f59; font-size: 13px; } label strong { float: right; color: #0065ff; } }
-  .settings-view-pet-upload { display: flex; gap: 6px; align-items: center; }
+  .settings-view-pet-template-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .settings-view-pet-template {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    align-items: center;
+    min-width: 0;
+    height: 144px;
+    padding: 8px;
+    border: 1px solid #e7ebf0;
+    border-radius: 10px;
+    color: #474f59;
+    font: inherit;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+    &:hover { border-color: #bed2ff; background: #f4f7ff; }
+    &:disabled { cursor: wait; opacity: 0.65; }
+  }
+  .settings-view-pet-template-active { border-color: #3564ff; background: #f2f5ff; box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.1); }
+  .settings-view-pet-template-preview {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+    height: 104px;
+    overflow: hidden;
+    border-radius: 7px;
+    background: linear-gradient(45deg, #edf0f4 25%, transparent 25%, transparent 75%, #edf0f4 75%) 0 0 / 12px 12px, linear-gradient(45deg, #edf0f4 25%, transparent 25%, transparent 75%, #edf0f4 75%) 6px 6px / 12px 12px, #fff;
+    img { width: 100%; height: 100%; object-fit: contain; }
+  }
+  .settings-view-pet-template-name { width: 100%; overflow: hidden; font-size: 12px; text-align: center; text-overflow: ellipsis; white-space: nowrap; }
+  .settings-view-pet-template-selected { position: absolute; top: 5px; left: 5px; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; background: #3564ff; box-shadow: 0 2px 8px rgba(53, 100, 255, 0.3); }
+  .settings-view-pet-template-delete { position: absolute; top: 5px; right: 5px; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; color: #86909c; background: rgba(255, 255, 255, 0.9); &:hover { color: #f53f3f; background: #fff; } }
+  .settings-view-pet-template-upload { justify-content: center; color: #3564ff; border-style: dashed; background: #fff; svg { font-size: 24px; } span { font-size: 12px; } }
+  .settings-view-pet-controls { margin-top: 18px; p { margin: 7px 0 0; color: #99a1ad; font-size: 12px; } }
+  .settings-view-pet-size-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; color: #474f59; font-size: 13px; strong { color: #3564ff; } }
   .settings-view-card-title { display: flex; align-items: center; justify-content: space-between; h2 { margin: 0; } }
 
   :deep(.arco-input-wrapper),

@@ -49,6 +49,10 @@
       {
         "from": "src/assets/app-icon.png",
         "to": "app-icon.png"
+      },
+      {
+        "from": "src/assets/pet-templates",
+        "to": "pet-templates"
       }
     ],
     "win": {

@@ -19,6 +19,13 @@ export interface ShredSummary {
   failed: number;
 }
 
+export interface PetBubbleBounds {
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+}
+
 export interface AppSettings {
   shortcut: string;
   passes: 3 | 7 | 35;
@@ -28,7 +35,27 @@ export interface AppSettings {
   contextMenuInstalled: boolean;
   contextMenuAutoInstall: boolean;
   customPetImagePath: string;
+  petImageTemplateId: string;
+  uploadedPetImages: UploadedPetImage[];
   petSize: number;
+  petDisplayId: number | null;
+  petPositionX: number | null;
+  petPositionY: number | null;
+}
+
+export interface UploadedPetImage {
+  id: string;
+  name: string;
+  fileName: string;
+}
+
+export interface PetImageTemplate {
+  id: string;
+  name: string;
+  image: string;
+  builtIn: boolean;
+  active: boolean;
+  deletable: boolean;
 }
 
 export type SettingBooleanKey = 'confirmBeforeShred' | 'alwaysOnTop' | 'launchAtLogin' | 'contextMenuInstalled';
@@ -53,18 +80,21 @@ export interface ShredderApi {
   getSettings: () => Promise<AppSettings>;
   updateSettings: (settings: Partial<AppSettings>) => Promise<AppSettings>;
   getPetImage: () => Promise<string>;
-  choosePetImage: () => Promise<string | null>;
-  resetPetImage: () => Promise<string>;
+  getPetImageTemplates: () => Promise<PetImageTemplate[]>;
+  choosePetImage: () => Promise<PetImageTemplate[] | null>;
+  selectPetImage: (id: string) => Promise<PetImageTemplate[]>;
+  deletePetImage: (id: string) => Promise<PetImageTemplate[]>;
   getLogs: () => Promise<ShredLog[]>;
   clearLogs: () => Promise<boolean>;
   cleanupAndExit: () => Promise<boolean>;
   setPetExpanded: (expanded: boolean) => void;
+  setPetBubbleBounds: (bounds: PetBubbleBounds | null) => void;
   hideCurrentWindow: () => void;
   onPetState: (callback: (state: 'idle' | 'working' | 'success' | 'failure') => void) => () => void;
   onPetConfirm: (callback: (paths: string[], passes: 3 | 7 | 35) => void) => () => void;
   onPetProgress: (callback: (progress: ShredProgress) => void) => () => void;
   onPetComplete: (callback: (summary: ShredSummary) => void) => () => void;
-  onPetPlacement: (callback: (placement: 'above' | 'left' | 'right' | 'below') => void) => () => void;
+  onPetPlacement: (callback: (placement: 'left' | 'right') => void) => () => void;
   onSettingsChanged: (callback: () => void) => () => void;
   onLogsUpdated: (callback: () => void) => () => void;
 }

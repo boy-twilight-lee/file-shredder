@@ -22,12 +22,15 @@ contextBridge.exposeInMainWorld('shredderApi', {
   getSettings: () => ipcRenderer.invoke('settings:get'),
   updateSettings: (settings: unknown) => ipcRenderer.invoke('settings:update', settings),
   getPetImage: () => ipcRenderer.invoke('pet-image:get'),
+  getPetImageTemplates: () => ipcRenderer.invoke('pet-image:list'),
   choosePetImage: () => ipcRenderer.invoke('pet-image:choose'),
-  resetPetImage: () => ipcRenderer.invoke('pet-image:reset'),
+  selectPetImage: (id: string) => ipcRenderer.invoke('pet-image:select', id),
+  deletePetImage: (id: string) => ipcRenderer.invoke('pet-image:delete', id),
   getLogs: () => ipcRenderer.invoke('logs:get'),
   clearLogs: () => ipcRenderer.invoke('logs:clear'),
   cleanupAndExit: () => ipcRenderer.invoke('app:cleanup-exit'),
   setPetExpanded: (expanded: boolean) => ipcRenderer.send('pet:expanded', expanded),
+  setPetBubbleBounds: (bounds: unknown) => ipcRenderer.send('pet:bubble-bounds', bounds),
   hideCurrentWindow: () => ipcRenderer.send('window:hide'),
   onPetState: (callback: (state: string) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, state: string) => callback(state);
