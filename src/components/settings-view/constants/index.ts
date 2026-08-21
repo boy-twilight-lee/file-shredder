@@ -1,7 +1,8 @@
 import type { TableColumnData, TableRowSelection } from '@arco-design/web-vue';
 
 export const PET_SIZE_SAVE_DELAY_MS = 300;
-export const RECORD_PAGE_SIZE = 8;
+export const RECORD_PAGE_SIZE = 10;
+export const RECORD_PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export const SHRED_LEVEL_OPTIONS = [
   {
@@ -25,14 +26,26 @@ export const SHRED_LEVEL_OPTIONS = [
 ] as const;
 
 export const RECORD_TABLE_COLUMNS: TableColumnData[] = [
-  { title: '文件路径', dataIndex: 'path', slotName: 'path', minWidth: 190, ellipsis: true, tooltip: true },
-  { title: '时间', dataIndex: 'timestamp', slotName: 'time', width: 140 },
-  { title: '状态', dataIndex: 'success', slotName: 'status', width: 72, align: 'center' },
-  { title: '操作', slotName: 'actions', width: 60, align: 'center' },
+  {
+    title: '文件路径',
+    dataIndex: 'path',
+    slotName: 'path',
+    ellipsis: true,
+    tooltip: true,
+  },
+  { title: '时间', dataIndex: 'timestamp', slotName: 'time', width: 132 },
+  {
+    title: '状态',
+    dataIndex: 'success',
+    slotName: 'status',
+    width: 68,
+    align: 'center',
+  },
+  { title: '操作', slotName: 'actions', width: 56, align: 'center' },
 ];
 
 export const RECORD_ROW_SELECTION: TableRowSelection = {
   type: 'checkbox',
   showCheckedAll: true,
-  width: 38,
+  width: 36,
 };

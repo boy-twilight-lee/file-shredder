@@ -413,7 +413,13 @@ function createPanelWindow(): BrowserWindow {
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#f5f7fa',
-    webPreferences: { preload: join(currentDirectory, 'preload.mjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
+    webPreferences: { preload: join(currentDirectory, 'preload.mjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, devTools: true },
+  });
+  // 设置窗口允许通过 F12 切换开发者工具，便于直接检查元素和计算样式。
+  window.webContents.on('before-input-event', (event, input) => {
+    if (input.type !== 'keyDown' || input.key !== 'F12') return;
+    event.preventDefault();
+    window.webContents.toggleDevTools();
   });
   loadView(window, 'settings');
   window.on('close', (event) => {
