@@ -1,0 +1,65 @@
+{
+  "name": "pet-file-shredder",
+  "version": "1.0.0",
+  "description": "Windows 桌宠文件粉碎器",
+  "main": "dist-electron/main.js",
+  "author": "File Shredder",
+  "license": "MIT",
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "build": "vue-tsc --noEmit && vite build && electron-builder --win portable --x64 --ia32",
+    "build:x64": "vue-tsc --noEmit && vite build && electron-builder --win portable --x64",
+    "build:ia32": "vue-tsc --noEmit && vite build && electron-builder --win portable --ia32",
+    "build:dir": "vue-tsc --noEmit && vite build && electron-builder --dir",
+    "typecheck": "vue-tsc --noEmit",
+    "test": "vitest run --config vitest.config.ts"
+  },
+  "dependencies": {
+    "@arco-design/web-vue": "^2.57.0",
+    "electron-drag-window": "^1.0.4",
+    "vue": "^3.5.13"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.5",
+    "@vitejs/plugin-vue": "^5.2.1",
+    "electron": "^33.4.11",
+    "electron-builder": "^25.1.8",
+    "less": "^4.2.2",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.5",
+    "vite-plugin-electron": "^0.29.0",
+    "vite-plugin-electron-renderer": "^0.14.6",
+    "vitest": "^2.1.8",
+    "vue-tsc": "^2.2.0"
+  },
+  "build": {
+    "appId": "com.pettools.fileshredder",
+    "productName": "桌宠文件粉碎器",
+    "asar": true,
+    "directories": {
+      "output": "release"
+    },
+    "files": [
+      "dist-renderer/**/*",
+      "dist-electron/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "src/assets/app-icon.png",
+        "to": "app-icon.png"
+      }
+    ],
+    "win": {
+      "target": [
+        "portable"
+      ],
+      "artifactName": "桌宠文件粉碎器-${version}-${arch}.${ext}",
+      "signAndEditExecutable": false
+    },
+    "portable": {
+      "artifactName": "桌宠文件粉碎器-${version}-${arch}.${ext}"
+    }
+  }
+}
