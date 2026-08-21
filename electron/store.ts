@@ -108,6 +108,14 @@ export class AppStore {
     await this.writeJson(this.logsPath, []);
   }
 
+  async deleteLogs(ids: string[]): Promise<ShredLog[]> {
+    if (ids.length === 0) return this.getLogs();
+    const deletedIds = new Set(ids);
+    const logs = (await this.getLogs()).filter((log) => !deletedIds.has(log.id));
+    await this.writeJson(this.logsPath, logs);
+    return logs;
+  }
+
   async cleanup(): Promise<void> {
     await Promise.all([
       rm(this.settingsPath, { force: true }),

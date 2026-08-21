@@ -40,6 +40,7 @@ contextBridge.exposeInMainWorld('shredderApi', {
   deletePetImage: (id: string) => ipcRenderer.invoke('pet-image:delete', id),
   getLogs: () => ipcRenderer.invoke('logs:get'),
   clearLogs: () => ipcRenderer.invoke('logs:clear'),
+  deleteLogs: (ids: string[]) => ipcRenderer.invoke('logs:delete', ids),
   cleanupAndExit: () => ipcRenderer.invoke('app:cleanup-exit'),
   setPetExpanded: (expanded: boolean) => ipcRenderer.send('pet:expanded', expanded),
   setPetBubbleBounds: (bounds: unknown) => ipcRenderer.send('pet:bubble-bounds', bounds),

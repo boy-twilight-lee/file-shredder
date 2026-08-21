@@ -724,6 +724,10 @@ ipcMain.handle('pet-image:delete', async (_event, id: unknown) => {
 });
 ipcMain.handle('logs:get', () => store.getLogs());
 ipcMain.handle('logs:clear', async () => { await store.clearLogs(); return true; });
+ipcMain.handle('logs:delete', (_event, ids: unknown) => {
+  if (!Array.isArray(ids) || !ids.every((id) => typeof id === 'string')) throw new Error('无效的粉碎记录参数');
+  return store.deleteLogs([...new Set(ids)]);
+});
 ipcMain.handle('app:cleanup-exit', async () => {
   await removeContextMenu();
   applyLoginSetting(false);
