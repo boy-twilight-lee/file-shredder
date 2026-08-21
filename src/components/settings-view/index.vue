@@ -63,6 +63,7 @@ const switchOptions: Array<{ key: SettingBooleanKey; label: string; description:
   { key: 'contextMenuInstalled', label: '资源管理器右键菜单', description: '在文件和文件夹右键菜单中添加“文件粉碎器”', icon: IconMenu },
 ];
 const shredLevelIcons: Record<AppSettings['passes'], Component> = {
+  0: IconDelete,
   3: IconThunderbolt,
   7: IconSafe,
   35: IconStorage,

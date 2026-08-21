@@ -29,7 +29,7 @@ export interface PetBubbleBounds {
 
 export interface AppSettings {
   shortcut: string;
-  passes: 3 | 7 | 35;
+  passes: 0 | 3 | 7 | 35;
   confirmBeforeShred: boolean;
   alwaysOnTop: boolean;
   launchAtLogin: boolean;
@@ -74,7 +74,7 @@ export interface ShredderApi {
   getPathForFile: (file: File) => string;
   chooseTargets: (kind: 'file' | 'directory') => Promise<string[]>;
   prepareShred: (paths: string[]) => Promise<string[]>;
-  shred: (paths: string[], passes: 3 | 7 | 35) => Promise<ShredResult[]>;
+  shred: (paths: string[], passes: 0 | 3 | 7 | 35) => Promise<ShredResult[]>;
   installContextMenu: () => Promise<boolean>;
   removeContextMenu: () => Promise<boolean>;
   getContextMenuStatus: () => Promise<boolean>;
@@ -94,7 +94,7 @@ export interface ShredderApi {
   hideCurrentWindow: () => void;
   notifySettingsReady: () => void;
   onPetState: (callback: (state: 'idle' | 'working' | 'success' | 'failure') => void) => () => void;
-  onPetConfirm: (callback: (paths: string[], passes: 3 | 7 | 35) => void) => () => void;
+  onPetConfirm: (callback: (paths: string[], passes: 0 | 3 | 7 | 35) => void) => () => void;
   onPetProgress: (callback: (progress: ShredProgress) => void) => () => void;
   onPetComplete: (callback: (summary: ShredSummary) => void) => () => void;
   onPetPlacement: (callback: (placement: 'left' | 'right') => void) => () => void;

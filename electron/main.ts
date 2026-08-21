@@ -434,6 +434,9 @@ function createPanelWindow(): BrowserWindow {
     backgroundColor: '#f5f7fa',
     webPreferences: { preload: join(currentDirectory, 'preload.mjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, devTools: true },
   });
+  // Keep the opaque settings panel above the large transparent pet surface to avoid compositor flicker while moving it.
+  window.on('show', () => petWindow?.setAlwaysOnTop(false));
+  window.on('hide', () => petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop));
   // 设置窗口允许通过 F12 切换开发者工具，便于直接检查元素和计算样式。
   window.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown' || input.key !== 'F12') return;
@@ -494,7 +497,7 @@ function requestPetConfirmation(paths: string[]): void {
   petWindow?.webContents.send('pet:confirm', targets, currentSettings.passes);
 }
 
-async function requestShred(paths: string[], passes: 3 | 7 | 35 = currentSettings.passes) {
+async function requestShred(paths: string[], passes: 0 | 3 | 7 | 35 = currentSettings.passes) {
   const targets = [...new Set(paths.filter(existsSync).map((item) => resolve(item)))];
   if (targets.length === 0 || isShredding) return [];
 
@@ -576,14 +579,16 @@ function buildTrayMenu(): Menu {
 }
 
 function refreshTray(): void {
-  tray?.setContextMenu(buildTrayMenu());
+  // macOS otherwise opens a persistent context menu on left click, which would conflict with opening settings.
+  tray?.setContextMenu(process.platform === 'darwin' ? null : buildTrayMenu());
 }
 
 function createTray(): void {
   const trayIcon = nativeImage.createFromPath(getIconPath()).resize({ width: 20, height: 20 });
   tray = new Tray(trayIcon);
   tray.setToolTip('文件粉碎器');
-  tray.on('double-click', showPet);
+  tray.on('click', showSettingsWindow);
+  if (process.platform === 'darwin') tray.on('right-click', () => tray?.popUpContextMenu(buildTrayMenu()));
   refreshTray();
 }
 
@@ -631,7 +636,7 @@ ipcMain.handle('shred:prepare', (_event, paths: unknown) => {
 });
 ipcMain.handle('shred:start', async (_event, paths: unknown, passes: unknown) => {
   if (!Array.isArray(paths) || !paths.every((item) => typeof item === 'string')) throw new Error('无效的路径参数');
-  if (passes !== 3 && passes !== 7 && passes !== 35) throw new Error('无效的清除强度');
+  if (passes !== 0 && passes !== 3 && passes !== 7 && passes !== 35) throw new Error('无效的清除强度');
   return requestShred(paths, passes);
 });
 ipcMain.on('pet:expanded', (_event, expanded: boolean) => setPetExpanded(Boolean(expanded)));
@@ -702,7 +707,7 @@ ipcMain.handle('settings:update', async (_event, patch: Partial<AppSettings>) =>
     await setContextMenuEnabled(safePatch.contextMenuInstalled);
   }
   currentSettings = await store.updateSettings({ ...safePatch, contextMenuAutoInstall: false });
-  petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop);
+  petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop && !settingsWindow?.isVisible());
   if (typeof safePatch.launchAtLogin === 'boolean') applyLoginSetting(safePatch.launchAtLogin);
   notifyPetAppearanceChanged();
   refreshTray();

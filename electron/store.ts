@@ -5,7 +5,7 @@ import type { App } from 'electron';
 
 export interface AppSettings {
   shortcut: string;
-  passes: 3 | 7 | 35;
+  passes: 0 | 3 | 7 | 35;
   confirmBeforeShred: boolean;
   alwaysOnTop: boolean;
   launchAtLogin: boolean;

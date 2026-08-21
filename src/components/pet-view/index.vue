@@ -9,7 +9,7 @@ const petState = ref<'idle' | 'working' | 'success' | 'failure'>('idle');
 const bubbleMode = ref<'hidden' | 'actions' | 'confirm' | 'progress' | 'result' | 'error' | 'drop'>('hidden');
 const bubblePlacement = ref<'left' | 'right'>('left');
 const selectedPaths = ref<string[]>([]);
-const presetPasses = ref<3 | 7 | 35>(3);
+const presetPasses = ref<0 | 3 | 7 | 35>(3);
 const progress = ref<ShredProgress | null>(null);
 const summary = ref<ShredSummary | null>(null);
 const errorMessage = ref('');
@@ -310,6 +310,7 @@ onBeforeUnmount(() => {
 
     <div
       class="pet-view-character"
+      :class="{ 'pet-view-character-working': petState === 'working' }"
       @contextmenu.prevent.stop="openActions"
       @mousedown.right.stop
     >

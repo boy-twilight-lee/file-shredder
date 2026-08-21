@@ -17,6 +17,20 @@ describe('shredPaths', () => {
     await expect(readFile(targetPath)).rejects.toThrow();
   });
 
+  it('deletes without overwriting in zero-pass fast mode', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'file-shredder-fast-'));
+    const targetPath = join(directory, 'temporary.txt');
+    const progress: ShredProgress[] = [];
+    await writeFile(targetPath, 'recoverable data', 'utf8');
+
+    const result = await shredPaths([targetPath], 0, (value) => progress.push(value));
+
+    expect(result).toEqual([{ path: targetPath, success: true }]);
+    expect(progress.some((value) => value.stage === 'overwriting')).toBe(false);
+    expect(progress.some((value) => value.stage === 'removing')).toBe(true);
+    await expect(readFile(targetPath)).rejects.toThrow();
+  });
+
   it('removes nested and empty directories after shredding their files', async () => {
     const workspace = await mkdtemp(join(tmpdir(), 'file-shredder-directory-'));
     const targetDirectory = join(workspace, 'private-folder');

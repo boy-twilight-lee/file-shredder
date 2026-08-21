@@ -27,7 +27,7 @@ contextBridge.exposeInMainWorld('shredderApi', {
   getPathForFile: (file: File) => webUtils.getPathForFile(file),
   chooseTargets: (kind: 'file' | 'directory') => ipcRenderer.invoke('targets:choose', kind),
   prepareShred: (paths: string[]) => ipcRenderer.invoke('shred:prepare', paths),
-  shred: (paths: string[], passes: 3 | 7 | 35) => ipcRenderer.invoke('shred:start', paths, passes),
+  shred: (paths: string[], passes: 0 | 3 | 7 | 35) => ipcRenderer.invoke('shred:start', paths, passes),
   installContextMenu: () => ipcRenderer.invoke('context-menu:install'),
   removeContextMenu: () => ipcRenderer.invoke('context-menu:remove'),
   getContextMenuStatus: () => ipcRenderer.invoke('context-menu:status'),
@@ -51,8 +51,8 @@ contextBridge.exposeInMainWorld('shredderApi', {
     ipcRenderer.on('pet:state', listener);
     return () => ipcRenderer.removeListener('pet:state', listener);
   },
-  onPetConfirm: (callback: (paths: string[], passes: 3 | 7 | 35) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, paths: string[], passes: 3 | 7 | 35) => callback(paths, passes);
+  onPetConfirm: (callback: (paths: string[], passes: 0 | 3 | 7 | 35) => void) => {
+    const listener = (_event: Electron.IpcRendererEvent, paths: string[], passes: 0 | 3 | 7 | 35) => callback(paths, passes);
     ipcRenderer.on('pet:confirm', listener);
     return () => ipcRenderer.removeListener('pet:confirm', listener);
   },

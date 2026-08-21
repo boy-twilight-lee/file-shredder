@@ -32,7 +32,7 @@ function assertSafeTarget(targetPath: string): string {
 }
 
 interface ShredContext {
-  passes: 3 | 7 | 35;
+  passes: 0 | 3 | 7 | 35;
   fileIndex: number;
   fileCount: number;
   startedAt: number;
@@ -56,6 +56,12 @@ function emitProgress(context: ShredContext, filePath: string, completed: number
 async function overwriteFile(filePath: string, context: ShredContext): Promise<void> {
   const stats = await lstat(filePath);
   context.fileIndex += 1;
+  if (context.passes === 0) {
+    // Fast mode intentionally skips overwriting and filename anonymization so the filesystem can delete immediately.
+    emitProgress(context, filePath, 1, 1, 'removing');
+    await rm(filePath, { force: true });
+    return;
+  }
   if (stats.isSymbolicLink()) {
     await rm(filePath);
     return;
@@ -115,7 +121,7 @@ async function countFiles(targetPath: string): Promise<number> {
   }
 }
 
-export async function shredPaths(paths: string[], passes: 3 | 7 | 35, report: (progress: ShredProgress) => void): Promise<Array<{ path: string; success: boolean; error?: string }>> {
+export async function shredPaths(paths: string[], passes: 0 | 3 | 7 | 35, report: (progress: ShredProgress) => void): Promise<Array<{ path: string; success: boolean; error?: string }>> {
   const uniquePaths = [...new Set(paths.map((item) => resolve(item)))];
   const results = [];
   const safePaths = uniquePaths.filter((targetPath) => {

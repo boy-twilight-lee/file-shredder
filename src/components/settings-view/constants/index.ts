@@ -6,6 +6,12 @@ export const RECORD_PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
 
 export const SHRED_LEVEL_OPTIONS = [
   {
+    value: 0,
+    title: '极速删除',
+    badge: '最快',
+    description: '不覆写数据，直接删除文件；删除后的内容可能被恢复。',
+  },
+  {
     value: 3,
     title: '日常清理',
     badge: '推荐',
