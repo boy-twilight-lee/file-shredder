@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 import { onWindowDrag } from 'electron-drag-window/electron';
 import { shredPaths } from './shredder';
 import { AppStore, type AppSettings, type ShredLog, type UploadedPetImage } from './store';
-import { installContextMenu, isContextMenuInstalled, removeContextMenu } from './windows-integration';
+import { installContextMenu, isContextMenuInstalled, removeContextMenu, updateContextMenuIcon } from './windows-integration';
 import { getExplorerSelection } from './windows-selection';
 
 const currentDirectory = fileURLToPath(new URL('.', import.meta.url));
@@ -67,6 +67,12 @@ function getIconPath(): string {
   return app.isPackaged
     ? join(process.resourcesPath, 'app-icon.png')
     : join(app.getAppPath(), 'src', 'assets', 'app-icon.png');
+}
+
+function getWindowsIconPath(): string {
+  return app.isPackaged
+    ? join(process.resourcesPath, 'app-icon.ico')
+    : join(app.getAppPath(), 'src', 'assets', 'app-icon.ico');
 }
 
 function getPetImagesDirectory(): string {
@@ -523,7 +529,7 @@ function queueLaunchPaths(paths: string[]): void {
 
 async function setContextMenuEnabled(enabled: boolean): Promise<void> {
   const succeeded = enabled
-    ? await installContextMenu(getExecutablePath())
+    ? await installContextMenu(getExecutablePath(), getWindowsIconPath())
     : await removeContextMenu();
   if (!succeeded) throw new Error(enabled ? '资源管理器右键菜单安装失败' : '资源管理器右键菜单卸载失败');
   currentSettings = await store.updateSettings({ contextMenuInstalled: enabled, contextMenuAutoInstall: false });
@@ -570,7 +576,10 @@ else {
     }
 
     // 资源管理器右键菜单仅由设置项控制，启动时只同步真实状态。
+    await updateContextMenuIcon(getWindowsIconPath());
     const contextMenuInstalled = await isContextMenuInstalled(getExecutablePath());
+    // 已安装的菜单在启动时重写一次图标值，确保升级图标后立即同步到资源管理器。
+    if (contextMenuInstalled) await installContextMenu(getExecutablePath(), getWindowsIconPath());
     currentSettings = await store.updateSettings({ contextMenuInstalled, contextMenuAutoInstall: false });
     queueLaunchPaths(parseLaunchPaths(process.argv));
   });

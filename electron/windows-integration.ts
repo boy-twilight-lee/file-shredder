@@ -53,13 +53,13 @@ async function addValue(keyPath: string, name: string | null, value: string): Pr
   return result.success;
 }
 
-export async function installContextMenu(executablePath: string): Promise<boolean> {
+export async function installContextMenu(executablePath: string, iconPath: string): Promise<boolean> {
   if (process.platform !== 'win32') return false;
   const command = `"${executablePath}" --shred "%1"`;
   for (const keyPath of MENU_PATHS) {
     const results = await Promise.all([
       addValue(keyPath, null, '桌宠文件强力粉碎'),
-      addValue(keyPath, 'Icon', executablePath),
+      addValue(keyPath, 'Icon', iconPath),
       addValue(keyPath, 'MultiSelectModel', 'Player'),
       addValue(`${keyPath}\\command`, null, command),
     ]);
@@ -77,6 +77,15 @@ export async function isContextMenuInstalled(executablePath: string): Promise<bo
     if (!result.success) return false;
   }
   return true;
+}
+
+export async function updateContextMenuIcon(iconPath: string): Promise<void> {
+  if (process.platform !== 'win32') return;
+  for (const keyPath of MENU_PATHS) {
+    // 仅刷新已经存在的菜单项，避免图标更新意外创建不完整的右键菜单。
+    const queryResult = await runReg(['query', keyPath]);
+    if (queryResult.success) await addValue(keyPath, 'Icon', iconPath);
+  }
 }
 
 export async function removeContextMenu(): Promise<boolean> {

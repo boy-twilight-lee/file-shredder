@@ -51,16 +51,21 @@
         "to": "app-icon.png"
       },
       {
+        "from": "src/assets/app-icon.ico",
+        "to": "app-icon.ico"
+      },
+      {
         "from": "src/assets/pet-templates",
         "to": "pet-templates"
       }
     ],
     "win": {
+      "icon": "src/assets/app-icon.ico",
       "target": [
         "portable"
       ],
       "artifactName": "桌宠文件粉碎器-${version}-${arch}.${ext}",
-      "signAndEditExecutable": false
+      "signAndEditExecutable": true
     },
     "portable": {
       "artifactName": "桌宠文件粉碎器-${version}-${arch}.${ext}"
