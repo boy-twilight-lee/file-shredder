@@ -10,8 +10,6 @@ import { AppStore, type AppSettings, type ShredLog, type UploadedPetImage } from
 import { installContextMenu, isContextMenuInstalled, removeContextMenu, updateContextMenuIcon } from './windows-integration';
 import { getExplorerSelection } from './windows-selection';
 
-if (process.platform === 'win32') app.commandLine.appendSwitch('force-device-scale-factor', '1');
-
 const currentDirectory = fileURLToPath(new URL('.', import.meta.url));
 const store = new AppStore(app);
 let petWindow: BrowserWindow | null = null;
@@ -437,8 +435,6 @@ function createPanelWindow(): BrowserWindow {
     backgroundColor: '#f5f7fa',
     webPreferences: { preload: join(currentDirectory, 'preload.mjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, devTools: true },
   });
-  const diagnosticEvents = ['move', 'moved', 'resize', 'resized'] as const;
-  diagnosticEvents.forEach((eventName) => window.on(eventName, () => console.log('[settings-window]', eventName, window.getBounds())));
   // Keep the opaque settings panel above the large transparent pet surface to avoid compositor flicker while moving it.
   window.on('show', () => petWindow?.setAlwaysOnTop(false));
   window.on('hide', () => petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop));
@@ -464,8 +460,6 @@ function showSettingsWindow(): void {
     settingsWindow.on('closed', () => { settingsWindow = null; });
     return;
   }
-  // Settings are intentionally ephemeral: every appearance starts centered instead of retaining a moved position.
-  settingsWindow.center();
   settingsWindow.show();
   settingsWindow.focus();
 }
@@ -625,7 +619,6 @@ else {
     screen.on('display-removed', restorePetPosition);
     screen.on('display-metrics-changed', restorePetPosition);
     createTray();
-    if (process.env.VITE_DEV_SERVER_URL) showSettingsWindow();
     if (!registerShortcut(currentSettings.shortcut)) {
       currentSettings = await store.updateSettings({ shortcut: 'CommandOrControl+Alt+X' });
       registerShortcut(currentSettings.shortcut);
@@ -812,7 +805,8 @@ ipcMain.handle('app:cleanup-exit', async () => {
 ipcMain.on('window:hide', (event) => BrowserWindow.fromWebContents(event.sender)?.hide());
 ipcMain.on('settings:ready', (event) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) return;
-  showSettingsWindow();
+  settingsWindow.show();
+  settingsWindow.focus();
 });
 app.on('window-all-closed', () => undefined);
 app.on('will-quit', () => {
