@@ -4,6 +4,10 @@ import { promisify } from 'node:util';
 const execFileAsync = promisify(execFile);
 const REGISTRY_ROOT = 'HKCU\\Software\\Classes';
 const MENU_PATHS = [
+  `${REGISTRY_ROOT}\\*\\shell\\FileShredder`,
+  `${REGISTRY_ROOT}\\Directory\\shell\\FileShredder`,
+];
+const LEGACY_MENU_PATHS = [
   `${REGISTRY_ROOT}\\*\\shell\\PetFileShredder`,
   `${REGISTRY_ROOT}\\Directory\\shell\\PetFileShredder`,
 ];
@@ -53,25 +57,9 @@ async function addValue(keyPath: string, name: string | null, value: string): Pr
   return result.success;
 }
 
-export async function installContextMenu(executablePath: string, iconPath: string): Promise<boolean> {
-  if (process.platform !== 'win32') return false;
-  const command = `"${executablePath}" --shred "%1"`;
-  for (const keyPath of MENU_PATHS) {
-    const results = await Promise.all([
-      addValue(keyPath, null, '桌宠文件强力粉碎'),
-      addValue(keyPath, 'Icon', iconPath),
-      addValue(keyPath, 'MultiSelectModel', 'Player'),
-      addValue(`${keyPath}\\command`, null, command),
-    ]);
-    if (results.some((success) => !success)) return false;
-  }
-  return isContextMenuInstalled(executablePath);
-}
-
-export async function isContextMenuInstalled(executablePath: string): Promise<boolean> {
-  if (process.platform !== 'win32') return false;
+async function hasRegisteredMenu(menuPaths: string[], executablePath: string): Promise<boolean> {
   const expectedCommand = `"${executablePath}" --shred "%1"`;
-  for (const keyPath of MENU_PATHS) {
+  for (const keyPath of menuPaths) {
     // 使用 reg.exe 的精确数据匹配，避免解析受 Windows 控制台代码页影响的中文输出。
     const result = await runReg(['query', `${keyPath}\\command`, '/ve', '/f', expectedCommand, '/e']);
     if (!result.success) return false;
@@ -79,18 +67,8 @@ export async function isContextMenuInstalled(executablePath: string): Promise<bo
   return true;
 }
 
-export async function updateContextMenuIcon(iconPath: string): Promise<void> {
-  if (process.platform !== 'win32') return;
-  for (const keyPath of MENU_PATHS) {
-    // 仅刷新已经存在的菜单项，避免图标更新意外创建不完整的右键菜单。
-    const queryResult = await runReg(['query', keyPath]);
-    if (queryResult.success) await addValue(keyPath, 'Icon', iconPath);
-  }
-}
-
-export async function removeContextMenu(): Promise<boolean> {
-  if (process.platform !== 'win32') return false;
-  for (const keyPath of MENU_PATHS) {
+async function removeMenuPaths(menuPaths: string[]): Promise<boolean> {
+  for (const keyPath of menuPaths) {
     const result = await runReg(['delete', keyPath, '/f']);
     // reg.exe 退出码 1 也可能只是键已不存在；查询确认即可保持幂等。
     if (!result.success) {
@@ -99,4 +77,41 @@ export async function removeContextMenu(): Promise<boolean> {
     }
   }
   return true;
+}
+
+export async function installContextMenu(executablePath: string, iconPath: string): Promise<boolean> {
+  if (process.platform !== 'win32') return false;
+  const command = `"${executablePath}" --shred "%1"`;
+  for (const keyPath of MENU_PATHS) {
+    const results = await Promise.all([
+      addValue(keyPath, null, '文件粉碎器'),
+      addValue(keyPath, 'Icon', iconPath),
+      addValue(keyPath, 'MultiSelectModel', 'Player'),
+      addValue(`${keyPath}\\command`, null, command),
+    ]);
+    if (results.some((success) => !success)) return false;
+  }
+  // 新菜单写入成功后再删除旧品牌键，避免升级期间丢失右键菜单。
+  if (!await removeMenuPaths(LEGACY_MENU_PATHS)) return false;
+  return isContextMenuInstalled(executablePath);
+}
+
+export async function isContextMenuInstalled(executablePath: string): Promise<boolean> {
+  if (process.platform !== 'win32') return false;
+  return await hasRegisteredMenu(MENU_PATHS, executablePath)
+    || await hasRegisteredMenu(LEGACY_MENU_PATHS, executablePath);
+}
+
+export async function updateContextMenuIcon(iconPath: string): Promise<void> {
+  if (process.platform !== 'win32') return;
+  for (const keyPath of [...MENU_PATHS, ...LEGACY_MENU_PATHS]) {
+    // 仅刷新已经存在的菜单项，避免图标更新意外创建不完整的右键菜单。
+    const queryResult = await runReg(['query', keyPath]);
+    if (queryResult.success) await addValue(keyPath, 'Icon', iconPath);
+  }
+}
+
+export async function removeContextMenu(): Promise<boolean> {
+  if (process.platform !== 'win32') return false;
+  return removeMenuPaths([...MENU_PATHS, ...LEGACY_MENU_PATHS]);
 }

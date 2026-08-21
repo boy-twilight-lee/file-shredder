@@ -1,14 +1,14 @@
-# 桌宠文件粉碎器
+# 文件粉碎器
 
 面向 Windows 10 / 11 的 Electron 文件粉碎工具。桌宠形象来自用户提供照片的人物抠图；桌宠窗口保持透明、无边框、无文字，只显示人物。界面使用 Vue 3、TypeScript、Arco Design Vue，并加载用户提供的 `styles.zip` 主题资源。
 
 ## 使用方式
 
 - 右键桌宠：选择文件、选择文件夹、输入指定路径、打开设置与日志、安装或卸载资源管理器菜单、退出。
-- 右键系统托盘图标：提供与桌宠相同的操作，并可显示或隐藏桌宠。
+- 右键系统托盘图标：可显示或隐藏桌宠、打开设置，或选择“关闭”完全退出程序。
 - 拖放：把文件或文件夹拖到人物形象上即可粉碎。
 - 全局快捷键：默认 `Ctrl+Shift+Delete`，优先读取资源管理器当前选中项，读取不到时尝试剪贴板路径。
-- Windows 资源管理器：右键文件或文件夹，选择“桌宠文件强力粉碎”。首次运行默认自动安装，无需管理员权限。
+- Windows 资源管理器：右键文件或文件夹，选择“文件粉碎器”。首次运行默认自动安装，无需管理员权限。
 
 设置与日志使用独立窗口，程序启动时默认不打开。快捷键、覆写次数、粉碎确认、桌宠置顶、吸边、自启和资源管理器菜单均可在设置窗口调整。
 
@@ -17,8 +17,8 @@
 本项目使用当前用户注册表 Shell 命令扩展：
 
 ```text
-HKCU\Software\Classes\*\shell\PetFileShredder
-HKCU\Software\Classes\Directory\shell\PetFileShredder
+HKCU\Software\Classes\*\shell\FileShredder
+HKCU\Software\Classes\Directory\shell\FileShredder
 ```
 
 Windows 10 会直接显示该菜单。Windows 11 的经典 Shell 扩展通常位于“显示更多选项”中，这是系统限制。若要进入 Windows 11 新版一级右键菜单，需要另行开发和签名原生 COM `IExplorerCommand` DLL，单纯 Electron/注册表命令无法实现。

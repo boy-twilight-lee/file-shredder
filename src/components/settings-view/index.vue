@@ -1,8 +1,24 @@
 <script setup lang="ts">
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Message, Modal } from '@arco-design/web-vue';
-import { IconCheck, IconDelete, IconPlus } from '@arco-design/web-vue/es/icon';
+import {
+  IconApps,
+  IconCheck,
+  IconDelete,
+  IconHistory,
+  IconImage,
+  IconMenu,
+  IconPlus,
+  IconPoweroff,
+  IconPushpin,
+  IconSafe,
+  IconSettings,
+  IconStorage,
+  IconThunderbolt,
+} from '@arco-design/web-vue/es/icon';
+import type { Component } from 'vue';
 import type { AppSettings, PetImageTemplate, SettingBooleanKey, ShredLog } from '@/type';
+import { PET_SIZE_SAVE_DELAY_MS, SHRED_LEVEL_OPTIONS } from './constants';
 
 const defaultSettings: AppSettings = {
   shortcut: 'CommandOrControl+Shift+Delete',
@@ -25,11 +41,16 @@ const petImageTemplates = ref<PetImageTemplate[]>([]);
 const logs = ref<ShredLog[]>([]);
 const isLoading = ref(true);
 const isChoosingPetImage = ref(false);
-const switchOptions: Array<{ key: SettingBooleanKey; label: string; description: string }> = [
-  { key: 'alwaysOnTop', label: '桌宠始终置顶', description: '让人物保持在普通窗口上方' },
-  { key: 'launchAtLogin', label: '开机自动启动', description: '登录 Windows 后在后台启动并启用快捷键' },
-  { key: 'contextMenuInstalled', label: '资源管理器右键菜单', description: '在文件和文件夹右键菜单中添加“桌宠文件强力粉碎”' },
+const switchOptions: Array<{ key: SettingBooleanKey; label: string; description: string; icon: Component }> = [
+  { key: 'alwaysOnTop', label: '桌宠始终置顶', description: '让人物保持在普通窗口上方', icon: IconPushpin },
+  { key: 'launchAtLogin', label: '开机自动启动', description: '登录 Windows 后在后台启动程序', icon: IconPoweroff },
+  { key: 'contextMenuInstalled', label: '资源管理器右键菜单', description: '在文件和文件夹右键菜单中添加“文件粉碎器”', icon: IconMenu },
 ];
+const shredLevelIcons: Record<AppSettings['passes'], Component> = {
+  3: IconThunderbolt,
+  7: IconSafe,
+  35: IconStorage,
+};
 const disposers: Array<() => void> = [];
 let petSizeSaveTimer: ReturnType<typeof setTimeout> | undefined;
 
@@ -59,12 +80,7 @@ async function updateBooleanSetting(key: SettingBooleanKey, value: boolean | str
   await saveSettingsPatch({ [key]: Boolean(value) });
 }
 
-async function updateShortcut(value: string): Promise<void> {
-  await saveSettingsPatch({ shortcut: value.trim() });
-}
-
-async function updatePasses(value: string | number | boolean): Promise<void> {
-  if (value !== 3 && value !== 7 && value !== 35) return;
+async function updatePasses(value: AppSettings['passes']): Promise<void> {
   await saveSettingsPatch({ passes: value });
 }
 
@@ -72,10 +88,10 @@ function updatePetSize(value: number | [number, number]): void {
   if (Array.isArray(value)) return;
   settings.value.petSize = value;
   clearTimeout(petSizeSaveTimer);
-  // 连续拖动滑块时合并磁盘写入，同时保持界面预览即时响应。
+  // 连续拖动时即时更新数值，停止操作后再合并为一次磁盘写入。
   petSizeSaveTimer = setTimeout(async () => {
     await saveSettingsPatch({ petSize: value });
-  }, 120);
+  }, PET_SIZE_SAVE_DELAY_MS);
 }
 
 async function choosePetImage(): Promise<void> {
@@ -146,11 +162,13 @@ onBeforeUnmount(() => {
 
 <template>
   <main class="settings-view">
-    <a-spin :loading="isLoading" class="settings-view-content">
-      <a-tabs default-active-key="general" type="rounded">
-        <a-tab-pane key="general" title="常规设置">
+    <a-scrollbar class="settings-view-scrollbar-container" outer-class="settings-view-scrollbar" disable-horizontal>
+      <a-spin :loading="isLoading" class="settings-view-content">
+        <a-tabs class="settings-view-tabs" default-active-key="general" type="rounded">
+        <a-tab-pane key="general">
+          <template #title><icon-apps />常规设置</template>
           <section class="settings-view-card">
-            <h2>桌宠形象</h2>
+            <h2 class="settings-view-card-heading"><span><icon-image /></span>桌宠形象</h2>
             <div class="settings-view-pet-template-list">
               <button
                 v-for="item in petImageTemplates"
@@ -177,39 +195,49 @@ onBeforeUnmount(() => {
                 <span>桌宠大小</span>
                 <strong>{{ settings.petSize }} px</strong>
               </div>
-              <a-slider :model-value="settings.petSize" :min="120" :max="320" :step="4" @change="updatePetSize" />
+              <a-slider :model-value="settings.petSize" :min="100" :max="320" :step="4" @change="updatePetSize" />
               <p>上传透明背景 PNG 后会加入列表并自动设为当前形象。</p>
             </div>
           </section>
 
           <section class="settings-view-card">
-            <h2>粉碎行为</h2>
-            <a-form :model="settings" layout="vertical">
-              <a-form-item label="全局快捷键" extra="使用 Electron Accelerator 格式，例如 CommandOrControl+Shift+Delete">
-                <a-input v-model="settings.shortcut" size="large" @change="updateShortcut" />
-              </a-form-item>
-              <a-form-item label="随机数据覆写等级">
-                <a-radio-group v-model="settings.passes" type="button" @change="updatePasses">
-                  <a-radio :value="3">3 次 · 推荐</a-radio>
-                  <a-radio :value="7">7 次 · 增强</a-radio>
-                  <a-radio :value="35">35 次 · 极慢</a-radio>
-                </a-radio-group>
-              </a-form-item>
-            </a-form>
+            <h2 class="settings-view-card-heading"><span><icon-safe /></span>选择文件清理强度</h2>
+            <p class="settings-view-card-description">覆写次数越多，处理时间越长。普通使用选择“日常清理”即可。</p>
+            <div class="settings-view-shred-level-list" role="radiogroup" aria-label="文件清理强度">
+              <button
+                v-for="item in SHRED_LEVEL_OPTIONS"
+                :key="item.value"
+                type="button"
+                role="radio"
+                class="settings-view-shred-level"
+                :class="{ 'settings-view-shred-level-active': settings.passes === item.value }"
+                :aria-checked="settings.passes === item.value"
+                @click="updatePasses(item.value)"
+              >
+                <span class="settings-view-shred-level-icon"><component :is="shredLevelIcons[item.value]" /></span>
+                <span class="settings-view-shred-level-content">
+                  <span class="settings-view-shred-level-title"><strong>{{ item.title }}</strong><em>{{ item.badge }}</em></span>
+                  <small>{{ item.description }}</small>
+                </span>
+                <span v-if="settings.passes === item.value" class="settings-view-shred-level-check"><icon-check /></span>
+              </button>
+            </div>
           </section>
 
           <section class="settings-view-card">
-            <h2>桌宠与系统</h2>
+            <h2 class="settings-view-card-heading"><span><icon-settings /></span>桌宠与系统</h2>
             <div v-for="item in switchOptions" :key="item.key" class="settings-view-switch-row">
-              <div><strong>{{ item.label }}</strong><span>{{ item.description }}</span></div>
+              <span class="settings-view-switch-icon"><component :is="item.icon" /></span>
+              <div class="settings-view-switch-content"><strong>{{ item.label }}</strong><span>{{ item.description }}</span></div>
               <a-switch :model-value="settings[item.key]" @change="updateBooleanSetting(item.key, $event)" />
             </div>
           </section>
         </a-tab-pane>
 
-        <a-tab-pane key="logs" title="粉碎日志">
+        <a-tab-pane key="logs">
+          <template #title><icon-history />粉碎日志</template>
           <section class="settings-view-card">
-            <div class="settings-view-card-title"><h2>最近记录</h2><a-button type="text" status="danger" @click="clearLogs">清空日志</a-button></div>
+            <div class="settings-view-card-title"><h2 class="settings-view-card-heading"><span><icon-history /></span>最近记录</h2><a-button type="text" status="danger" @click="clearLogs"><template #icon><icon-delete /></template>清空日志</a-button></div>
             <a-list :data="logs" :max-height="390" size="small">
               <template #item="{ item }">
                 <a-list-item>
@@ -220,10 +248,11 @@ onBeforeUnmount(() => {
               <template #empty>还没有粉碎记录</template>
             </a-list>
           </section>
-          <a-button type="text" status="danger" @click="cleanupAndExit">清理全部应用数据并退出</a-button>
+          <a-button type="text" status="danger" @click="cleanupAndExit"><template #icon><icon-delete /></template>清理全部应用数据并退出</a-button>
         </a-tab-pane>
-      </a-tabs>
-    </a-spin>
+        </a-tabs>
+      </a-spin>
+    </a-scrollbar>
   </main>
 </template>
 
@@ -233,35 +262,87 @@ onBeforeUnmount(() => {
 
 .settings-view {
   height: 100vh;
-  padding: 20px 38px 42px;
-  overflow-x: hidden;
-  overflow-y: auto;
+  overflow: hidden;
   color: #0d1014;
 
-  .settings-view-content { display: block; min-height: 470px; padding-bottom: 8px; }
-  .settings-view-card {
-    margin-bottom: 16px;
-    padding: 22px;
-    border: 1px solid #e7ebf0;
-    border-radius: 14px;
-    background: #fff;
-    box-shadow: 0 7px 24px rgba(30, 55, 90, 0.05);
-    h2 { margin: 0 0 18px; font-size: 15px; font-weight: 600; }
+  .settings-view-scrollbar {
+    height: 100%;
+    // 扩大右侧可拖动区域，同时保持视觉上的细滚动条。
+    :deep(.arco-scrollbar-track-direction-vertical) { right: 0; width: 14px; }
+    :deep(.arco-scrollbar-thumb-direction-vertical .arco-scrollbar-thumb-bar) { width: 6px; margin: 0 4px; border-radius: 6px; }
   }
+  :deep(.settings-view-scrollbar-container) { height: 100%; overflow-x: hidden; overflow-y: auto; }
+  .settings-view-content { display: block; min-height: 470px; padding: 10px 18px 18px 16px; }
+  .settings-view-tabs {
+    overflow: visible;
+    :deep(.arco-tabs-nav) {
+      position: sticky;
+      z-index: 5;
+      top: 0;
+      margin: 0 0 10px;
+      padding: 6px;
+      border: 1px solid #e7ebf0;
+      border-radius: 12px;
+      background: rgba(255, 255, 255, 0.96);
+      box-shadow: 0 4px 14px rgba(30, 55, 90, 0.05);
+    }
+    :deep(.arco-tabs-content) { padding-top: 0; }
+  }
+  .settings-view-card {
+    margin-bottom: 10px;
+    padding: 16px;
+    border: 1px solid #e7ebf0;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 5px 18px rgba(30, 55, 90, 0.045);
+    h2 { margin: 0 0 12px; font-size: 15px; font-weight: 600; }
+  }
+  .settings-view-card-heading { display: flex; align-items: center; gap: 8px; }
+  .settings-view-card-heading > span,
+  .settings-view-switch-icon,
+  .settings-view-shred-level-icon { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; color: #3564ff; background: #eef3ff; }
+  .settings-view-card-heading > span { width: 28px; height: 28px; border-radius: 8px; font-size: 15px; }
+  .settings-view-card-description { margin: -4px 0 12px; color: #79828f; font-size: 12px; line-height: 1.6; }
+
+  .settings-view-shred-level-list { display: grid; gap: 8px; }
+  .settings-view-shred-level {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #e7ebf0;
+    border-radius: 11px;
+    color: #0d1014;
+    text-align: left;
+    background: #f8fafc;
+    cursor: pointer;
+    transition: border-color 160ms ease, background-color 160ms ease, box-shadow 160ms ease;
+    &:hover { border-color: #bed2ff; background: #f4f7ff; }
+  }
+  .settings-view-shred-level-active { border-color: #3564ff; background: #f2f5ff; box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.09); }
+  .settings-view-shred-level-icon { width: 34px; height: 34px; border-radius: 10px; font-size: 17px; }
+  .settings-view-shred-level-content { display: grid; flex: 1; min-width: 0; gap: 3px; small { color: #79828f; font-size: 11px; line-height: 1.5; } }
+  .settings-view-shred-level-title { display: flex; align-items: center; gap: 7px; strong { font-size: 13px; font-weight: 600; } em { padding: 1px 6px; border-radius: 8px; color: #3564ff; font-size: 10px; font-style: normal; background: #e8efff; } }
+  .settings-view-shred-level-check { display: inline-flex; flex: 0 0 auto; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; background: #3564ff; }
 
   .settings-view-switch-row {
     display: flex;
     align-items: center;
     justify-content: space-between;
-    padding: 13px 0;
-    border-bottom: 1px solid #f2f5fa;
-    &:last-child { border-bottom: 0; }
-    strong, span { display: block; }
-    strong { font-size: 14px; font-weight: 500; }
-    span { margin-top: 3px; color: #99a1ad; font-size: 12px; }
+    gap: 10px;
+    margin-top: 8px;
+    padding: 10px 12px;
+    border: 1px solid #edf1f5;
+    border-radius: 10px;
+    background: #f8fafc;
+    &:first-of-type { margin-top: 0; }
   }
+  .settings-view-switch-icon { width: 32px; height: 32px; margin-top: 0 !important; border-radius: 9px; font-size: 16px; }
+  .settings-view-switch-content { flex: 1; min-width: 0; strong, span { display: block; } strong { font-size: 14px; font-weight: 500; } span { margin-top: 3px; color: #99a1ad; font-size: 12px; } }
 
-  .settings-view-pet-template-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; }
+  .settings-view-pet-template-list { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 8px; }
   .settings-view-pet-template {
     position: relative;
     display: flex;
@@ -269,10 +350,10 @@ onBeforeUnmount(() => {
     gap: 7px;
     align-items: center;
     min-width: 0;
-    height: 144px;
+    height: 136px;
     padding: 8px;
     border: 1px solid #e7ebf0;
-    border-radius: 10px;
+    border-radius: 12px;
     color: #474f59;
     font: inherit;
     background: #f8fafc;
@@ -287,9 +368,9 @@ onBeforeUnmount(() => {
     align-items: center;
     justify-content: center;
     width: 100%;
-    height: 104px;
+    height: 96px;
     overflow: hidden;
-    border-radius: 7px;
+    border-radius: 9px;
     background: linear-gradient(45deg, #edf0f4 25%, transparent 25%, transparent 75%, #edf0f4 75%) 0 0 / 12px 12px, linear-gradient(45deg, #edf0f4 25%, transparent 25%, transparent 75%, #edf0f4 75%) 6px 6px / 12px 12px, #fff;
     img { width: 100%; height: 100%; object-fit: contain; }
   }
@@ -297,13 +378,16 @@ onBeforeUnmount(() => {
   .settings-view-pet-template-selected { position: absolute; top: 5px; left: 5px; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; background: #3564ff; box-shadow: 0 2px 8px rgba(53, 100, 255, 0.3); }
   .settings-view-pet-template-delete { position: absolute; top: 5px; right: 5px; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; color: #86909c; background: rgba(255, 255, 255, 0.9); &:hover { color: #f53f3f; background: #fff; } }
   .settings-view-pet-template-upload { justify-content: center; color: #3564ff; border-style: dashed; background: #fff; svg { font-size: 24px; } span { font-size: 12px; } }
-  .settings-view-pet-controls { margin-top: 18px; p { margin: 7px 0 0; color: #99a1ad; font-size: 12px; } }
+  .settings-view-pet-controls { margin-top: 14px; p { margin: 6px 0 0; color: #99a1ad; font-size: 12px; } }
   .settings-view-pet-size-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; color: #474f59; font-size: 13px; strong { color: #3564ff; } }
   .settings-view-card-title { display: flex; align-items: center; justify-content: space-between; h2 { margin: 0; } }
 
+  :deep(.arco-list) { overflow: hidden; border-radius: 10px; }
   :deep(.arco-input-wrapper),
   :deep(.arco-btn),
-  :deep(.arco-radio-button),
-  :deep(.arco-tabs-tab) { border-radius: 8px; }
+  :deep(.arco-tag),
+  :deep(.arco-popconfirm),
+  :deep(.arco-tabs-tab) { border-radius: 9px; }
+  :deep(.arco-tabs-tab-title) { display: inline-flex; align-items: center; gap: 6px; }
 }
 </style>

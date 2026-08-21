@@ -9,6 +9,18 @@ window.addEventListener('DOMContentLoaded', () => {
     dragMode: ElectronDragWindow.DragMode.Appoint,
     appointClassNames: ['pet-view-character'],
   });
+  let pendingPointer: { x: number; y: number } | null = null;
+  let pointerFrame = 0;
+  // Windows 在点击穿透时仍会转发鼠标移动，每帧最多同步一次即可替代主进程常驻轮询。
+  window.addEventListener('mousemove', (event) => {
+    pendingPointer = { x: event.clientX, y: event.clientY };
+    if (pointerFrame) return;
+    pointerFrame = requestAnimationFrame(() => {
+      if (pendingPointer) ipcRenderer.send('pet:pointer-move', pendingPointer);
+      pendingPointer = null;
+      pointerFrame = 0;
+    });
+  }, { passive: true });
 });
 
 contextBridge.exposeInMainWorld('shredderApi', {

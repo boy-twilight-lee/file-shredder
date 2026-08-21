@@ -1,9 +1,9 @@
 {
-  "name": "pet-file-shredder",
+  "name": "file-shredder",
   "version": "1.0.0",
-  "description": "Windows 桌宠文件粉碎器",
+  "description": "Windows 文件粉碎器",
   "main": "dist-electron/main.js",
-  "author": "File Shredder",
+  "author": "文件粉碎器",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -34,8 +34,8 @@
     "vue-tsc": "^2.2.0"
   },
   "build": {
-    "appId": "com.pettools.fileshredder",
-    "productName": "桌宠文件粉碎器",
+    "appId": "com.filetools.fileshredder",
+    "productName": "文件粉碎器",
     "asar": true,
     "directories": {
       "output": "release"
@@ -64,11 +64,11 @@
       "target": [
         "portable"
       ],
-      "artifactName": "桌宠文件粉碎器-${version}-${arch}.${ext}",
+      "artifactName": "文件粉碎器-${version}-${arch}.${ext}",
       "signAndEditExecutable": true
     },
     "portable": {
-      "artifactName": "桌宠文件粉碎器-${version}-${arch}.${ext}"
+      "artifactName": "文件粉碎器-${version}-${arch}.${ext}"
     }
   }
 }

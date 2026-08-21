@@ -19,9 +19,7 @@ let currentSettings: AppSettings;
 let isQuitting = false;
 let isShredding = false;
 let launchTimer: NodeJS.Timeout | undefined;
-let petHitTestTimer: NodeJS.Timeout | undefined;
 let petFadeTimer: NodeJS.Timeout | undefined;
-let petPositionSaveTimer: NodeJS.Timeout | undefined;
 let queuedLaunchPaths: string[] = [];
 type PetBubblePlacement = 'left' | 'right';
 interface PetImageTemplate {
@@ -41,7 +39,7 @@ const BUILT_IN_PET_IMAGES = [
 // 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
 const PET_WINDOW_SIZE = { width: 960, height: 1160 };
 const PET_BUBBLE_SIZE = { width: 288, height: 340 };
-const PET_SIZE_MIN = 120;
+const PET_SIZE_MIN = 100;
 const PET_SIZE_MAX = 320;
 const PET_FADE_DURATION_MS = 180;
 let petBubblePlacement: PetBubblePlacement = 'left';
@@ -49,6 +47,8 @@ let isPetExpanded = false;
 let isPetWindowMouseThrough = false;
 let isPetDragging = false;
 let petBubbleBounds: Electron.Rectangle | null = null;
+let petDragStartPosition: Electron.Point | null = null;
+let petCharacterSizeCache: { imagePath: string; width: number; size: Electron.Size } | null = null;
 
 // vite-plugin-electron 会在 preload 重新构建后通知主进程，刷新窗口即可载入新桥接代码。
 if (process.env.VITE_DEV_SERVER_URL) {
@@ -220,9 +220,16 @@ function hidePet(): void {
 
 function getPetCharacterSize(): Electron.Size {
   const width = Math.min(PET_SIZE_MAX, Math.max(PET_SIZE_MIN, Math.round(currentSettings.petSize)));
-  const activeImage = nativeImage.createFromPath(getActivePetImagePath());
+  const imagePath = getActivePetImagePath();
+  if (petCharacterSizeCache?.imagePath === imagePath && petCharacterSizeCache.width === width) {
+    return petCharacterSizeCache.size;
+  }
+  // 图片或桌宠尺寸未变化时复用计算结果，避免命中检测反复读取和解码 PNG。
+  const activeImage = nativeImage.createFromPath(imagePath);
   const imageSize = !activeImage.isEmpty() ? activeImage.getSize() : { width: 594, height: 840 };
-  return { width, height: Math.round(width * imageSize.height / imageSize.width) };
+  const size = { width, height: Math.round(width * imageSize.height / imageSize.width) };
+  petCharacterSizeCache = { imagePath, width, size };
+  return size;
 }
 
 function getPetWindowSize(): Electron.Size {
@@ -287,24 +294,11 @@ async function savePetPosition(): Promise<void> {
   });
 }
 
-function schedulePetPositionSave(delay = 250): void {
-  clearTimeout(petPositionSaveTimer);
-  petPositionSaveTimer = setTimeout(async () => {
-    petPositionSaveTimer = undefined;
-    try {
-      await savePetPosition();
-    } catch (error) {
-      console.error('保存桌宠位置失败', error);
-    }
-  }, delay);
-}
-
 function restorePetPosition(): void {
   if (!petWindow || petWindow.isDestroyed()) return;
   const [width, height] = petWindow.getSize();
   const position = getRestoredPetWindowPosition(getPetCharacterSize(), { width, height });
   petWindow.setPosition(position.x, position.y);
-  schedulePetPositionSave();
 }
 
 function getLocalPetBubbleBounds(): Electron.Rectangle {
@@ -334,11 +328,14 @@ function expandBounds(bounds: Electron.Rectangle, padding: number): Electron.Rec
   };
 }
 
-function updatePetWindowMouseThrough(): void {
-  if (!petWindow || isPetDragging) return;
-  const windowBounds = petWindow.getBounds();
-  const cursor = screen.getCursorScreenPoint();
-  const localCursor = { x: cursor.x - windowBounds.x, y: cursor.y - windowBounds.y };
+function updatePetWindowMouseThrough(pointer?: Electron.Point): void {
+  if (!petWindow || petWindow.isDestroyed() || !petWindow.isVisible() || isPetDragging) return;
+  let localCursor = pointer;
+  if (!localCursor) {
+    const windowBounds = petWindow.getBounds();
+    const cursor = screen.getCursorScreenPoint();
+    localCursor = { x: cursor.x - windowBounds.x, y: cursor.y - windowBounds.y };
+  }
   const bubbleBounds = petBubbleBounds ?? getLocalPetBubbleBounds();
   const isInteractive = containsPoint(expandBounds(getLocalPetCharacterBounds(), 10), localCursor)
     || (isPetExpanded && containsPoint(expandBounds(bubbleBounds, 6), localCursor));
@@ -391,10 +388,6 @@ function createPetWindow(): void {
   // Windows 合成器偶尔会在首帧回退为不透明底色，加载后再次明确透明色。
   petWindow.webContents.once('did-finish-load', () => petWindow?.setBackgroundColor('#00000000'));
   loadView(petWindow, 'pet');
-  petHitTestTimer = setInterval(updatePetWindowMouseThrough, 8);
-  petWindow.on('move', () => schedulePetPositionSave());
-  petWindow.on('resize', () => schedulePetPositionSave());
-  schedulePetPositionSave();
   petWindow.on('close', (event) => {
     if (!isQuitting) {
       event.preventDefault();
@@ -402,12 +395,9 @@ function createPetWindow(): void {
     }
   });
   petWindow.on('closed', () => {
-    clearInterval(petHitTestTimer);
     clearInterval(petFadeTimer);
-    clearTimeout(petPositionSaveTimer);
-    petHitTestTimer = undefined;
     petFadeTimer = undefined;
-    petPositionSaveTimer = undefined;
+    petDragStartPosition = null;
     petWindow = null;
   });
 }
@@ -418,7 +408,7 @@ function createPanelWindow(): BrowserWindow {
     height: 680,
     minWidth: 560,
     minHeight: 560,
-    title: '桌宠文件粉碎器 · 设置',
+    title: '文件粉碎器 · 设置',
     icon: getIconPath(),
     show: false,
     autoHideMenuBar: true,
@@ -499,7 +489,7 @@ async function requestShred(paths: string[], passes: 3 | 7 | 35 = currentSetting
     return results;
   } finally {
     isShredding = false;
-    tray?.setToolTip('桌宠文件粉碎器');
+    tray?.setToolTip('文件粉碎器');
     setTimeout(() => petWindow?.webContents.send('pet:state', 'idle'), 1800);
     settingsWindow?.webContents.send('logs:updated');
   }
@@ -543,6 +533,12 @@ function buildTrayMenu(): Menu {
       else showPet();
     } },
     { label: '设置', click: showSettingsWindow },
+    { type: 'separator' },
+    { label: '关闭', click: () => {
+      // 托盘关闭表示退出程序，保留用户设置和已安装的系统集成。
+      isQuitting = true;
+      app.quit();
+    } },
   ]);
 }
 
@@ -553,7 +549,7 @@ function refreshTray(): void {
 function createTray(): void {
   const trayIcon = nativeImage.createFromPath(getIconPath()).resize({ width: 20, height: 20 });
   tray = new Tray(trayIcon);
-  tray.setToolTip('桌宠文件粉碎器');
+  tray.setToolTip('文件粉碎器');
   tray.on('double-click', showPet);
   refreshTray();
 }
@@ -619,17 +615,35 @@ ipcMain.on('pet:bubble-bounds', (_event, bounds: unknown) => {
   };
   updatePetWindowMouseThrough();
 });
+ipcMain.on('pet:pointer-move', (event, pointer: unknown) => {
+  if (!petWindow || event.sender !== petWindow.webContents || !pointer || typeof pointer !== 'object') return;
+  const candidate = pointer as Partial<Electron.Point>;
+  if (![candidate.x, candidate.y].every(Number.isFinite)) return;
+  updatePetWindowMouseThrough({ x: candidate.x as number, y: candidate.y as number });
+});
 ipcMain.on('ELECTRON_DRAG_START', (event) => {
   if (!petWindow || event.sender !== petWindow.webContents) return;
   isPetDragging = true;
+  const [x, y] = petWindow.getPosition();
+  petDragStartPosition = { x, y };
   isPetWindowMouseThrough = false;
   petWindow.setIgnoreMouseEvents(false);
 });
-ipcMain.on('ELECTRON_DRAG_OVER', (event) => {
+ipcMain.on('ELECTRON_DRAG_OVER', async (event) => {
   if (!petWindow || event.sender !== petWindow.webContents) return;
   isPetDragging = false;
   updatePetWindowMouseThrough();
-  schedulePetPositionSave(0);
+  const [x, y] = petWindow.getPosition();
+  const hasMoved = Boolean(petDragStartPosition
+    && (petDragStartPosition.x !== x || petDragStartPosition.y !== y));
+  petDragStartPosition = null;
+  if (!hasMoved) return;
+  // 只在一次真实拖拽结束后持久化，程序恢复位置和普通窗口事件不再写磁盘。
+  try {
+    await savePetPosition();
+  } catch (error) {
+    console.error('保存桌宠位置失败', error);
+  }
 });
 ipcMain.handle('context-menu:install', async () => { await setContextMenuEnabled(true); return true; });
 ipcMain.handle('context-menu:remove', async () => { await setContextMenuEnabled(false); return true; });
@@ -722,8 +736,6 @@ ipcMain.on('window:hide', (event) => BrowserWindow.fromWebContents(event.sender)
 app.on('window-all-closed', () => undefined);
 app.on('will-quit', () => {
   clearTimeout(launchTimer);
-  clearTimeout(petPositionSaveTimer);
-  clearInterval(petHitTestTimer);
   clearInterval(petFadeTimer);
   globalShortcut.unregisterAll();
 });
