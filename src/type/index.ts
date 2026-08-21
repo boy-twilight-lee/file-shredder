@@ -91,6 +91,7 @@ export interface ShredderApi {
   setPetExpanded: (expanded: boolean) => void;
   setPetBubbleBounds: (bounds: PetBubbleBounds | null) => void;
   hideCurrentWindow: () => void;
+  notifySettingsReady: () => void;
   onPetState: (callback: (state: 'idle' | 'working' | 'success' | 'failure') => void) => () => void;
   onPetConfirm: (callback: (paths: string[], passes: 3 | 7 | 35) => void) => () => void;
   onPetProgress: (callback: (progress: ShredProgress) => void) => () => void;

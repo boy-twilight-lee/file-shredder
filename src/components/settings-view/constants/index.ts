@@ -38,10 +38,17 @@ export const RECORD_TABLE_COLUMNS: TableColumnData[] = [
     title: '状态',
     dataIndex: 'success',
     slotName: 'status',
-    width: 68,
+    width: 120,
     align: 'center',
   },
-  { title: '操作', slotName: 'actions', width: 56, align: 'center' },
+  {
+    title: '错误原因',
+    dataIndex: 'message',
+    slotName: 'message',
+    ellipsis: true,
+    tooltip: true,
+  },
+  { title: '操作', slotName: 'actions', width: 120, align: 'center' },
 ];
 
 export const RECORD_ROW_SELECTION: TableRowSelection = {

@@ -2,7 +2,6 @@
 import { IconClose, IconDelete, IconFile, IconFolder } from '@arco-design/web-vue/es/icon';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { ShredProgress, ShredSummary } from '@/type';
-import defaultPetImage from '@/assets/pet.png';
 import { PET_ACTION_OPTIONS } from './constants';
 import DeleteBinIcon from './component/delete-bin-icon.vue';
 
@@ -16,7 +15,7 @@ const summary = ref<ShredSummary | null>(null);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
 const dragDepth = ref(0);
-const petImageSource = ref(defaultPetImage);
+const petImageSource = ref('');
 const petSize = ref(200);
 const petAspectRatio = ref(840 / 594);
 const bubbleElement = ref<HTMLElement | null>(null);
@@ -165,13 +164,14 @@ function handlePetImageLoad(event: Event): void {
 }
 
 async function refreshPetAppearance(): Promise<void> {
-  const [settings, customImage] = await Promise.all([
+  const [settings, templateImage] = await Promise.all([
     window.shredderApi.getSettings(),
     window.shredderApi.getPetImage(),
   ]);
   petSize.value = settings.petSize;
   presetPasses.value = settings.passes;
-  petImageSource.value = customImage || defaultPetImage;
+  // The main process always resolves the active built-in or uploaded template.
+  petImageSource.value = templateImage;
 }
 
 onMounted(async () => {

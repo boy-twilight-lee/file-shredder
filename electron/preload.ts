@@ -45,6 +45,7 @@ contextBridge.exposeInMainWorld('shredderApi', {
   setPetExpanded: (expanded: boolean) => ipcRenderer.send('pet:expanded', expanded),
   setPetBubbleBounds: (bounds: unknown) => ipcRenderer.send('pet:bubble-bounds', bounds),
   hideCurrentWindow: () => ipcRenderer.send('window:hide'),
+  notifySettingsReady: () => ipcRenderer.send('settings:ready'),
   onPetState: (callback: (state: string) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, state: string) => callback(state);
     ipcRenderer.on('pet:state', listener);

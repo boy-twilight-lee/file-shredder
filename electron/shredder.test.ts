@@ -1,4 +1,4 @@
-import { mkdtemp, readFile, writeFile } from 'node:fs/promises';
+import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -14,6 +14,23 @@ describe('shredPaths', () => {
 
     expect(result).toEqual([{ path: targetPath, success: true }]);
     await expect(readFile(targetPath)).rejects.toThrow();
+  });
+
+  it('removes nested and empty directories after shredding their files', async () => {
+    const workspace = await mkdtemp(join(tmpdir(), 'file-shredder-directory-'));
+    const targetDirectory = join(workspace, 'private-folder');
+    await mkdir(join(targetDirectory, 'nested'), { recursive: true });
+    await mkdir(join(targetDirectory, 'empty'), { recursive: true });
+    await writeFile(join(targetDirectory, 'nested', 'secret.txt'), 'sensitive data', 'utf8');
+
+    try {
+      const result = await shredPaths([targetDirectory], 3, () => undefined);
+
+      expect(result).toEqual([{ path: targetDirectory, success: true }]);
+      await expect(lstat(targetDirectory)).rejects.toThrow();
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
   });
 
   it('refuses a filesystem root', async () => {

@@ -41,6 +41,7 @@ const PET_WINDOW_SIZE = { width: 960, height: 1160 };
 const PET_BUBBLE_SIZE = { width: 288, height: 340 };
 const PET_SIZE_MIN = 100;
 const PET_SIZE_MAX = 320;
+const PET_TEMPLATE_THUMBNAIL_WIDTH = 192;
 const PET_FADE_DURATION_MS = 180;
 let petBubblePlacement: PetBubblePlacement = 'left';
 let isPetExpanded = false;
@@ -49,6 +50,7 @@ let isPetDragging = false;
 let petBubbleBounds: Electron.Rectangle | null = null;
 let petDragStartPosition: Electron.Point | null = null;
 let petCharacterSizeCache: { imagePath: string; width: number; size: Electron.Size } | null = null;
+const petTemplateThumbnailCache = new Map<string, string>();
 
 // vite-plugin-electron 会在 preload 重新构建后通知主进程，刷新窗口即可载入新桥接代码。
 if (process.env.VITE_DEV_SERVER_URL) {
@@ -61,6 +63,11 @@ if (process.env.VITE_DEV_SERVER_URL) {
 function getExecutablePath(): string {
   // portable 构建运行在临时目录，注册表和自启必须指向外层 EXE。
   return process.env.PORTABLE_EXECUTABLE_FILE || app.getPath('exe');
+}
+
+function shouldShowPetOnLaunch(): boolean {
+  if (process.argv.includes('--background')) return false;
+  return process.platform !== 'darwin' || !app.getLoginItemSettings().wasOpenedAtLogin;
 }
 
 function getIconPath(): string {
@@ -104,6 +111,18 @@ function imagePathToDataUrl(imagePath: string): string {
   return image.isEmpty() ? '' : image.toDataURL();
 }
 
+function imagePathToThumbnailDataUrl(imagePath: string): string {
+  if (!imagePath || !existsSync(imagePath)) return '';
+  const cachedImage = petTemplateThumbnailCache.get(imagePath);
+  if (cachedImage) return cachedImage;
+  const image = nativeImage.createFromPath(imagePath);
+  if (image.isEmpty()) return '';
+  // 设置页仅显示小尺寸预览，避免把数 MB 原图经 IPC 传输并在窗口首次缩放时集中解码。
+  const thumbnail = image.resize({ width: PET_TEMPLATE_THUMBNAIL_WIDTH, quality: 'good' }).toDataURL();
+  petTemplateThumbnailCache.set(imagePath, thumbnail);
+  return thumbnail;
+}
+
 function getPetImageDataUrl(): string {
   return imagePathToDataUrl(getActivePetImagePath());
 }
@@ -113,7 +132,7 @@ function getPetImageTemplates(): PetImageTemplate[] {
   const builtInTemplates = BUILT_IN_PET_IMAGES.map((image) => ({
     id: image.id,
     name: image.name,
-    image: imagePathToDataUrl(getBuiltInPetImagePath(image.fileName)),
+    image: imagePathToThumbnailDataUrl(getBuiltInPetImagePath(image.fileName)),
     builtIn: true,
     active: image.id === activeId,
     deletable: false,
@@ -123,7 +142,7 @@ function getPetImageTemplates(): PetImageTemplate[] {
     .map((image) => ({
       id: image.id,
       name: image.name,
-      image: imagePathToDataUrl(getUploadedPetImagePath(image)),
+      image: imagePathToThumbnailDataUrl(getUploadedPetImagePath(image)),
       builtIn: false,
       active: image.id === activeId,
       deletable: true,
@@ -378,7 +397,7 @@ function createPetWindow(): void {
     alwaysOnTop: currentSettings.alwaysOnTop,
     skipTaskbar: true,
     hasShadow: false,
-    show: !process.argv.includes('--background'),
+    show: shouldShowPetOnLaunch(),
     webPreferences: { preload: join(currentDirectory, 'preload.mjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
   });
   // Windows 可能按工作区限制超大透明窗口，创建后使用真实尺寸重新保持人物锚点。
@@ -404,10 +423,10 @@ function createPetWindow(): void {
 
 function createPanelWindow(): BrowserWindow {
   const window = new BrowserWindow({
-    width: 640,
-    height: 680,
-    minWidth: 560,
-    minHeight: 560,
+    width: 960,
+    height: 640,
+    minWidth: 720,
+    minHeight: 520,
     title: '文件粉碎器 · 设置',
     icon: getIconPath(),
     show: false,
@@ -435,13 +454,18 @@ function showSettingsWindow(): void {
   if (!settingsWindow) {
     settingsWindow = createPanelWindow();
     settingsWindow.on('closed', () => { settingsWindow = null; });
+    return;
   }
   settingsWindow.show();
   settingsWindow.focus();
 }
 
 function applyLoginSetting(enabled: boolean): void {
-  if (process.platform === 'win32') app.setLoginItemSettings({ openAtLogin: enabled, path: getExecutablePath(), args: ['--background'] });
+  if (process.platform === 'win32') {
+    app.setLoginItemSettings({ openAtLogin: enabled, path: getExecutablePath(), args: ['--background'] });
+    return;
+  }
+  if (process.platform === 'darwin') app.setLoginItemSettings({ openAtLogin: enabled });
 }
 
 function registerShortcut(shortcut: string): boolean {
@@ -578,10 +602,14 @@ else {
     }
 
     // 资源管理器右键菜单仅由设置项控制，启动时只同步真实状态。
-    await updateContextMenuIcon(getWindowsIconPath());
-    const contextMenuInstalled = await isContextMenuInstalled(getExecutablePath());
+    if (process.platform === 'win32') await updateContextMenuIcon(getWindowsIconPath());
+    const contextMenuInstalled = process.platform === 'win32'
+      ? await isContextMenuInstalled(getExecutablePath())
+      : false;
     // 已安装的菜单在启动时重写一次图标值，确保升级图标后立即同步到资源管理器。
-    if (contextMenuInstalled) await installContextMenu(getExecutablePath(), getWindowsIconPath());
+    if (process.platform === 'win32' && contextMenuInstalled) {
+      await installContextMenu(getExecutablePath(), getWindowsIconPath());
+    }
     currentSettings = await store.updateSettings({ contextMenuInstalled, contextMenuAutoInstall: false });
     queueLaunchPaths(parseLaunchPaths(process.argv));
   });
@@ -743,6 +771,11 @@ ipcMain.handle('app:cleanup-exit', async () => {
   return true;
 });
 ipcMain.on('window:hide', (event) => BrowserWindow.fromWebContents(event.sender)?.hide());
+ipcMain.on('settings:ready', (event) => {
+  if (!settingsWindow || event.sender !== settingsWindow.webContents) return;
+  settingsWindow.show();
+  settingsWindow.focus();
+});
 app.on('window-all-closed', () => undefined);
 app.on('will-quit', () => {
   clearTimeout(launchTimer);

@@ -167,6 +167,8 @@ watch([() => logs.value.length, recordPageSize], ([logCount]) => {
 
 onMounted(async () => {
   await refreshData();
+  // 首次数据和缩略图就绪后再展示原生窗口，避免用户在初始化解码期间触发缩放重绘。
+  window.shredderApi.notifySettingsReady();
   disposers.push(
     window.shredderApi.onSettingsChanged(refreshData),
     window.shredderApi.onLogsUpdated(refreshData),
@@ -272,49 +274,60 @@ onBeforeUnmount(() => {
           <section class="settings-view-record-card">
             <div class="settings-view-record-toolbar">
               <a-popconfirm :content="`确认删除选中的 ${selectedLogKeys.length} 条记录？`" @ok="deleteLogs(selectedLogKeys)">
-                <a-button type="text" size="small" status="danger" :disabled="selectedLogKeys.length === 0">
+                <a-button size="small" status="danger" :disabled="selectedLogKeys.length === 0">
                   <template #icon><icon-delete /></template>批量删除
                 </a-button>
               </a-popconfirm>
             </div>
-            <a-table
-              v-model:selected-keys="selectedLogKeys"
-              class="settings-view-record-table"
-              row-key="id"
-              :columns="RECORD_TABLE_COLUMNS"
-              :data="paginatedLogs"
-              :row-selection="RECORD_ROW_SELECTION"
-              :pagination="false"
-              :bordered="false"
-              stripe
-              :scroll="{ y: '100%' }"
+            <a-scrollbar
+              class="settings-view-record-table-scrollbar-container"
+              outer-class="settings-view-record-table-scrollbar"
+              disable-horizontal
             >
-              <template #path="{ record }">
-                <span class="settings-view-record-path" :title="record.path">{{ record.path }}</span>
-              </template>
-              <template #time="{ record }">
-                <span class="settings-view-record-time">{{ formatLogTime(record.timestamp) }}</span>
-              </template>
-              <template #status="{ record }">
-                <a-tag :color="record.success ? 'green' : 'red'">
-                  <icon-check-circle v-if="record.success" />
-                  <icon-close-circle v-else />
-                  {{ record.success ? '成功' : '失败' }}
-                </a-tag>
-              </template>
-              <template #actions="{ record }">
-                <a-popconfirm content="确认删除这条粉碎记录？" @ok="deleteLogs([record.id])">
-                  <a-button type="text" size="small" status="danger" title="删除记录">删除</a-button>
-                </a-popconfirm>
-              </template>
-              <template #empty>
-                <div class="settings-view-record-empty">
-                  <img :src="emptyIllustration" alt="" />
-                  <strong>暂无粉碎记录</strong>
-                  <span>完成文件粉碎后，处理结果会显示在这里。</span>
-                </div>
-              </template>
-            </a-table>
+              <a-table
+                v-model:selected-keys="selectedLogKeys"
+                class="settings-view-record-table"
+                row-key="id"
+                :columns="RECORD_TABLE_COLUMNS"
+                :data="paginatedLogs"
+                :row-selection="RECORD_ROW_SELECTION"
+                :pagination="false"
+                :bordered="false"
+                stripe
+              >
+                <template #path="{ record }">
+                  <span class="settings-view-record-path" :title="record.path">{{ record.path }}</span>
+                </template>
+                <template #time="{ record }">
+                  <span class="settings-view-record-time">{{ formatLogTime(record.timestamp) }}</span>
+                </template>
+                <template #status="{ record }">
+                  <a-tag class="settings-view-record-status" :color="record.success ? 'green' : 'red'">
+                    <icon-check-circle v-if="record.success" />
+                    <icon-close-circle v-else />
+                    {{ record.success ? '成功' : '失败' }}
+                  </a-tag>
+                </template>
+                <template #message="{ record }">
+                  <span class="settings-view-record-message" :title="record.success ? '' : record.message">
+                    {{ record.success ? '-' : record.message }}
+                  </span>
+                </template>
+                <template #actions="{ record }">
+                  <a-popconfirm content="确认删除这条粉碎记录？" @ok="deleteLogs([record.id])">
+                    <a-link status="danger" title="删除记录">删除</a-link>
+                  </a-popconfirm>
+                </template>
+                <template #empty>
+                  <div class="settings-view-record-empty">
+                    <img :src="emptyIllustration" alt="" />
+                    <strong>暂无粉碎记录</strong>
+                    <span>完成文件粉碎后，处理结果会显示在这里。</span>
+                  </div>
+                </template>
+              </a-table>
+            </a-scrollbar>
+            <a-divider class="settings-view-record-divider" />
             <div class="settings-view-record-pagination">
               <a-pagination
                 v-model:current="recordPage"
@@ -336,12 +349,14 @@ onBeforeUnmount(() => {
 
 <style lang="less" scoped>
 :global(*) { box-sizing: border-box; }
-:global(html), :global(body), :global(#app) { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #f5f7fa; }
+:global(html[data-app-view='settings']),
+:global(html[data-app-view='settings'] body),
+:global(html[data-app-view='settings'] #app) { width: 100%; height: 100%; margin: 0; overflow: hidden; background: #f5f7fa; }
 
 .settings-view {
   display: flex;
   flex-direction: column;
-  height: 100vh;
+  height: 100%;
   overflow: hidden;
   color: #0d1014;
 
@@ -363,8 +378,8 @@ onBeforeUnmount(() => {
     :deep(.arco-tabs-content) { display: none; }
   }
   .settings-view-tabs-divider { flex: 0 0 auto; height: 1px; background: #e7ebf0; }
-  .settings-view-content { display: block; flex: 1; min-height: 0; }
-  .settings-view-body { height: 100%; min-height: 0; }
+  .settings-view-content { display: block; flex: 1; min-height: 0; overflow: hidden; }
+  .settings-view-body { height: 100%; min-height: 0; overflow: hidden; }
   .settings-view-body-scrollbar {
     width: 100%;
     height: 100%;
@@ -374,8 +389,8 @@ onBeforeUnmount(() => {
     :deep(.arco-scrollbar-thumb-direction-vertical .arco-scrollbar-thumb-bar) { width: 6px; margin: 0 4px; border-radius: 6px; }
   }
   :deep(.settings-view-body-scrollbar-container) { height: 100%; overflow-x: hidden; overflow-y: auto; }
-  .settings-view-general-content { padding: 16px; }
-  .settings-view-record-content { width: 100%; height: 100%; padding: 16px; }
+  .settings-view-general-content { padding: 12px; }
+  .settings-view-record-content { width: 100%; height: 100%; padding: 12px; }
   .settings-view-card {
     margin-bottom: 10px;
     padding: 16px;
@@ -468,19 +483,20 @@ onBeforeUnmount(() => {
 
   .settings-view-record-card { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; padding: 16px; border-radius: 12px; background: #fff; box-shadow: 0 5px 18px rgba(30, 55, 90, 0.045); }
   .settings-view-record-toolbar { display: flex; flex: 0 0 auto; align-items: center; min-height: 32px; padding: 0 0 10px; }
-  .settings-view-record-pagination { display: flex; flex: 0 0 auto; justify-content: center; align-items: center; min-height: 42px; padding-top: 12px; }
-  .settings-view-record-table { flex: 1; min-height: 0; overflow: hidden; border: 0; border-radius: 0; background: transparent; }
+  .settings-view-record-divider { flex: 0 0 auto; margin: 12px 0 0; border-color: #e7ebf0; }
+  .settings-view-record-pagination { display: flex; flex: 0 0 auto; justify-content: center; align-items: center; min-height: 42px; padding-top: 10px; }
+  .settings-view-record-table-scrollbar { flex: 1; min-height: 0; overflow: hidden; }
+  :deep(.settings-view-record-table-scrollbar-container) { height: 100%; overflow-x: hidden; overflow-y: auto; }
+  .settings-view-record-table { width: 100%; border: 0; border-radius: 0; background: transparent; }
   .settings-view-record-path { display: block; overflow: hidden; color: #1d252f; text-overflow: ellipsis; white-space: nowrap; }
   .settings-view-record-time { color: #79828f; font-size: 12px; white-space: nowrap; }
+  .settings-view-record-status { display: inline-flex; align-items: center; gap: 4px; }
+  .settings-view-record-message { display: block; overflow: hidden; color: #79828f; font-size: 12px; text-overflow: ellipsis; white-space: nowrap; }
   .settings-view-record-empty { display: flex; flex-direction: column; align-items: center; justify-content: center; min-height: 380px; padding: 28px 20px; color: #99a1ad; text-align: center; img { width: 190px; max-width: 68%; height: auto; margin-bottom: 12px; } strong { color: #474f59; font-size: 14px; font-weight: 600; } span { margin-top: 6px; font-size: 12px; line-height: 1.6; } }
 
-  :deep(.settings-view-record-table .arco-table-container),
-  :deep(.settings-view-record-table .arco-table-content) { height: 100%; }
   :deep(.settings-view-record-table .arco-table-container) { border-radius: 0; }
-  // 路径列自动占用剩余空间，隐藏 Arco 在临界宽度下生成的横向滚动轨道。
-  :deep(.settings-view-record-table .arco-scrollbar-container) { overflow-x: hidden !important; }
-  :deep(.settings-view-record-table .arco-scrollbar-track-direction-horizontal) { display: none; }
-  :deep(.settings-view-record-table .arco-table-th) { height: 40px; border-bottom: 0; color: #3f6fa8; font-size: 12px; font-weight: 400; vertical-align: middle; background: #f1f3f6; }
+  // 表头使用原生 sticky 跟随单一滚动容器，避免缩放时拆分表格反复测量列宽。
+  :deep(.settings-view-record-table .arco-table-th) { position: sticky; z-index: 2; top: 0; height: 40px; border-bottom: 0; color: #3f6fa8; font-size: 12px; font-weight: 400; vertical-align: middle; background: #f1f3f6; }
   :deep(.settings-view-record-table .arco-table-th .arco-table-cell) { display: flex; align-items: center; min-height: 40px; }
   :deep(.settings-view-record-table .arco-table-th.arco-table-col-fixed-right .arco-table-cell),
   :deep(.settings-view-record-table .arco-table-th.arco-table-cell-align-center .arco-table-cell) { justify-content: center; }
@@ -490,8 +506,8 @@ onBeforeUnmount(() => {
   :deep(.settings-view-record-table .arco-table-td .arco-table-cell) { display: flex; align-items: center; min-height: 48px; }
   :deep(.settings-view-record-table .arco-table-tbody .arco-table-tr:nth-child(even) .arco-table-td) { background: #f7f8fa; }
   :deep(.settings-view-record-table .arco-table-tr:hover .arco-table-td) { background: #f1f5fa; }
-  :deep(.settings-view-record-table .arco-scrollbar-track-direction-vertical) { width: 14px; }
-  :deep(.settings-view-record-table .arco-scrollbar-thumb-direction-vertical .arco-scrollbar-thumb-bar) { width: 6px; margin: 0 4px; border-radius: 6px; }
+  :deep(.settings-view-record-table-scrollbar .arco-scrollbar-track-direction-vertical) { width: 14px; }
+  :deep(.settings-view-record-table-scrollbar .arco-scrollbar-thumb-direction-vertical .arco-scrollbar-thumb-bar) { width: 6px; margin: 0 4px; border-radius: 6px; }
   :deep(.settings-view-record-pagination .arco-pagination) { justify-content: center; flex-wrap: wrap; row-gap: 8px; }
   :deep(.arco-input-wrapper),
   :deep(.arco-btn),

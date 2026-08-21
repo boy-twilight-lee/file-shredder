@@ -1,5 +1,5 @@
 import { constants } from 'node:fs';
-import { access, chmod, lstat, open, readdir, rename, rm } from 'node:fs/promises';
+import { access, chmod, lstat, open, readdir, rename, rm, rmdir } from 'node:fs/promises';
 import { dirname, join, parse, resolve, sep } from 'node:path';
 import { randomBytes } from 'node:crypto';
 
@@ -98,7 +98,8 @@ async function shredEntry(targetPath: string, context: ShredContext): Promise<vo
   const entries = await readdir(targetPath);
   for (const entry of entries) await shredEntry(join(targetPath, entry), context);
   await chmod(targetPath, 0o700);
-  await rm(targetPath);
+  // 文件已逐个安全覆写并删除，此处使用目录专用 API 移除已经清空的目录。
+  await rmdir(targetPath);
 }
 
 async function countFiles(targetPath: string): Promise<number> {

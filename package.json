@@ -1,16 +1,23 @@
 {
   "name": "file-shredder",
   "version": "1.0.0",
-  "description": "Windows 文件粉碎器",
+  "description": "A secure cross-platform file shredder for Windows and macOS.",
   "main": "dist-electron/main.js",
   "author": "文件粉碎器",
   "license": "MIT",
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build && electron-builder --win portable --x64 --ia32",
-    "build:x64": "vue-tsc --noEmit && vite build && electron-builder --win portable --x64",
-    "build:ia32": "vue-tsc --noEmit && vite build && electron-builder --win portable --ia32",
+    "build": "npm run build:app && electron-builder",
+    "build:app": "vue-tsc --noEmit && vite build",
+    "build:win": "npm run build:app && electron-builder --win portable --x64 --ia32",
+    "build:win:x64": "npm run build:app && electron-builder --win portable --x64",
+    "build:win:ia32": "npm run build:app && electron-builder --win portable --ia32",
+    "build:mac": "npm run build:app && electron-builder --mac dmg zip --x64 --arm64",
+    "build:mac:x64": "npm run build:app && electron-builder --mac dmg zip --x64",
+    "build:mac:arm64": "npm run build:app && electron-builder --mac dmg zip --arm64",
+    "build:x64": "npm run build:win:x64",
+    "build:ia32": "npm run build:win:ia32",
     "build:dir": "vue-tsc --noEmit && vite build && electron-builder --dir",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run --config vitest.config.ts"
@@ -66,6 +73,18 @@
       ],
       "artifactName": "文件粉碎器-${version}-${arch}.${ext}",
       "signAndEditExecutable": true
+    },
+    "mac": {
+      "icon": "src/assets/app-icon.png",
+      "category": "public.app-category.utilities",
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "artifactName": "File-Shredder-${version}-${arch}.${ext}"
+    },
+    "dmg": {
+      "artifactName": "File-Shredder-${version}-${arch}.${ext}"
     },
     "portable": {
       "artifactName": "文件粉碎器-${version}-${arch}.${ext}"
