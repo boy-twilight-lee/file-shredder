@@ -107,7 +107,7 @@ async function countFiles(targetPath: string): Promise<number> {
     const stats = await lstat(targetPath);
     if (!stats.isDirectory() || stats.isSymbolicLink()) return 1;
     const entries = await readdir(targetPath);
-    if (entries.length === 0) return 1;
+    if (entries.length === 0) return 0;
     const counts = await Promise.all(entries.map((entry) => countFiles(join(targetPath, entry))));
     return counts.reduce((sum, count) => sum + count, 0);
   } catch {
@@ -121,7 +121,8 @@ export async function shredPaths(paths: string[], passes: 3 | 7 | 35, report: (p
   const safePaths = uniquePaths.filter((targetPath) => {
     try { assertSafeTarget(targetPath); return true; } catch { return false; }
   });
-  const fileCounts = await Promise.all(safePaths.map(countFiles));
+  // Empty root folders remain one visible unit, while nested empty folders do not inflate file-based progress.
+  const fileCounts = await Promise.all(safePaths.map(async (targetPath) => Math.max(1, await countFiles(targetPath))));
   const context: ShredContext = {
     passes,
     fileIndex: 0,
@@ -134,7 +135,9 @@ export async function shredPaths(paths: string[], passes: 3 | 7 | 35, report: (p
     try {
       targetPath = assertSafeTarget(unresolvedPath);
       await access(targetPath, constants.F_OK);
+      const startingFileIndex = context.fileIndex;
       await shredEntry(targetPath, context);
+      if (context.fileIndex === startingFileIndex) context.fileIndex += 1;
       emitProgress(context, targetPath, 1, 1, 'done');
       results.push({ path: targetPath, success: true });
     } catch (error) {

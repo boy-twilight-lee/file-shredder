@@ -501,14 +501,17 @@ async function requestShred(paths: string[], passes: 3 | 7 | 35 = currentSetting
   isShredding = true;
   petWindow?.webContents.send('pet:state', 'working');
   try {
+    const startedAt = Date.now();
     const results = await shredPaths(targets, passes, (progress) => {
       tray?.setToolTip(`正在粉碎 ${progress.fileIndex}/${progress.fileCount}`);
       petWindow?.webContents.send('pet:progress', progress);
     });
+    const durationMs = Date.now() - startedAt;
     await store.appendLogs(results.map((result) => classifyResult(result.path, result.success, result.error)));
     const failed = results.filter((result) => !result.success);
+    const succeeded = results.length - failed.length;
     petWindow?.webContents.send('pet:state', failed.length === 0 ? 'success' : 'failure');
-    petWindow?.webContents.send('pet:complete', { total: results.length, failed: failed.length });
+    petWindow?.webContents.send('pet:complete', { succeeded, failed: failed.length, durationMs });
     if (Notification.isSupported()) {
       new Notification({
         title: failed.length === 0 ? '文件粉碎完成' : '部分目标粉碎失败',

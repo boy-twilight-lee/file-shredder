@@ -15,8 +15,9 @@ export interface ShredResult {
 }
 
 export interface ShredSummary {
-  total: number;
+  succeeded: number;
   failed: number;
+  durationMs: number;
 }
 
 export interface PetBubbleBounds {

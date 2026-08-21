@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconClose, IconDelete, IconFile, IconFolder } from '@arco-design/web-vue/es/icon';
+import { IconCheckCircleFill, IconClockCircle, IconClose, IconCloseCircleFill, IconDelete, IconFile, IconFolder } from '@arco-design/web-vue/es/icon';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { ShredProgress, ShredSummary } from '@/type';
 import { PET_ACTION_OPTIONS } from './constants';
@@ -34,9 +34,29 @@ const petAppearanceStyle = computed(() => ({
 
 const progressPercent = computed(() => {
   if (!progress.value) return 0;
-  if (progress.value.stage === 'done') return 100;
-  return progress.value.total > 0 ? Math.round(progress.value.completed / progress.value.total * 100) : 0;
+  const currentFilePercent = progress.value.total > 0
+    ? Math.min(1, progress.value.completed / progress.value.total)
+    : 0;
+  // Combine the current file's byte progress with completed file count for stable folder-level progress.
+  const overallPercent = (Math.max(0, progress.value.fileIndex - 1) + currentFilePercent)
+    / Math.max(1, progress.value.fileCount);
+  return Math.round(Math.min(1, overallPercent) * 100);
 });
+
+const formattedDuration = computed(() => {
+  const durationMs = summary.value?.durationMs ?? 0;
+  if (durationMs < 1000) return `${durationMs} ms`;
+  if (durationMs < 60000) return `${(durationMs / 1000).toFixed(1)} s`;
+  const minutes = Math.floor(durationMs / 60000);
+  const seconds = Math.round(durationMs % 60000 / 1000);
+  return `${minutes} min ${seconds} s`;
+});
+
+const resultMetrics = computed(() => [
+  { key: 'succeeded', label: '删除成功', value: summary.value?.succeeded ?? 0, icon: IconCheckCircleFill, tone: 'success' },
+  { key: 'failed', label: '删除失败', value: summary.value?.failed ?? 0, icon: IconCloseCircleFill, tone: 'failure' },
+  { key: 'duration', label: '处理时间', value: formattedDuration.value, icon: IconClockCircle, tone: 'duration' },
+]);
 
 function showBubble(mode: typeof bubbleMode.value): void {
   bubbleMode.value = mode;
@@ -247,15 +267,29 @@ onBeforeUnmount(() => {
 
             <template v-else-if="bubbleMode === 'progress'">
               <strong class="pet-view-bubble-title">正在粉碎，请稍候…</strong>
-              <p class="pet-view-bubble-description">{{ progress?.fileIndex ?? 0 }} / {{ progress?.fileCount ?? 1 }} 个文件</p>
-              <a-progress size="small" :percent="progressPercent / 100" :show-text="true" />
+              <div class="pet-view-progress-overview">
+                <a-progress class="pet-view-progress-circle" type="circle" size="small" :percent="progressPercent / 100" :show-text="true" animation />
+                <div class="pet-view-progress-detail">
+                  <span><icon-delete />正在安全删除</span>
+                  <strong>{{ progress?.fileIndex ?? 0 }} / {{ progress?.fileCount ?? 1 }}</strong>
+                  <small>已处理文件数量</small>
+                </div>
+              </div>
               <span class="pet-view-progress-path" :title="progress?.path">{{ progress?.path ?? '正在准备目标' }}</span>
             </template>
 
             <template v-else-if="bubbleMode === 'result'">
-              <strong class="pet-view-bubble-title">{{ summary?.failed ? '部分目标处理失败' : '粉碎完成' }}</strong>
-              <p class="pet-view-bubble-description">共处理 {{ summary?.total ?? 0 }} 项，失败 {{ summary?.failed ?? 0 }} 项。</p>
-              <a-button type="primary" size="small" long @click="closeBubble">知道了</a-button>
+              <div class="pet-view-result-title" :class="{ 'pet-view-result-title-failure': summary?.failed }">
+                <component :is="summary?.failed ? IconCloseCircleFill : IconCheckCircleFill" />
+                <strong>{{ summary?.failed ? '部分元素删除失败' : '删除完成' }}</strong>
+              </div>
+              <div class="pet-view-result-metrics">
+                <div v-for="metric in resultMetrics" :key="metric.key" class="pet-view-result-metric" :class="`pet-view-result-metric-${metric.tone}`">
+                  <component :is="metric.icon" class="pet-view-result-metric-icon" />
+                  <span><small>{{ metric.label }}</small><strong>{{ metric.value }}</strong></span>
+                </div>
+              </div>
+              <div class="pet-view-result-footer"><a-link class="pet-view-result-link" @click="closeBubble">我知道了</a-link></div>
             </template>
 
             <template v-else-if="bubbleMode === 'drop'">

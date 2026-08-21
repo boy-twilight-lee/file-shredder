@@ -2,6 +2,7 @@ import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
+import type { ShredProgress } from './shredder';
 import { shredPaths } from './shredder';
 
 describe('shredPaths', () => {
@@ -22,11 +23,15 @@ describe('shredPaths', () => {
     await mkdir(join(targetDirectory, 'nested'), { recursive: true });
     await mkdir(join(targetDirectory, 'empty'), { recursive: true });
     await writeFile(join(targetDirectory, 'nested', 'secret.txt'), 'sensitive data', 'utf8');
+    await writeFile(join(targetDirectory, 'nested', 'private.txt'), 'more sensitive data', 'utf8');
 
     try {
-      const result = await shredPaths([targetDirectory], 3, () => undefined);
+      const progress: ShredProgress[] = [];
+      const result = await shredPaths([targetDirectory], 3, (value) => progress.push(value));
 
       expect(result).toEqual([{ path: targetDirectory, success: true }]);
+      expect(progress.every((value) => value.fileCount === 2)).toBe(true);
+      expect(progress[progress.length - 1]).toMatchObject({ fileIndex: 2, fileCount: 2, stage: 'done' });
       await expect(lstat(targetDirectory)).rejects.toThrow();
     } finally {
       await rm(workspace, { recursive: true, force: true });
