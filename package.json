@@ -33,6 +33,7 @@
     "electron": "^39.8.10",
     "electron-builder": "^25.1.8",
     "less": "^4.2.2",
+    "rcedit": "^4.0.1",
     "typescript": "^5.7.2",
     "vite": "^6.0.5",
     "vite-plugin-electron": "^0.29.0",
@@ -44,6 +45,7 @@
     "appId": "com.filetools.fileshredder",
     "productName": "文件粉碎器",
     "asar": true,
+    "afterPack": "scripts/after-pack.cjs",
     "directories": {
       "output": "release"
     },
@@ -72,7 +74,7 @@
         "portable"
       ],
       "artifactName": "文件粉碎器-${version}-${arch}.${ext}",
-      "signAndEditExecutable": true
+      "signAndEditExecutable": false
     },
     "mac": {
       "icon": "src/assets/app-icon.png",
