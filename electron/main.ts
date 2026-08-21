@@ -5,10 +5,12 @@ import { copyFile, mkdir, rm } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { onWindowDrag } from 'electron-drag-window/electron';
-import { shredPaths } from './shredder';
+import { ShredCancelledError, shredPaths } from './shredder';
 import { AppStore, type AppSettings, type ShredLog, type UploadedPetImage } from './store';
 import { installContextMenu, isContextMenuInstalled, removeContextMenu, updateContextMenuIcon } from './windows-integration';
 import { getExplorerSelection } from './windows-selection';
+
+if (process.platform === 'win32') app.commandLine.appendSwitch('force-device-scale-factor', '1');
 
 const currentDirectory = fileURLToPath(new URL('.', import.meta.url));
 const store = new AppStore(app);
@@ -18,6 +20,7 @@ let tray: Tray | null = null;
 let currentSettings: AppSettings;
 let isQuitting = false;
 let isShredding = false;
+let activeShredController: AbortController | null = null;
 let launchTimer: NodeJS.Timeout | undefined;
 let petFadeTimer: NodeJS.Timeout | undefined;
 let queuedLaunchPaths: string[] = [];
@@ -297,8 +300,8 @@ function getRestoredPetWindowPosition(characterSize: Electron.Size, windowSize: 
   };
 }
 
-async function savePetPosition(): Promise<void> {
-  if (!petWindow || petWindow.isDestroyed() || isPetDragging) return;
+async function savePetPositionAfterDrag(): Promise<void> {
+  if (!petWindow || petWindow.isDestroyed() || isPetDragging || !petDragStartPosition) return;
   const bounds = getPetCharacterBounds();
   if (!bounds) return;
   const display = screen.getDisplayMatching(bounds);
@@ -434,6 +437,8 @@ function createPanelWindow(): BrowserWindow {
     backgroundColor: '#f5f7fa',
     webPreferences: { preload: join(currentDirectory, 'preload.mjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, devTools: true },
   });
+  const diagnosticEvents = ['move', 'moved', 'resize', 'resized'] as const;
+  diagnosticEvents.forEach((eventName) => window.on(eventName, () => console.log('[settings-window]', eventName, window.getBounds())));
   // Keep the opaque settings panel above the large transparent pet surface to avoid compositor flicker while moving it.
   window.on('show', () => petWindow?.setAlwaysOnTop(false));
   window.on('hide', () => petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop));
@@ -459,6 +464,8 @@ function showSettingsWindow(): void {
     settingsWindow.on('closed', () => { settingsWindow = null; });
     return;
   }
+  // Settings are intentionally ephemeral: every appearance starts centered instead of retaining a moved position.
+  settingsWindow.center();
   settingsWindow.show();
   settingsWindow.focus();
 }
@@ -502,19 +509,21 @@ async function requestShred(paths: string[], passes: 0 | 3 | 7 | 35 = currentSet
   if (targets.length === 0 || isShredding) return [];
 
   isShredding = true;
+  const controller = new AbortController();
+  activeShredController = controller;
   petWindow?.webContents.send('pet:state', 'working');
+  const startedAt = Date.now();
   try {
-    const startedAt = Date.now();
     const results = await shredPaths(targets, passes, (progress) => {
       tray?.setToolTip(`正在粉碎 ${progress.fileIndex}/${progress.fileCount}`);
       petWindow?.webContents.send('pet:progress', progress);
-    });
+    }, controller.signal);
     const durationMs = Date.now() - startedAt;
     await store.appendLogs(results.map((result) => classifyResult(result.path, result.success, result.error)));
     const failed = results.filter((result) => !result.success);
     const succeeded = results.length - failed.length;
     petWindow?.webContents.send('pet:state', failed.length === 0 ? 'success' : 'failure');
-    petWindow?.webContents.send('pet:complete', { succeeded, failed: failed.length, durationMs });
+    petWindow?.webContents.send('pet:complete', { succeeded, failed: failed.length, durationMs, cancelled: false });
     if (Notification.isSupported()) {
       new Notification({
         title: failed.length === 0 ? '文件粉碎完成' : '部分目标粉碎失败',
@@ -523,7 +532,19 @@ async function requestShred(paths: string[], passes: 0 | 3 | 7 | 35 = currentSet
       }).show();
     }
     return results;
+  } catch (error) {
+    if (!(error instanceof ShredCancelledError)) throw error;
+    const durationMs = Date.now() - startedAt;
+    const failed = error.results.filter((result) => !result.success);
+    const succeeded = error.results.length - failed.length;
+    if (error.results.length > 0) {
+      await store.appendLogs(error.results.map((result) => classifyResult(result.path, result.success, result.error)));
+    }
+    petWindow?.webContents.send('pet:state', 'idle');
+    petWindow?.webContents.send('pet:complete', { succeeded, failed: failed.length, durationMs, cancelled: true });
+    return error.results;
   } finally {
+    if (activeShredController === controller) activeShredController = null;
     isShredding = false;
     tray?.setToolTip('文件粉碎器');
     setTimeout(() => petWindow?.webContents.send('pet:state', 'idle'), 1800);
@@ -604,6 +625,7 @@ else {
     screen.on('display-removed', restorePetPosition);
     screen.on('display-metrics-changed', restorePetPosition);
     createTray();
+    if (process.env.VITE_DEV_SERVER_URL) showSettingsWindow();
     if (!registerShortcut(currentSettings.shortcut)) {
       currentSettings = await store.updateSettings({ shortcut: 'CommandOrControl+Alt+X' });
       registerShortcut(currentSettings.shortcut);
@@ -638,6 +660,11 @@ ipcMain.handle('shred:start', async (_event, paths: unknown, passes: unknown) =>
   if (!Array.isArray(paths) || !paths.every((item) => typeof item === 'string')) throw new Error('无效的路径参数');
   if (passes !== 0 && passes !== 3 && passes !== 7 && passes !== 35) throw new Error('无效的清除强度');
   return requestShred(paths, passes);
+});
+ipcMain.handle('shred:cancel', () => {
+  if (!activeShredController || activeShredController.signal.aborted) return false;
+  activeShredController.abort();
+  return true;
 });
 ipcMain.on('pet:expanded', (_event, expanded: boolean) => setPetExpanded(Boolean(expanded)));
 ipcMain.on('pet:bubble-bounds', (_event, bounds: unknown) => {
@@ -678,13 +705,17 @@ ipcMain.on('ELECTRON_DRAG_OVER', async (event) => {
   const [x, y] = petWindow.getPosition();
   const hasMoved = Boolean(petDragStartPosition
     && (petDragStartPosition.x !== x || petDragStartPosition.y !== y));
-  petDragStartPosition = null;
-  if (!hasMoved) return;
+  if (!hasMoved) {
+    petDragStartPosition = null;
+    return;
+  }
   // 只在一次真实拖拽结束后持久化，程序恢复位置和普通窗口事件不再写磁盘。
   try {
-    await savePetPosition();
+    await savePetPositionAfterDrag();
   } catch (error) {
     console.error('保存桌宠位置失败', error);
+  } finally {
+    petDragStartPosition = null;
   }
 });
 ipcMain.handle('context-menu:install', async () => { await setContextMenuEnabled(true); return true; });
@@ -781,8 +812,7 @@ ipcMain.handle('app:cleanup-exit', async () => {
 ipcMain.on('window:hide', (event) => BrowserWindow.fromWebContents(event.sender)?.hide());
 ipcMain.on('settings:ready', (event) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) return;
-  settingsWindow.show();
-  settingsWindow.focus();
+  showSettingsWindow();
 });
 app.on('window-all-closed', () => undefined);
 app.on('will-quit', () => {

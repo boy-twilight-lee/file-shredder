@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { IconCheckCircleFill, IconClockCircle, IconClose, IconCloseCircleFill, IconDelete, IconFile, IconFolder } from '@arco-design/web-vue/es/icon';
+import { IconCheckCircleFill, IconClockCircle, IconClose, IconCloseCircleFill, IconDelete, IconFile, IconFolder, IconStop } from '@arco-design/web-vue/es/icon';
 import { computed, nextTick, onBeforeUnmount, onMounted, ref, watch } from 'vue';
 import type { ShredProgress, ShredSummary } from '@/type';
 import { PET_ACTION_OPTIONS } from './constants';
@@ -14,6 +14,7 @@ const progress = ref<ShredProgress | null>(null);
 const summary = ref<ShredSummary | null>(null);
 const errorMessage = ref('');
 const isSubmitting = ref(false);
+const isCancelling = ref(false);
 const dragDepth = ref(0);
 const petImageSource = ref('');
 const petSize = ref(200);
@@ -140,6 +141,7 @@ function getTargetName(path: string): string {
 async function confirmShred(): Promise<void> {
   if (isSubmitting.value) return;
   isSubmitting.value = true;
+  isCancelling.value = false;
   progress.value = null;
   showBubble('progress');
   try {
@@ -155,6 +157,18 @@ async function confirmShred(): Promise<void> {
     showBubble('error');
   } finally {
     isSubmitting.value = false;
+  }
+}
+
+async function cancelShred(): Promise<void> {
+  if (isCancelling.value) return;
+  isCancelling.value = true;
+  try {
+    const cancellationRequested = await window.shredderApi.cancelShred();
+    if (!cancellationRequested) isCancelling.value = false;
+  } catch {
+    // Keep the active progress view usable if the cancellation IPC request itself fails.
+    isCancelling.value = false;
   }
 }
 
@@ -211,6 +225,7 @@ onMounted(async () => {
       showBubble('progress');
     }),
     window.shredderApi.onPetComplete((value) => {
+      isCancelling.value = false;
       summary.value = value;
       showBubble('result');
     }),
@@ -276,13 +291,17 @@ onBeforeUnmount(() => {
                 </div>
               </div>
               <span class="pet-view-progress-path" :title="progress?.path">{{ progress?.path ?? '正在准备目标' }}</span>
+              <div class="pet-view-progress-actions">
+                <a-link status="danger" :loading="isCancelling" @click="cancelShred"><icon-stop />{{ isCancelling ? '正在终止' : '取消删除' }}</a-link>
+              </div>
             </template>
 
             <template v-else-if="bubbleMode === 'result'">
-              <div class="pet-view-result-title" :class="{ 'pet-view-result-title-failure': summary?.failed }">
-                <component :is="summary?.failed ? IconCloseCircleFill : IconCheckCircleFill" />
-                <strong>{{ summary?.failed ? '部分元素删除失败' : '删除完成' }}</strong>
+              <div class="pet-view-result-title" :class="{ 'pet-view-result-title-failure': summary?.failed, 'pet-view-result-title-cancelled': summary?.cancelled }">
+                <component :is="summary?.cancelled ? IconStop : summary?.failed ? IconCloseCircleFill : IconCheckCircleFill" />
+                <strong>{{ summary?.cancelled ? '删除已取消' : summary?.failed ? '部分元素删除失败' : '删除完成' }}</strong>
               </div>
+              <p v-if="summary?.cancelled" class="pet-view-result-warning">已停止后续处理，当前文件可能已经部分覆写。</p>
               <div class="pet-view-result-metrics">
                 <div v-for="metric in resultMetrics" :key="metric.key" class="pet-view-result-metric" :class="`pet-view-result-metric-${metric.tone}`">
                   <component :is="metric.icon" class="pet-view-result-metric-icon" />

@@ -28,6 +28,7 @@ contextBridge.exposeInMainWorld('shredderApi', {
   chooseTargets: (kind: 'file' | 'directory') => ipcRenderer.invoke('targets:choose', kind),
   prepareShred: (paths: string[]) => ipcRenderer.invoke('shred:prepare', paths),
   shred: (paths: string[], passes: 0 | 3 | 7 | 35) => ipcRenderer.invoke('shred:start', paths, passes),
+  cancelShred: () => ipcRenderer.invoke('shred:cancel'),
   installContextMenu: () => ipcRenderer.invoke('context-menu:install'),
   removeContextMenu: () => ipcRenderer.invoke('context-menu:remove'),
   getContextMenuStatus: () => ipcRenderer.invoke('context-menu:status'),

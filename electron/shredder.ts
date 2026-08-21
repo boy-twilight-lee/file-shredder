@@ -13,6 +13,22 @@ export interface ShredProgress {
   stage: 'overwriting' | 'removing' | 'done';
 }
 
+export interface ShredResult {
+  path: string;
+  success: boolean;
+  error?: string;
+}
+
+export class ShredCancelledError extends Error {
+  readonly results: ShredResult[];
+
+  constructor(results: ShredResult[] = []) {
+    super('文件删除已取消');
+    this.name = 'ShredCancelledError';
+    this.results = results;
+  }
+}
+
 const CHUNK_SIZE = 1024 * 1024;
 function assertSafeTarget(targetPath: string): string {
   const normalized = resolve(targetPath);
@@ -36,7 +52,12 @@ interface ShredContext {
   fileIndex: number;
   fileCount: number;
   startedAt: number;
+  signal?: AbortSignal;
   report: (progress: ShredProgress) => void;
+}
+
+function throwIfCancelled(signal?: AbortSignal): void {
+  if (signal?.aborted) throw new ShredCancelledError();
 }
 
 function emitProgress(context: ShredContext, filePath: string, completed: number, total: number, stage: ShredProgress['stage']): void {
@@ -54,15 +75,18 @@ function emitProgress(context: ShredContext, filePath: string, completed: number
 }
 
 async function overwriteFile(filePath: string, context: ShredContext): Promise<void> {
+  throwIfCancelled(context.signal);
   const stats = await lstat(filePath);
   context.fileIndex += 1;
   if (context.passes === 0) {
     // Fast mode intentionally skips overwriting and filename anonymization so the filesystem can delete immediately.
+    throwIfCancelled(context.signal);
     emitProgress(context, filePath, 1, 1, 'removing');
     await rm(filePath, { force: true });
     return;
   }
   if (stats.isSymbolicLink()) {
+    throwIfCancelled(context.signal);
     await rm(filePath);
     return;
   }
@@ -75,19 +99,24 @@ async function overwriteFile(filePath: string, context: ShredContext): Promise<v
     for (let pass = 0; pass < context.passes; pass += 1) {
       let offset = 0;
       while (offset < stats.size) {
+        throwIfCancelled(context.signal);
         const length = Math.min(CHUNK_SIZE, stats.size - offset);
         const buffer = randomBytes(length);
         await handle.write(buffer, 0, length, offset);
+        throwIfCancelled(context.signal);
         offset += length;
         emitProgress(context, filePath, pass * stats.size + offset, context.passes * stats.size, 'overwriting');
       }
+      throwIfCancelled(context.signal);
       await handle.sync();
+      throwIfCancelled(context.signal);
     }
   } finally {
     await handle.close();
   }
 
   // 在删除前改为随机名称，尽量清除目录项中的原始文件名。
+  throwIfCancelled(context.signal);
   const anonymousPath = join(dirname(filePath), `.${randomBytes(12).toString('hex')}`);
   await rename(filePath, anonymousPath);
   emitProgress(context, filePath, 1, 1, 'removing');
@@ -95,6 +124,7 @@ async function overwriteFile(filePath: string, context: ShredContext): Promise<v
 }
 
 async function shredEntry(targetPath: string, context: ShredContext): Promise<void> {
+  throwIfCancelled(context.signal);
   const stats = await lstat(targetPath);
   if (!stats.isDirectory() || stats.isSymbolicLink()) {
     await overwriteFile(targetPath, context);
@@ -103,42 +133,47 @@ async function shredEntry(targetPath: string, context: ShredContext): Promise<vo
 
   const entries = await readdir(targetPath);
   for (const entry of entries) await shredEntry(join(targetPath, entry), context);
+  throwIfCancelled(context.signal);
   await chmod(targetPath, 0o700);
   // 文件已逐个安全覆写并删除，此处使用目录专用 API 移除已经清空的目录。
   await rmdir(targetPath);
 }
 
-async function countFiles(targetPath: string): Promise<number> {
+async function countFiles(targetPath: string, signal?: AbortSignal): Promise<number> {
   try {
+    throwIfCancelled(signal);
     const stats = await lstat(targetPath);
     if (!stats.isDirectory() || stats.isSymbolicLink()) return 1;
     const entries = await readdir(targetPath);
     if (entries.length === 0) return 0;
-    const counts = await Promise.all(entries.map((entry) => countFiles(join(targetPath, entry))));
+    const counts = await Promise.all(entries.map((entry) => countFiles(join(targetPath, entry), signal)));
     return counts.reduce((sum, count) => sum + count, 0);
-  } catch {
+  } catch (error) {
+    if (error instanceof ShredCancelledError) throw error;
     return 1;
   }
 }
 
-export async function shredPaths(paths: string[], passes: 0 | 3 | 7 | 35, report: (progress: ShredProgress) => void): Promise<Array<{ path: string; success: boolean; error?: string }>> {
+export async function shredPaths(paths: string[], passes: 0 | 3 | 7 | 35, report: (progress: ShredProgress) => void, signal?: AbortSignal): Promise<ShredResult[]> {
   const uniquePaths = [...new Set(paths.map((item) => resolve(item)))];
-  const results = [];
+  const results: ShredResult[] = [];
   const safePaths = uniquePaths.filter((targetPath) => {
     try { assertSafeTarget(targetPath); return true; } catch { return false; }
   });
   // Empty root folders remain one visible unit, while nested empty folders do not inflate file-based progress.
-  const fileCounts = await Promise.all(safePaths.map(async (targetPath) => Math.max(1, await countFiles(targetPath))));
+  const fileCounts = await Promise.all(safePaths.map(async (targetPath) => Math.max(1, await countFiles(targetPath, signal))));
   const context: ShredContext = {
     passes,
     fileIndex: 0,
     fileCount: Math.max(1, fileCounts.reduce((sum, count) => sum + count, 0)),
     startedAt: Date.now(),
+    signal,
     report,
   };
   for (const unresolvedPath of uniquePaths) {
     let targetPath = unresolvedPath;
     try {
+      throwIfCancelled(signal);
       targetPath = assertSafeTarget(unresolvedPath);
       await access(targetPath, constants.F_OK);
       const startingFileIndex = context.fileIndex;
@@ -147,6 +182,7 @@ export async function shredPaths(paths: string[], passes: 0 | 3 | 7 | 35, report
       emitProgress(context, targetPath, 1, 1, 'done');
       results.push({ path: targetPath, success: true });
     } catch (error) {
+      if (error instanceof ShredCancelledError) throw new ShredCancelledError(results);
       results.push({ path: targetPath, success: false, error: error instanceof Error ? error.message : '未知错误' });
     }
   }

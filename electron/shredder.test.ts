@@ -3,7 +3,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
 import type { ShredProgress } from './shredder';
-import { shredPaths } from './shredder';
+import { ShredCancelledError, shredPaths } from './shredder';
 
 describe('shredPaths', () => {
   it('overwrites and removes a regular file', async () => {
@@ -29,6 +29,38 @@ describe('shredPaths', () => {
     expect(progress.some((value) => value.stage === 'overwriting')).toBe(false);
     expect(progress.some((value) => value.stage === 'removing')).toBe(true);
     await expect(readFile(targetPath)).rejects.toThrow();
+  });
+
+  it('stops before changing files when cancellation is already requested', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'file-shredder-cancel-'));
+    const targetPath = join(directory, 'keep.txt');
+    const controller = new AbortController();
+    await writeFile(targetPath, 'keep this data', 'utf8');
+    controller.abort();
+
+    try {
+      await expect(shredPaths([targetPath], 3, () => undefined, controller.signal)).rejects.toBeInstanceOf(ShredCancelledError);
+      await expect(readFile(targetPath, 'utf8')).resolves.toBe('keep this data');
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
+  });
+
+  it('stops an active overwrite after receiving cancellation', async () => {
+    const directory = await mkdtemp(join(tmpdir(), 'file-shredder-cancel-active-'));
+    const targetPath = join(directory, 'large.bin');
+    const controller = new AbortController();
+    await writeFile(targetPath, Buffer.alloc(2 * 1024 * 1024, 1));
+
+    try {
+      const operation = shredPaths([targetPath], 3, (progress) => {
+        if (progress.stage === 'overwriting') controller.abort();
+      }, controller.signal);
+      await expect(operation).rejects.toBeInstanceOf(ShredCancelledError);
+      await expect(lstat(targetPath)).resolves.toMatchObject({ size: 2 * 1024 * 1024 });
+    } finally {
+      await rm(directory, { recursive: true, force: true });
+    }
   });
 
   it('removes nested and empty directories after shredding their files', async () => {

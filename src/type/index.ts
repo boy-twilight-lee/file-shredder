@@ -18,6 +18,7 @@ export interface ShredSummary {
   succeeded: number;
   failed: number;
   durationMs: number;
+  cancelled: boolean;
 }
 
 export interface PetBubbleBounds {
@@ -75,6 +76,7 @@ export interface ShredderApi {
   chooseTargets: (kind: 'file' | 'directory') => Promise<string[]>;
   prepareShred: (paths: string[]) => Promise<string[]>;
   shred: (paths: string[], passes: 0 | 3 | 7 | 35) => Promise<ShredResult[]>;
+  cancelShred: () => Promise<boolean>;
   installContextMenu: () => Promise<boolean>;
   removeContextMenu: () => Promise<boolean>;
   getContextMenuStatus: () => Promise<boolean>;

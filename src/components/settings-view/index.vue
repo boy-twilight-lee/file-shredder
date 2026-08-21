@@ -101,13 +101,14 @@ async function updatePasses(value: AppSettings['passes']): Promise<void> {
   await saveSettingsPatch({ passes: value });
 }
 
-function updatePetSize(value: number | [number, number]): void {
-  if (Array.isArray(value)) return;
-  settings.value.petSize = value;
+function updatePetSize(value: number | undefined): void {
+  if (typeof value !== 'number' || !Number.isFinite(value)) return;
+  const normalizedValue = Math.min(320, Math.max(100, Math.round(value)));
+  settings.value.petSize = normalizedValue;
   clearTimeout(petSizeSaveTimer);
-  // 连续拖动时即时更新数值，停止操作后再合并为一次磁盘写入。
+  // 连续输入时即时更新数值，停止操作后再合并为一次磁盘写入。
   petSizeSaveTimer = setTimeout(async () => {
-    await saveSettingsPatch({ petSize: value });
+    await saveSettingsPatch({ petSize: normalizedValue });
   }, PET_SIZE_SAVE_DELAY_MS);
 }
 
@@ -205,6 +206,7 @@ onBeforeUnmount(() => {
           <div class="settings-view-general-content">
             <section class="settings-view-card">
               <h2>桌宠形象</h2>
+              <p class="settings-view-pet-tip">上传透明背景 PNG 后会加入列表并自动设为当前形象。</p>
               <div class="settings-view-pet-template-list">
                 <button
                   v-for="item in petImageTemplates"
@@ -227,12 +229,14 @@ onBeforeUnmount(() => {
                 </button>
               </div>
               <div class="settings-view-pet-controls">
-                <div class="settings-view-pet-size-label">
-                  <span>桌宠大小</span>
-                  <strong>{{ settings.petSize }} px</strong>
+                <div class="settings-view-pet-size-description">
+                  <strong>桌宠大小</strong>
+                  <span>调整桌宠在桌面上的显示宽度</span>
                 </div>
-                <a-slider :model-value="settings.petSize" :min="100" :max="320" :step="4" @change="updatePetSize" />
-                <p>上传透明背景 PNG 后会加入列表并自动设为当前形象。</p>
+                <div class="settings-view-pet-size-input">
+                  <a-input-number :model-value="settings.petSize" :min="100" :max="320" :step="4" hide-button @change="updatePetSize" />
+                  <span>px</span>
+                </div>
               </div>
             </section>
 
@@ -479,8 +483,10 @@ onBeforeUnmount(() => {
   .settings-view-pet-template-selected { position: absolute; top: 5px; left: 5px; display: flex; align-items: center; justify-content: center; width: 20px; height: 20px; border-radius: 50%; color: #fff; background: #3564ff; box-shadow: 0 2px 8px rgba(53, 100, 255, 0.3); }
   .settings-view-pet-template-delete { position: absolute; top: 5px; right: 5px; display: flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; color: #86909c; background: rgba(255, 255, 255, 0.9); &:hover { color: #f53f3f; background: #fff; } }
   .settings-view-pet-template-upload { justify-content: center; color: #3564ff; border-style: dashed; background: #fff; svg { font-size: 24px; } span { font-size: 12px; } }
-  .settings-view-pet-controls { margin-top: 14px; p { margin: 6px 0 0; color: #99a1ad; font-size: 12px; } }
-  .settings-view-pet-size-label { display: flex; align-items: center; justify-content: space-between; margin-bottom: 6px; color: #474f59; font-size: 13px; strong { color: #3564ff; } }
+  .settings-view-pet-tip { margin: -4px 0 12px; color: #99a1ad; font-size: 12px; line-height: 1.5; }
+  .settings-view-pet-controls { display: flex; align-items: center; justify-content: space-between; gap: 16px; margin-top: 14px; padding: 11px 12px; border: 1px solid #edf1f5; border-radius: 10px; background: #f8fafc; }
+  .settings-view-pet-size-description { flex: 1; min-width: 0; strong, span { display: block; } strong { color: #474f59; font-size: 13px; font-weight: 500; } span { margin-top: 3px; color: #99a1ad; font-size: 11px; } }
+  .settings-view-pet-size-input { display: flex; flex: 0 0 auto; align-items: center; gap: 7px; color: #79828f; font-size: 12px; :deep(.arco-input-number) { width: 104px; } }
 
   .settings-view-record-card { display: flex; flex-direction: column; width: 100%; height: 100%; min-height: 0; padding: 16px; border-radius: 12px; background: #fff; box-shadow: 0 5px 18px rgba(30, 55, 90, 0.045); }
   .settings-view-record-toolbar { display: flex; flex: 0 0 auto; align-items: center; min-height: 32px; padding: 0 0 10px; }
