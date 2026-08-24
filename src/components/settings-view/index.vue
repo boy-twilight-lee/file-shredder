@@ -26,15 +26,10 @@
           <div class="settings-view-general-content">
             <section class="settings-view-card">
               <div class="settings-view-pet-heading">
-                <div>
-                  <h2>桌宠形象</h2>
-                  <p class="settings-view-pet-tip">
-                    支持 PNG、JPG、JPEG、SVG、WebP 和 GIF，单张不超过 50 MB。
-                  </p>
-                </div>
-                <span class="settings-view-pet-recommendation"
-                  >透明背景效果最佳</span
-                >
+                <h2>桌宠形象</h2>
+                <p class="settings-view-pet-tip">
+                  支持 PNG、JPG、JPEG、SVG、WebP 和 GIF，单张不超过 50 MB，透明背景图片效果最佳。
+                </p>
               </div>
               <div class="settings-view-pet-template-list">
                 <button
@@ -178,7 +173,28 @@
                 </a-button>
               </a-popconfirm>
             </div>
+            <a-table
+              v-if="logs.length === 0"
+              class="settings-view-record-table settings-view-record-table-empty"
+              row-key="id"
+              :columns="RECORD_TABLE_COLUMNS"
+              :data="[]"
+              :row-selection="RECORD_ROW_SELECTION"
+              :pagination="false"
+              :bordered="false"
+              :hoverable="false">
+              <template #empty>
+                <div class="settings-view-record-empty">
+                  <img
+                    :src="emptyIllustration"
+                    alt="" />
+                  <strong>暂无粉碎记录</strong>
+                  <span>完成文件粉碎后，处理结果会显示在这里。</span>
+                </div>
+              </template>
+            </a-table>
             <a-scrollbar
+              v-else
               class="settings-view-record-table-scrollbar-container"
               outer-class="settings-view-record-table-scrollbar"
               disable-horizontal>
@@ -230,15 +246,6 @@
                       >删除</a-link
                     >
                   </a-popconfirm>
-                </template>
-                <template #empty>
-                  <div class="settings-view-record-empty">
-                    <img
-                      :src="emptyIllustration"
-                      alt="" />
-                    <strong>暂无粉碎记录</strong>
-                    <span>完成文件粉碎后，处理结果会显示在这里。</span>
-                  </div>
                 </template>
               </a-table>
             </a-scrollbar>
@@ -826,23 +833,10 @@ onBeforeUnmount(() => {
     }
   }
   .settings-view-pet-heading {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: 12px;
     margin-bottom: 12px;
     h2 {
       margin-bottom: 4px;
     }
-  }
-  .settings-view-pet-recommendation {
-    flex: 0 0 auto;
-    padding: 4px 8px;
-    border-radius: 10px;
-    color: #3564ff;
-    font-size: 11px;
-    line-height: 1.4;
-    background: #eef3ff;
   }
   .settings-view-pet-template-upload {
     justify-content: center;
@@ -941,10 +935,12 @@ onBeforeUnmount(() => {
   }
   .settings-view-record-table-scrollbar {
     flex: 1;
+    width: 100%;
     min-height: 0;
     overflow: hidden;
   }
   :deep(.settings-view-record-table-scrollbar-container) {
+    width: 100%;
     height: 100%;
     overflow-x: hidden;
     overflow-y: auto;
@@ -954,6 +950,10 @@ onBeforeUnmount(() => {
     border: 0;
     border-radius: 0;
     background: transparent;
+  }
+  .settings-view-record-table-empty {
+    flex: 1;
+    min-height: 0;
   }
   .settings-view-record-path {
     display: block;
@@ -982,10 +982,11 @@ onBeforeUnmount(() => {
   }
   .settings-view-record-empty {
     display: flex;
+    flex: 1;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    min-height: 380px;
+    min-height: 0;
     padding: 28px 20px;
     color: #99a1ad;
     text-align: center;
@@ -1008,7 +1009,25 @@ onBeforeUnmount(() => {
   }
 
   :deep(.settings-view-record-table .arco-table-container) {
+    width: 100%;
     border-radius: 0;
+  }
+  :deep(.settings-view-record-table .arco-table-element) {
+    width: 100%;
+  }
+  :deep(.settings-view-record-table-empty .arco-table-container),
+  :deep(.settings-view-record-table-empty .arco-table-content),
+  :deep(.settings-view-record-table-empty .arco-table-element) {
+    height: 100%;
+  }
+  :deep(.settings-view-record-table-empty .arco-table-tr-empty),
+  :deep(.settings-view-record-table-empty .arco-table-tr-empty .arco-table-td),
+  :deep(
+    .settings-view-record-table-empty
+      .arco-table-tr-empty
+      .arco-table-cell
+  ) {
+    height: 100%;
   }
   // 表头使用原生 sticky 跟随单一滚动容器，避免缩放时拆分表格反复测量列宽。
   :deep(.settings-view-record-table .arco-table-th) {
@@ -1065,7 +1084,12 @@ onBeforeUnmount(() => {
   ) {
     background: #f7f8fa;
   }
-  :deep(.settings-view-record-table .arco-table-tr:hover .arco-table-td) {
+  :deep(
+    .settings-view-record-table
+      .arco-table-tbody
+      .arco-table-tr:not(.arco-table-tr-empty):hover
+      .arco-table-td
+  ) {
     background: #f1f5fa;
   }
   :deep(

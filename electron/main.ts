@@ -44,7 +44,6 @@ let activeShredController: AbortController | null = null;
 let launchTimer: NodeJS.Timeout | undefined;
 let petFadeTimer: NodeJS.Timeout | undefined;
 let queuedLaunchPaths: string[] = [];
-let wasPetVisibleBeforeSettings = false;
 type PetBubblePlacement = 'left' | 'right';
 interface PetImageTemplate {
   id: string;
@@ -94,6 +93,11 @@ let petCharacterSizeCache: {
   imagePath: string;
   width: number;
   size: Electron.Size;
+} | null = null;
+let petImageNaturalSize: {
+  imagePath: string;
+  width: number;
+  height: number;
 } | null = null;
 const petTemplateThumbnailCache = new Map<string, string>();
 
@@ -360,20 +364,8 @@ function showPet(): void {
   if (!petWindow.isVisible()) {
     petWindow.setOpacity(0);
     petWindow.showInactive();
-    refreshTray();
   }
   animatePetOpacity(1);
-}
-
-function hidePet(): void {
-  if (!petWindow?.isVisible()) return;
-  const window = petWindow;
-  animatePetOpacity(0, () => {
-    if (window.isDestroyed()) return;
-    window.hide();
-    window.setOpacity(1);
-    refreshTray();
-  });
 }
 
 function getPetCharacterSize(): Electron.Size {
@@ -388,11 +380,13 @@ function getPetCharacterSize(): Electron.Size {
   ) {
     return petCharacterSizeCache.size;
   }
-  // 图片或桌宠尺寸未变化时复用计算结果，避免命中检测反复读取和解码 PNG。
+  // 图片或桌宠尺寸未变化时复用计算结果，避免命中检测反复读取和解码资源。
   const activeImage = nativeImage.createFromPath(imagePath);
-  const imageSize = !activeImage.isEmpty()
-    ? activeImage.getSize()
-    : { width: 594, height: 840 };
+  const imageSize = petImageNaturalSize?.imagePath === imagePath
+    ? petImageNaturalSize
+    : !activeImage.isEmpty()
+      ? activeImage.getSize()
+      : { width: 594, height: 840 };
   const size = {
     width,
     height: Math.round((width * imageSize.height) / imageSize.width),
@@ -649,10 +643,8 @@ function createPetWindow(): void {
   );
   loadView(petWindow, 'pet');
   petWindow.on('close', (event) => {
-    if (!isQuitting) {
-      event.preventDefault();
-      petWindow?.hide();
-    }
+    // 桌宠不再维护独立隐藏状态，程序只能通过托盘“关闭”完整退出。
+    if (!isQuitting) event.preventDefault();
   });
   petWindow.on('closed', () => {
     clearInterval(petFadeTimer);
@@ -682,20 +674,15 @@ function createPanelWindow(): BrowserWindow {
     },
   });
   window.on('show', () => {
-    wasPetVisibleBeforeSettings = Boolean(petWindow?.isVisible());
     // Windows 拖动普通窗口经过超大透明桌宠窗口时会反复重组图层；设置期间移除该透明合成面。
-    if (wasPetVisibleBeforeSettings) petWindow?.hide();
+    petWindow?.hide();
+    petWindow?.setOpacity(1);
     petWindow?.setAlwaysOnTop(false);
-    refreshTray();
   });
   window.on('hide', () => {
     petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop);
-    if (wasPetVisibleBeforeSettings && petWindow) {
-      petWindow.setOpacity(1);
-      petWindow.showInactive();
-    }
-    wasPetVisibleBeforeSettings = false;
-    refreshTray();
+    // 设置窗口关闭后始终恢复桌宠，不再维护独立的显示/隐藏状态。
+    showPet();
   });
   // 设置窗口允许通过 F12 切换开发者工具，便于直接检查元素和计算样式。
   window.webContents.on('before-input-event', (event, input) => {
@@ -910,15 +897,7 @@ async function setContextMenuEnabled(enabled: boolean): Promise<void> {
 
 function buildTrayMenu(): Menu {
   return Menu.buildFromTemplate([
-    {
-      label: petWindow?.isVisible() ? '隐藏桌宠' : '显示桌宠',
-      click: () => {
-        if (petWindow?.isVisible()) hidePet();
-        else showPet();
-      },
-    },
     { label: '设置', click: showSettingsWindow },
-    { type: 'separator' },
     {
       label: '关闭',
       click: () => {
@@ -930,11 +909,6 @@ function buildTrayMenu(): Menu {
   ]);
 }
 
-function refreshTray(): void {
-  // macOS otherwise opens a persistent context menu on left click, which would conflict with opening settings.
-  tray?.setContextMenu(process.platform === 'darwin' ? null : buildTrayMenu());
-}
-
 function createTray(): void {
   const trayIcon = nativeImage
     .createFromPath(getIconPath())
@@ -944,7 +918,8 @@ function createTray(): void {
   tray.on('click', showSettingsWindow);
   if (process.platform === 'darwin')
     tray.on('right-click', () => tray?.popUpContextMenu(buildTrayMenu()));
-  refreshTray();
+  // macOS 左键仅打开设置，其他平台直接使用静态托盘菜单。
+  tray.setContextMenu(process.platform === 'darwin' ? null : buildTrayMenu());
 }
 
 const singleInstance = app.requestSingleInstanceLock();
@@ -1059,6 +1034,24 @@ ipcMain.on('pet:pointer-move', (event, pointer: unknown) => {
     y: candidate.y as number,
   });
 });
+ipcMain.on('pet:image-size', (event, size: unknown) => {
+  if (
+    !petWindow ||
+    event.sender !== petWindow.webContents ||
+    !size ||
+    typeof size !== 'object'
+  )
+    return;
+  const candidate = size as Partial<Electron.Size>;
+  if (![candidate.width, candidate.height].every(Number.isFinite)) return;
+  const width = Math.round(candidate.width as number);
+  const height = Math.round(candidate.height as number);
+  if (width <= 0 || height <= 0) return;
+  // 动态 WebP 无法由 nativeImage 解码，使用 Chromium 实际渲染尺寸校准点击热区。
+  petImageNaturalSize = { imagePath: getActivePetImagePath(), width, height };
+  petCharacterSizeCache = null;
+  updatePetWindowMouseThrough();
+});
 ipcMain.on('ELECTRON_DRAG_START', (event) => {
   if (!petWindow || event.sender !== petWindow.webContents) return;
   isPetDragging = true;
@@ -1138,7 +1131,6 @@ ipcMain.handle(
     if (typeof safePatch.launchAtLogin === 'boolean')
       applyLoginSetting(safePatch.launchAtLogin);
     notifyPetAppearanceChanged();
-    refreshTray();
     return currentSettings;
   },
 );
@@ -1240,9 +1232,6 @@ ipcMain.handle('app:cleanup-exit', async () => {
   setImmediate(() => app.quit());
   return true;
 });
-ipcMain.on('window:hide', (event) =>
-  BrowserWindow.fromWebContents(event.sender)?.hide(),
-);
 ipcMain.on('settings:ready', (event) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) return;
   settingsWindow.show();

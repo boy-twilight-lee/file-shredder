@@ -44,8 +44,8 @@ contextBridge.exposeInMainWorld('shredderApi', {
   deleteLogs: (ids: string[]) => ipcRenderer.invoke('logs:delete', ids),
   cleanupAndExit: () => ipcRenderer.invoke('app:cleanup-exit'),
   setPetExpanded: (expanded: boolean) => ipcRenderer.send('pet:expanded', expanded),
+  setPetImageSize: (width: number, height: number) => ipcRenderer.send('pet:image-size', { width, height }),
   setPetBubbleBounds: (bounds: unknown) => ipcRenderer.send('pet:bubble-bounds', bounds),
-  hideCurrentWindow: () => ipcRenderer.send('window:hide'),
   notifySettingsReady: () => ipcRenderer.send('settings:ready'),
   onPetState: (callback: (state: string) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, state: string) => callback(state);

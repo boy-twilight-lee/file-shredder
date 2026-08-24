@@ -287,6 +287,8 @@ function handlePetImageLoad(event: Event): void {
   const image = event.currentTarget as HTMLImageElement;
   if (image.naturalWidth > 0 && image.naturalHeight > 0) {
     petAspectRatio.value = image.naturalHeight / image.naturalWidth;
+    // Chromium 能正确解码动态 WebP，将真实尺寸同步给主进程以校准点击穿透区域。
+    window.shredderApi.setPetImageSize(image.naturalWidth, image.naturalHeight);
   }
 }
 

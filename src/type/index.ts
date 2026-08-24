@@ -92,8 +92,8 @@ export interface ShredderApi {
   deleteLogs: (ids: string[]) => Promise<ShredLog[]>;
   cleanupAndExit: () => Promise<boolean>;
   setPetExpanded: (expanded: boolean) => void;
+  setPetImageSize: (width: number, height: number) => void;
   setPetBubbleBounds: (bounds: PetBubbleBounds | null) => void;
-  hideCurrentWindow: () => void;
   notifySettingsReady: () => void;
   onPetState: (callback: (state: 'idle' | 'working' | 'success' | 'failure') => void) => () => void;
   onPetConfirm: (callback: (paths: string[], passes: 0 | 3 | 7 | 35) => void) => () => void;
