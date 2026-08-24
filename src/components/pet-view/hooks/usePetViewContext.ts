@@ -1,0 +1,403 @@
+import {
+  IconCheckCircleFill,
+  IconClockCircle,
+  IconCloseCircleFill,
+} from '@arco-design/web-vue/es/icon';
+import { useEventListener, useResizeObserver } from '@vueuse/core';
+import {
+  computed,
+  inject,
+  nextTick,
+  onBeforeUnmount,
+  onMounted,
+  provide,
+  ref,
+  watch,
+} from 'vue';
+import type { InjectionKey } from 'vue';
+import type {
+  PetBubbleMode,
+  PetBubblePlacement,
+  PetState,
+  PetViewContext,
+} from '../type';
+import type { ShredProgress, ShredSummary } from '@/type';
+import { PROGRESS_TONE_OPTIONS } from '../constants';
+
+const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
+  Symbol('pet-view-context');
+
+// 桌宠全部默认状态集中在 context，后续调整初始行为只需修改这一处。
+const PET_VIEW_DEFAULTS = {
+  petState: 'idle' as PetState,
+  bubbleMode: 'hidden' as PetBubbleMode,
+  bubblePlacement: 'left' as PetBubblePlacement,
+  selectedPaths: [] as string[],
+  presetPasses: 3 as 0 | 3 | 7 | 35,
+  progress: null as ShredProgress | null,
+  progressPercent: 0,
+  displayedFileIndex: 0,
+  summary: null as ShredSummary | null,
+  errorMessage: '',
+  isSubmitting: false,
+  isCancelling: false,
+  dragDepth: 0,
+  petImageSource: '',
+  petSize: 200,
+  petAspectRatio: 840 / 594,
+  bubbleElement: null as HTMLElement | null,
+} as const;
+
+function createPetViewContext(): PetViewContext {
+  const petState = ref<PetState>(PET_VIEW_DEFAULTS.petState);
+  const bubbleMode = ref<PetBubbleMode>(PET_VIEW_DEFAULTS.bubbleMode);
+  const bubblePlacement = ref<PetBubblePlacement>(
+    PET_VIEW_DEFAULTS.bubblePlacement,
+  );
+  const selectedPaths = ref<string[]>([...PET_VIEW_DEFAULTS.selectedPaths]);
+  const presetPasses = ref<0 | 3 | 7 | 35>(PET_VIEW_DEFAULTS.presetPasses);
+  const progress = ref<ShredProgress | null>(PET_VIEW_DEFAULTS.progress);
+  const progressPercent = ref<number>(PET_VIEW_DEFAULTS.progressPercent);
+  const displayedFileIndex = ref<number>(PET_VIEW_DEFAULTS.displayedFileIndex);
+  const summary = ref<ShredSummary | null>(PET_VIEW_DEFAULTS.summary);
+  const errorMessage = ref<string>(PET_VIEW_DEFAULTS.errorMessage);
+  const isSubmitting = ref<boolean>(PET_VIEW_DEFAULTS.isSubmitting);
+  const isCancelling = ref<boolean>(PET_VIEW_DEFAULTS.isCancelling);
+  const dragDepth = ref<number>(PET_VIEW_DEFAULTS.dragDepth);
+  const petImageSource = ref<string>(PET_VIEW_DEFAULTS.petImageSource);
+  const petSize = ref<number>(PET_VIEW_DEFAULTS.petSize);
+  const petAspectRatio = ref<number>(PET_VIEW_DEFAULTS.petAspectRatio);
+  const bubbleElement = ref<HTMLElement | null>(
+    PET_VIEW_DEFAULTS.bubbleElement,
+  );
+  const disposers: Array<() => void> = [];
+
+  const petAppearanceStyle = computed(() => ({
+    '--pet-width': `${petSize.value}px`,
+    '--pet-height': `${Math.round(petSize.value * petAspectRatio.value)}px`,
+  }));
+
+  const progressTone = computed(
+    () =>
+      PROGRESS_TONE_OPTIONS.find(
+        (item) => progressPercent.value <= item.maximum,
+      ) ?? PROGRESS_TONE_OPTIONS[PROGRESS_TONE_OPTIONS.length - 1],
+  );
+
+  const progressStageLabel = computed(() => {
+    if (!progress.value) return '准备中';
+    if (progress.value.stage === 'removing') return '正在移除';
+    if (progress.value.stage === 'done') return '处理完成';
+    return '正在覆写';
+  });
+
+  const formattedDuration = computed(() => {
+    const durationMs = summary.value?.durationMs ?? 0;
+    if (durationMs < 1000) return `${durationMs} ms`;
+    if (durationMs < 60000) return `${(durationMs / 1000).toFixed(1)} s`;
+    const minutes = Math.floor(durationMs / 60000);
+    const seconds = Math.round((durationMs % 60000) / 1000);
+    return `${minutes} min ${seconds} s`;
+  });
+
+  const resultMetrics = computed(() => [
+    {
+      key: 'succeeded',
+      label: '已删文件',
+      value: summary.value?.succeeded ?? 0,
+      icon: IconCheckCircleFill,
+      tone: 'success',
+    },
+    {
+      key: 'failed',
+      label: '删除失败',
+      value: summary.value?.failed ?? 0,
+      icon: IconCloseCircleFill,
+      tone: 'failure',
+    },
+    {
+      key: 'duration',
+      label: '处理时间',
+      value: formattedDuration.value,
+      icon: IconClockCircle,
+      tone: 'duration',
+    },
+  ]);
+
+  function calculateProgressPercent(value: ShredProgress): number {
+    const currentFilePercent =
+      value.total > 0 ? Math.min(1, value.completed / value.total) : 0;
+    const overallPercent =
+      (Math.max(0, value.fileIndex - 1) + currentFilePercent) /
+      Math.max(1, value.fileCount);
+    return Math.round(Math.min(1, overallPercent) * 100);
+  }
+
+  function showBubble(mode: PetBubbleMode): void {
+    bubbleMode.value = mode;
+    window.shredderApi.setPetExpanded(mode !== 'hidden');
+  }
+
+  function openActions(): void {
+    if (bubbleMode.value === 'progress') return;
+    showBubble('actions');
+  }
+
+  function closeBubble(): void {
+    if (bubbleMode.value === 'progress') return;
+    showBubble('hidden');
+  }
+
+  function reportBubbleBounds(): void {
+    if (bubbleMode.value === 'hidden' || !bubbleElement.value) {
+      window.shredderApi.setPetBubbleBounds(null);
+      return;
+    }
+    const bounds = bubbleElement.value.getBoundingClientRect();
+    // 主进程依据气泡真实尺寸切换鼠标穿透，避免动态内容底部无法点击。
+    window.shredderApi.setPetBubbleBounds({
+      x: bounds.x,
+      y: bounds.y,
+      width: bounds.width,
+      height: bounds.height,
+    });
+  }
+
+  async function syncBubbleBounds(): Promise<void> {
+    await nextTick();
+    reportBubbleBounds();
+  }
+
+  function handleOutsidePointerDown(event: PointerEvent): void {
+    if (
+      event.button !== 0 ||
+      bubbleMode.value === 'hidden' ||
+      bubbleMode.value === 'progress'
+    )
+      return;
+    if (
+      event.target instanceof Node &&
+      bubbleElement.value?.contains(event.target)
+    )
+      return;
+    closeBubble();
+  }
+
+  function handleWindowBlur(): void {
+    // 点击透明穿透区域会让窗口失焦，用失焦补足 DOM 外部点击的关闭行为。
+    closeBubble();
+  }
+
+  async function prepareTargets(paths: string[]): Promise<void> {
+    const [validPaths, settings] = await Promise.all([
+      window.shredderApi.prepareShred(paths),
+      window.shredderApi.getSettings(),
+    ]);
+    if (validPaths.length === 0) {
+      errorMessage.value = '没有找到可粉碎的文件或文件夹，请检查路径后重试。';
+      showBubble('error');
+      return;
+    }
+    selectedPaths.value = validPaths;
+    presetPasses.value = settings.passes;
+    showBubble('confirm');
+  }
+
+  async function chooseTargets(kind: 'file' | 'directory'): Promise<void> {
+    const paths = await window.shredderApi.chooseTargets(kind);
+    if (paths.length > 0) await prepareTargets(paths);
+  }
+
+  function removeTarget(path: string): void {
+    selectedPaths.value = selectedPaths.value.filter((item) => item !== path);
+    // 全部移除后不保留无目标的确认状态，直接返回选择入口。
+    if (selectedPaths.value.length === 0) showBubble('actions');
+  }
+
+  function getTargetName(path: string): string {
+    // 同时兼容 Windows 与标准路径分隔符，目录尾部带分隔符时也能正确取名。
+    return path.split(/[\\/]/).filter(Boolean).pop() ?? path;
+  }
+
+  async function confirmShred(): Promise<void> {
+    if (isSubmitting.value) return;
+    isSubmitting.value = true;
+    isCancelling.value = false;
+    progress.value = null;
+    progressPercent.value = PET_VIEW_DEFAULTS.progressPercent;
+    displayedFileIndex.value = PET_VIEW_DEFAULTS.displayedFileIndex;
+    showBubble('progress');
+    try {
+      // Vue 会把 ref 中的数组转为 Proxy；进入 contextBridge 前必须展开为 Electron 可克隆的普通数组。
+      const targets = [...selectedPaths.value];
+      const results = await window.shredderApi.shred(
+        targets,
+        presetPasses.value,
+      );
+      if (results.length === 0) {
+        errorMessage.value = '没有可粉碎的目标，或已有粉碎任务正在执行。';
+        showBubble('error');
+      }
+    } catch (error) {
+      errorMessage.value =
+        error instanceof Error ? error.message : '粉碎任务执行失败';
+      showBubble('error');
+    } finally {
+      isSubmitting.value = false;
+    }
+  }
+
+  async function cancelShred(): Promise<void> {
+    if (isCancelling.value) return;
+    isCancelling.value = true;
+    try {
+      const cancellationRequested = await window.shredderApi.cancelShred();
+      if (!cancellationRequested) isCancelling.value = false;
+    } catch {
+      // Keep the active progress view usable if the cancellation IPC request itself fails.
+      isCancelling.value = false;
+    }
+  }
+
+  async function handleDrop(event: DragEvent): Promise<void> {
+    dragDepth.value = PET_VIEW_DEFAULTS.dragDepth;
+    const paths = Array.from(event.dataTransfer?.files ?? [])
+      .map((file) => window.shredderApi.getPathForFile(file))
+      .filter(Boolean);
+    if (paths.length > 0) await prepareTargets(paths);
+  }
+
+  function handleDragEnter(): void {
+    dragDepth.value += 1;
+    showBubble('drop');
+  }
+
+  function handleDragLeave(): void {
+    dragDepth.value = Math.max(
+      PET_VIEW_DEFAULTS.dragDepth,
+      dragDepth.value - 1,
+    );
+    if (
+      dragDepth.value === PET_VIEW_DEFAULTS.dragDepth &&
+      bubbleMode.value === 'drop'
+    )
+      closeBubble();
+  }
+
+  function handlePetImageLoad(event: Event): void {
+    const image = event.currentTarget as HTMLImageElement;
+    if (image.naturalWidth > 0 && image.naturalHeight > 0) {
+      petAspectRatio.value = image.naturalHeight / image.naturalWidth;
+      // Chromium 能正确解码动态 WebP，将真实尺寸同步给主进程以校准点击穿透区域。
+      window.shredderApi.setPetImageSize(
+        image.naturalWidth,
+        image.naturalHeight,
+      );
+    }
+  }
+
+  async function refreshPetAppearance(): Promise<void> {
+    const [settings, templateImage] = await Promise.all([
+      window.shredderApi.getSettings(),
+      window.shredderApi.getPetImage(),
+    ]);
+    petSize.value = settings.petSize;
+    presetPasses.value = settings.passes;
+    // The main process always resolves the active built-in or uploaded template.
+    petImageSource.value = templateImage;
+  }
+
+  // VueUse 负责观察目标切换和组件卸载，避免动态气泡重复绑定原生监听器。
+  useResizeObserver(bubbleElement, reportBubbleBounds);
+  useEventListener(document, 'pointerdown', handleOutsidePointerDown, {
+    capture: true,
+  });
+  useEventListener(window, 'blur', handleWindowBlur);
+
+  onMounted(async () => {
+    disposers.push(
+      window.shredderApi.onSettingsChanged(refreshPetAppearance),
+      window.shredderApi.onPetState((state) => {
+        petState.value = state;
+      }),
+      window.shredderApi.onPetConfirm((paths, passes) => {
+        selectedPaths.value = paths;
+        presetPasses.value = passes;
+        showBubble('confirm');
+      }),
+      window.shredderApi.onPetProgress((value) => {
+        progress.value = value;
+        // 并发文件可能乱序上报，只允许展示值前进，避免序号、颜色和进度条来回跳动。
+        progressPercent.value = Math.max(
+          progressPercent.value,
+          calculateProgressPercent(value),
+        );
+        displayedFileIndex.value = Math.max(
+          displayedFileIndex.value,
+          value.fileIndex,
+        );
+        showBubble('progress');
+      }),
+      window.shredderApi.onPetComplete((value) => {
+        isCancelling.value = false;
+        summary.value = value;
+        showBubble('result');
+      }),
+      window.shredderApi.onPetPlacement((placement) => {
+        bubblePlacement.value = placement;
+      }),
+    );
+    await refreshPetAppearance();
+  });
+
+  watch([bubbleMode, bubblePlacement], syncBubbleBounds, { flush: 'post' });
+
+  onBeforeUnmount(() => {
+    window.shredderApi.setPetBubbleBounds(null);
+    disposers.forEach((dispose) => dispose());
+  });
+
+  return {
+    petState,
+    petAppearanceStyle,
+    petImageSource,
+    bubbleElement,
+    bubbleMode,
+    bubblePlacement,
+    selectedPaths,
+    progress,
+    progressPercent,
+    displayedFileIndex,
+    progressTone,
+    progressStageLabel,
+    summary,
+    resultMetrics,
+    errorMessage,
+    isSubmitting,
+    isCancelling,
+    chooseTargets,
+    removeTarget,
+    getTargetName,
+    closeBubble,
+    confirmShred,
+    cancelShred,
+    showBubble,
+    openActions,
+    handleDrop,
+    handleDragEnter,
+    handleDragLeave,
+    handlePetImageLoad,
+  };
+}
+
+export function providePetViewContext(): PetViewContext {
+  const context = createPetViewContext();
+  provide(PET_VIEW_CONTEXT_KEY, context);
+  return context;
+}
+
+export function usePetViewContext(): PetViewContext {
+  const context = inject(PET_VIEW_CONTEXT_KEY);
+  if (!context) throw new Error('桌宠气泡必须在 PetView 上下文中使用');
+  return context;
+}

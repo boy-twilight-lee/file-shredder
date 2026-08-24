@@ -4,11 +4,13 @@
       <div class="shred-record-panel-toolbar">
         <a-popconfirm
           :content="`确认删除选中的 ${selectedLogKeys.length} 条记录？`"
-          @ok="emit('delete-logs', selectedLogKeys)">
+          @ok="emit('delete-logs', selectedLogKeys)"
+        >
           <a-button
             size="small"
             status="danger"
-            :disabled="selectedLogKeys.length === 0">
+            :disabled="selectedLogKeys.length === 0"
+          >
             <template #icon><icon-delete /></template>批量删除
           </a-button>
         </a-popconfirm>
@@ -22,12 +24,14 @@
         :row-selection="RECORD_ROW_SELECTION"
         :pagination="false"
         :bordered="false"
-        :hoverable="false">
+        :hoverable="false"
+      >
         <template #empty>
           <div class="shred-record-panel-empty">
             <img
               :src="emptyIllustration"
-              alt="" />
+              alt=""
+            />
             <strong>暂无粉碎记录</strong>
             <span>完成文件粉碎后，处理结果会显示在这里。</span>
           </div>
@@ -37,7 +41,8 @@
         v-else
         class="shred-record-panel-scrollbar-container"
         outer-class="shred-record-panel-scrollbar"
-        disable-horizontal>
+        disable-horizontal
+      >
         <a-table
           v-model:selected-keys="selectedLogKeys"
           class="shred-record-panel-table"
@@ -47,7 +52,8 @@
           :row-selection="RECORD_ROW_SELECTION"
           :pagination="false"
           :bordered="false"
-          stripe>
+          stripe
+        >
           <template #path="{ record }">
             <span
               class="shred-record-panel-path"
@@ -63,7 +69,8 @@
           <template #status="{ record }">
             <a-tag
               class="shred-record-panel-status"
-              :color="record.success ? 'green' : 'red'">
+              :color="record.success ? 'green' : 'red'"
+            >
               <icon-check-circle v-if="record.success" />
               <icon-close-circle v-else />
               {{ record.success ? '成功' : '失败' }}
@@ -72,14 +79,16 @@
           <template #message="{ record }">
             <span
               class="shred-record-panel-message"
-              :title="record.success ? '' : record.message">
+              :title="record.success ? '' : record.message"
+            >
               {{ record.success ? '-' : record.message }}
             </span>
           </template>
           <template #actions="{ record }">
             <a-popconfirm
               content="确认删除这条粉碎记录？"
-              @ok="emit('delete-logs', [record.id])">
+              @ok="emit('delete-logs', [record.id])"
+            >
               <a-link
                 status="danger"
                 title="删除记录"
@@ -99,7 +108,8 @@
           :show-total="true"
           :show-page-size="true"
           :page-size-options="RECORD_PAGE_SIZE_OPTIONS"
-          :show-jumper="true">
+          :show-jumper="true"
+        >
           <template #total>共 {{ logs.length }} 条</template>
         </a-pagination>
       </div>
@@ -153,5 +163,5 @@ watch([() => props.logs.length, recordPageSize], ([logCount]) => {
 </script>
 
 <style lang="less" scoped>
-@import './index.less';
+@import './style/index.less';
 </style>

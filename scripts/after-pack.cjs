@@ -8,7 +8,9 @@ const rcedit = require('rcedit');
  * @returns {string} Windows-compatible file version.
  */
 function get_windows_file_version(version) {
-  const numeric_parts = version.split('.').map((part) => Number.parseInt(part, 10) || 0);
+  const numeric_parts = version
+    .split('.')
+    .map((part) => Number.parseInt(part, 10) || 0);
   return [...numeric_parts.slice(0, 4), 0, 0, 0, 0].slice(0, 4).join('.');
 }
 
@@ -23,8 +25,16 @@ module.exports = async function after_pack(context) {
   if (context.electronPlatformName !== 'win32') return;
 
   const { appInfo } = context.packager;
-  const executable_path = path.join(context.appOutDir, `${appInfo.productFilename}.exe`);
-  const icon_path = path.join(context.packager.projectDir, 'src', 'assets', 'app-icon.ico');
+  const executable_path = path.join(
+    context.appOutDir,
+    `${appInfo.productFilename}.exe`,
+  );
+  const icon_path = path.join(
+    context.packager.projectDir,
+    'src',
+    'assets',
+    'app-icon.ico',
+  );
   const file_version = get_windows_file_version(appInfo.version);
 
   // electron-builder normally performs this edit through winCodeSign before packaging the portable EXE.

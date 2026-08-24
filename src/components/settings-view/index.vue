@@ -4,7 +4,8 @@
       v-model:active-key="activeTab"
       class="settings-view-tabs"
       type="line"
-      size="small">
+      size="small"
+    >
       <a-tab-pane key="general">
         <template #title><icon-apps />常规设置</template>
       </a-tab-pane>
@@ -16,7 +17,8 @@
 
     <a-spin
       :loading="isLoading"
-      class="settings-view-content">
+      class="settings-view-content"
+    >
       <section class="settings-view-body">
         <general-settings-panel
           v-if="activeTab === 'general'"
@@ -28,20 +30,23 @@
           @delete-pet-image="deletePetImage"
           @update-pet-size="updatePetSize"
           @update-passes="updatePasses"
-          @update-boolean-setting="updateBooleanSetting" />
+          @update-boolean-setting="updateBooleanSetting"
+        />
         <shred-record-panel
           v-else
           :logs="logs"
-          @delete-logs="deleteLogs" />
+          @delete-logs="deleteLogs"
+        />
       </section>
     </a-spin>
   </main>
 </template>
 
 <script setup lang="ts">
-import { onBeforeUnmount, onMounted, ref } from 'vue';
 import { Message } from '@arco-design/web-vue';
 import { IconApps, IconHistory } from '@arco-design/web-vue/es/icon';
+import { useDebounceFn } from '@vueuse/core';
+import { onBeforeUnmount, onMounted, ref } from 'vue';
 import type {
   AppSettings,
   PetImageTemplate,
@@ -53,7 +58,8 @@ import { PET_SIZE_SAVE_DELAY_MS } from './constants';
 
 const defaultSettings: AppSettings = {
   shortcut: 'CommandOrControl+Shift+Delete',
-  passes: 3,
+  // 设置读取完成前也保持极速删除为默认选中状态。
+  passes: 0,
   confirmBeforeShred: true,
   alwaysOnTop: true,
   launchAtLogin: false,
@@ -74,7 +80,11 @@ const isLoading = ref(true);
 const isChoosingPetImage = ref(false);
 const activeTab = ref<'general' | 'records'>('general');
 const disposers: Array<() => void> = [];
-let petSizeSaveTimer: ReturnType<typeof setTimeout> | undefined;
+
+// VueUse 统一管理防抖状态，并暴露 cancel 供组件卸载时取消尚未执行的保存。
+const savePetSize = useDebounceFn(async (value: number) => {
+  await saveSettingsPatch({ petSize: value });
+}, PET_SIZE_SAVE_DELAY_MS);
 
 async function refreshData(): Promise<void> {
   const [
@@ -118,11 +128,8 @@ function updatePetSize(value: number | undefined): void {
   if (typeof value !== 'number' || !Number.isFinite(value)) return;
   const normalizedValue = Math.min(320, Math.max(100, Math.round(value)));
   settings.value.petSize = normalizedValue;
-  clearTimeout(petSizeSaveTimer);
   // 连续调整时只在数值停止变化后合并为一次磁盘写入。
-  petSizeSaveTimer = setTimeout(async () => {
-    await saveSettingsPatch({ petSize: normalizedValue });
-  }, PET_SIZE_SAVE_DELAY_MS);
+  savePetSize(normalizedValue);
 }
 
 async function choosePetImage(): Promise<void> {
@@ -182,7 +189,7 @@ onMounted(async () => {
 });
 
 onBeforeUnmount(() => {
-  clearTimeout(petSizeSaveTimer);
+  savePetSize.cancel();
   disposers.forEach((dispose) => dispose());
 });
 </script>

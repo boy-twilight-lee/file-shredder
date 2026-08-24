@@ -47,21 +47,34 @@ function runPowerShell(encodedCommand: string): Promise<CommandResult> {
   return new Promise((resolve) => {
     execFile(
       'powershell.exe',
-      ['-NoLogo', '-NoProfile', '-NonInteractive', '-WindowStyle', 'Hidden', '-EncodedCommand', encodedCommand],
+      [
+        '-NoLogo',
+        '-NoProfile',
+        '-NonInteractive',
+        '-WindowStyle',
+        'Hidden',
+        '-EncodedCommand',
+        encodedCommand,
+      ],
       { encoding: 'utf8', timeout: 2500, windowsHide: true },
-      (error, stdout, stderr) => resolve({
-        success: !error,
-        returnCode: typeof error?.code === 'number' ? error.code : error ? 1 : 0,
-        output: stdout.trim(),
-        errors: stderr.trim(),
-      }),
+      (error, stdout, stderr) =>
+        resolve({
+          success: !error,
+          returnCode:
+            typeof error?.code === 'number' ? error.code : error ? 1 : 0,
+          output: stdout.trim(),
+          errors: stderr.trim(),
+        }),
     );
   });
 }
 
 export async function getExplorerSelection(): Promise<string[]> {
   if (process.platform !== 'win32') return [];
-  const encodedCommand = Buffer.from(EXPLORER_SELECTION_SCRIPT, 'utf16le').toString('base64');
+  const encodedCommand = Buffer.from(
+    EXPLORER_SELECTION_SCRIPT,
+    'utf16le',
+  ).toString('base64');
   const result = await runPowerShell(encodedCommand);
   if (!result.success || !result.output) return [];
   try {

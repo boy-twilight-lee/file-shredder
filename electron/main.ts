@@ -382,11 +382,12 @@ function getPetCharacterSize(): Electron.Size {
   }
   // 图片或桌宠尺寸未变化时复用计算结果，避免命中检测反复读取和解码资源。
   const activeImage = nativeImage.createFromPath(imagePath);
-  const imageSize = petImageNaturalSize?.imagePath === imagePath
-    ? petImageNaturalSize
-    : !activeImage.isEmpty()
-      ? activeImage.getSize()
-      : { width: 594, height: 840 };
+  const imageSize =
+    petImageNaturalSize?.imagePath === imagePath
+      ? petImageNaturalSize
+      : !activeImage.isEmpty()
+        ? activeImage.getSize()
+        : { width: 594, height: 840 };
   const size = {
     width,
     height: Math.round((width * imageSize.height) / imageSize.width),
@@ -435,8 +436,13 @@ function getRestoredPetWindowPosition(
   const hasSavedPosition =
     Number.isFinite(currentSettings.petPositionX) &&
     Number.isFinite(currentSettings.petPositionY);
-  let characterX = workArea.x + workArea.width - 225;
-  let characterY = workArea.y + workArea.height - 290;
+  // 首次启动时让人物本体居中；已有拖拽位置时仍优先恢复用户保存的坐标。
+  let characterX = Math.round(
+    workArea.x + (workArea.width - characterSize.width) / 2,
+  );
+  let characterY = Math.round(
+    workArea.y + (workArea.height - characterSize.height) / 2,
+  );
   if (hasSavedPosition) {
     const relativeX = Math.min(
       1,
@@ -802,7 +808,10 @@ async function requestShred(
       ),
     );
     const failed = results.filter((result) => !result.success);
-    const succeeded = results.length - failed.length;
+    const succeeded = results.reduce(
+      (total, result) => total + result.deletedFileCount,
+      0,
+    );
     petWindow?.webContents.send(
       'pet:state',
       failed.length === 0 ? 'success' : 'failure',
@@ -818,8 +827,8 @@ async function requestShred(
         title: failed.length === 0 ? '文件粉碎完成' : '部分目标粉碎失败',
         body:
           failed.length === 0
-            ? `已永久粉碎 ${results.length} 个目标`
-            : `${failed.length} 个目标失败，请在设置的日志中查看原因`,
+            ? `已永久删除 ${succeeded} 个文件`
+            : `已删除 ${succeeded} 个文件，${failed.length} 个项目失败`,
         icon: getIconPath(),
       }).show();
     }
@@ -828,7 +837,7 @@ async function requestShred(
     if (!(error instanceof ShredCancelledError)) throw error;
     const durationMs = Date.now() - startedAt;
     const failed = error.results.filter((result) => !result.success);
-    const succeeded = error.results.length - failed.length;
+    const succeeded = error.deletedFileCount;
     if (error.results.length > 0) {
       await store.appendLogs(
         error.results.map((result) =>

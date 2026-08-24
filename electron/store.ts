@@ -37,7 +37,8 @@ export interface ShredLog {
 
 const DEFAULT_SETTINGS: AppSettings = {
   shortcut: 'CommandOrControl+Shift+Delete',
-  passes: 3,
+  // 新用户默认使用不覆写数据的极速删除模式。
+  passes: 0,
   confirmBeforeShred: true,
   alwaysOnTop: true,
   launchAtLogin: false,
@@ -70,7 +71,11 @@ export class AppStore {
     try {
       return JSON.parse(await readFile(path, 'utf8')) as T;
     } catch (error) {
-      if ((error as NodeJS.ErrnoException).code === 'ENOENT' || error instanceof SyntaxError) return fallback;
+      if (
+        (error as NodeJS.ErrnoException).code === 'ENOENT' ||
+        error instanceof SyntaxError
+      )
+        return fallback;
       throw error;
     }
   }
@@ -81,14 +86,16 @@ export class AppStore {
   }
 
   async getSettings(): Promise<AppSettings> {
-    const storedSettings = await this.readJson<Partial<AppSettings> & { snapToEdge?: boolean }>(this.settingsPath, {});
+    const storedSettings = await this.readJson<
+      Partial<AppSettings> & { snapToEdge?: boolean }
+    >(this.settingsPath, {});
     // 清除旧版本遗留的吸附选项，后续保存时不会再写回配置文件。
     delete storedSettings.snapToEdge;
     return { ...DEFAULT_SETTINGS, ...storedSettings };
   }
 
   async updateSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
-    const settings = { ...await this.getSettings(), ...patch };
+    const settings = { ...(await this.getSettings()), ...patch };
     await this.writeJson(this.settingsPath, settings);
     return settings;
   }
@@ -97,10 +104,14 @@ export class AppStore {
     return this.readJson<ShredLog[]>(this.logsPath, []);
   }
 
-  async appendLogs(entries: Omit<ShredLog, 'id' | 'timestamp'>[]): Promise<void> {
+  async appendLogs(
+    entries: Omit<ShredLog, 'id' | 'timestamp'>[],
+  ): Promise<void> {
     const logs = await this.getLogs();
     const timestamp = new Date().toISOString();
-    logs.unshift(...entries.map((entry) => ({ ...entry, id: randomUUID(), timestamp })));
+    logs.unshift(
+      ...entries.map((entry) => ({ ...entry, id: randomUUID(), timestamp })),
+    );
     await this.writeJson(this.logsPath, logs.slice(0, 1000));
   }
 
@@ -111,7 +122,9 @@ export class AppStore {
   async deleteLogs(ids: string[]): Promise<ShredLog[]> {
     if (ids.length === 0) return this.getLogs();
     const deletedIds = new Set(ids);
-    const logs = (await this.getLogs()).filter((log) => !deletedIds.has(log.id));
+    const logs = (await this.getLogs()).filter(
+      (log) => !deletedIds.has(log.id),
+    );
     await this.writeJson(this.logsPath, logs);
     return logs;
   }

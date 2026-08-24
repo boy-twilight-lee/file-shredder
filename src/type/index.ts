@@ -11,6 +11,7 @@ export interface ShredProgress {
 export interface ShredResult {
   path: string;
   success: boolean;
+  deletedFileCount: number;
   error?: string;
 }
 
@@ -60,7 +61,11 @@ export interface PetImageTemplate {
   deletable: boolean;
 }
 
-export type SettingBooleanKey = 'confirmBeforeShred' | 'alwaysOnTop' | 'launchAtLogin' | 'contextMenuInstalled';
+export type SettingBooleanKey =
+  | 'confirmBeforeShred'
+  | 'alwaysOnTop'
+  | 'launchAtLogin'
+  | 'contextMenuInstalled';
 
 export interface ShredLog {
   id: string;
@@ -95,15 +100,23 @@ export interface ShredderApi {
   setPetImageSize: (width: number, height: number) => void;
   setPetBubbleBounds: (bounds: PetBubbleBounds | null) => void;
   notifySettingsReady: () => void;
-  onPetState: (callback: (state: 'idle' | 'working' | 'success' | 'failure') => void) => () => void;
-  onPetConfirm: (callback: (paths: string[], passes: 0 | 3 | 7 | 35) => void) => () => void;
+  onPetState: (
+    callback: (state: 'idle' | 'working' | 'success' | 'failure') => void,
+  ) => () => void;
+  onPetConfirm: (
+    callback: (paths: string[], passes: 0 | 3 | 7 | 35) => void,
+  ) => () => void;
   onPetProgress: (callback: (progress: ShredProgress) => void) => () => void;
   onPetComplete: (callback: (summary: ShredSummary) => void) => () => void;
-  onPetPlacement: (callback: (placement: 'left' | 'right') => void) => () => void;
+  onPetPlacement: (
+    callback: (placement: 'left' | 'right') => void,
+  ) => () => void;
   onSettingsChanged: (callback: () => void) => () => void;
   onLogsUpdated: (callback: () => void) => () => void;
 }
 
 declare global {
-  interface Window { shredderApi: ShredderApi; }
+  interface Window {
+    shredderApi: ShredderApi;
+  }
 }

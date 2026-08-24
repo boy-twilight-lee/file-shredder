@@ -19,11 +19,14 @@
     "build:x64": "npm run build:win:x64",
     "build:ia32": "npm run build:win:ia32",
     "build:dir": "vue-tsc --noEmit && vite build && electron-builder --dir",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run --config vitest.config.ts"
   },
   "dependencies": {
     "@arco-design/web-vue": "^2.57.0",
+    "@vueuse/core": "^14.4.0",
     "electron-drag-window": "^1.0.4",
     "vue": "^3.5.13"
   },
@@ -33,6 +36,7 @@
     "electron": "^39.8.10",
     "electron-builder": "^25.1.8",
     "less": "^4.2.2",
+    "prettier": "^3.9.6",
     "rcedit": "^4.0.1",
     "typescript": "^5.7.2",
     "vite": "^6.0.5",

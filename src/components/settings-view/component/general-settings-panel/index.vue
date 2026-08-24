@@ -2,13 +2,15 @@
   <a-scrollbar
     class="general-settings-panel-scrollbar-container"
     outer-class="general-settings-panel-scrollbar"
-    disable-horizontal>
+    disable-horizontal
+  >
     <div class="general-settings-panel">
       <section class="general-settings-panel-card">
         <div class="general-settings-panel-pet-heading">
           <h2>桌宠形象</h2>
           <p class="general-settings-panel-pet-tip">
-            支持 PNG、JPG、JPEG、SVG、WebP 和 GIF，单张不超过 50 MB，透明背景图片效果最佳。
+            支持 PNG、JPG、JPEG、SVG、WebP 和 GIF，单张不超过 50
+            MB，透明背景图片效果最佳。
           </p>
         </div>
         <div class="general-settings-panel-template-list">
@@ -20,7 +22,8 @@
             :class="{
               'general-settings-panel-template-active': item.active,
             }"
-            @click="emit('select-pet-image', item.id)">
+            @click="emit('select-pet-image', item.id)"
+          >
             <span class="general-settings-panel-template-preview"
               ><img
                 :src="item.image"
@@ -39,7 +42,8 @@
             <a-popconfirm
               v-if="item.deletable"
               content="删除这个自定义形象？"
-              @ok="emit('delete-pet-image', item.id)">
+              @ok="emit('delete-pet-image', item.id)"
+            >
               <span
                 class="general-settings-panel-template-delete"
                 title="删除"
@@ -52,7 +56,8 @@
             type="button"
             class="general-settings-panel-template general-settings-panel-template-upload"
             :disabled="isChoosingPetImage"
-            @click="emit('choose-pet-image')">
+            @click="emit('choose-pet-image')"
+          >
             <icon-plus />
             <span>{{ isChoosingPetImage ? '正在读取' : '上传图片' }}</span>
             <small>PNG · JPG · SVG · WebP · GIF</small>
@@ -70,7 +75,8 @@
               :max="320"
               :step="4"
               hide-button
-              @change="emit('update-pet-size', $event)" />
+              @change="emit('update-pet-size', $event)"
+            />
             <span>px</span>
           </div>
         </div>
@@ -84,7 +90,8 @@
         <div
           class="general-settings-panel-shred-level-list"
           role="radiogroup"
-          aria-label="文件清理强度">
+          aria-label="文件清理强度"
+        >
           <button
             v-for="item in SHRED_LEVEL_OPTIONS"
             :key="item.value"
@@ -96,7 +103,8 @@
                 settings.passes === item.value,
             }"
             :aria-checked="settings.passes === item.value"
-            @click="emit('update-passes', item.value)">
+            @click="emit('update-passes', item.value)"
+          >
             <span class="general-settings-panel-shred-level-icon"
               ><component :is="shredLevelIcons[item.value]"
             /></span>
@@ -117,11 +125,15 @@
       </section>
 
       <section class="general-settings-panel-card">
-        <h2>桌宠与系统</h2>
+        <h2>系统设置</h2>
+        <p class="general-settings-panel-card-description">
+          管理桌宠置顶、开机启动和资源管理器右键菜单等系统行为。
+        </p>
         <div
           v-for="item in switchOptions"
           :key="item.key"
-          class="general-settings-panel-switch-row">
+          class="general-settings-panel-switch-row"
+        >
           <span class="general-settings-panel-switch-icon"
             ><component :is="item.icon"
           /></span>
@@ -131,7 +143,8 @@
           </div>
           <a-switch
             :model-value="settings[item.key]"
-            @change="emit('update-boolean-setting', item.key, $event)" />
+            @change="emit('update-boolean-setting', item.key, $event)"
+          />
         </div>
       </section>
     </div>
@@ -151,11 +164,7 @@ import {
   IconThunderbolt,
 } from '@arco-design/web-vue/es/icon';
 import type { Component } from 'vue';
-import type {
-  AppSettings,
-  PetImageTemplate,
-  SettingBooleanKey,
-} from '@/type';
+import type { AppSettings, PetImageTemplate, SettingBooleanKey } from '@/type';
 import { SHRED_LEVEL_OPTIONS } from '@/components/settings-view/constants';
 
 defineProps<{
@@ -209,5 +218,5 @@ const shredLevelIcons: Record<AppSettings['passes'], Component> = {
 </script>
 
 <style lang="less" scoped>
-@import './index.less';
+@import './style/index.less';
 </style>

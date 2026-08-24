@@ -1,0 +1,123 @@
+.shred-record-panel {
+  width: 100%;
+  height: 100%;
+  padding: 12px;
+
+  .shred-record-panel-card {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    height: 100%;
+    min-height: 0;
+    padding: 16px;
+    border-radius: 12px;
+    background: #fff;
+    box-shadow: 0 5px 18px rgba(30, 55, 90, 0.045);
+  }
+
+  .shred-record-panel-toolbar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    min-height: 32px;
+    padding: 0 0 10px;
+  }
+
+  .shred-record-panel-divider {
+    flex: 0 0 auto;
+    margin: 12px 0 0;
+    border-color: #e7ebf0;
+  }
+
+  .shred-record-panel-pagination {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    min-height: 42px;
+    padding-top: 10px;
+  }
+
+  .shred-record-panel-scrollbar {
+    flex: 1;
+    width: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  :deep(.shred-record-panel-scrollbar-container) {
+    width: 100%;
+    height: 100%;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .shred-record-panel-path,
+  .shred-record-panel-message {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shred-record-panel-path {
+    color: #1d252f;
+  }
+
+  .shred-record-panel-time,
+  .shred-record-panel-message {
+    color: #79828f;
+    font-size: 12px;
+  }
+
+  .shred-record-panel-time {
+    white-space: nowrap;
+  }
+
+  .shred-record-panel-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .shred-record-panel-empty {
+    display: flex;
+    flex: 1;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    min-height: 0;
+    padding: 28px 20px;
+    color: #99a1ad;
+    text-align: center;
+
+    img {
+      width: 190px;
+      max-width: 68%;
+      height: auto;
+      margin-bottom: 12px;
+    }
+    strong {
+      color: #474f59;
+      font-size: 14px;
+      font-weight: 600;
+    }
+    span {
+      margin-top: 6px;
+      font-size: 12px;
+      line-height: 1.6;
+    }
+  }
+
+  :deep(.shred-record-panel-pagination .arco-pagination) {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 8px;
+  }
+
+  :deep(.arco-btn),
+  :deep(.arco-tag),
+  :deep(.arco-popconfirm) {
+    border-radius: 9px;
+  }
+}

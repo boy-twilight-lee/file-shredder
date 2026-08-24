@@ -1,0 +1,91 @@
+.pet-view-bubble {
+  .pet-view-target-scrollbar {
+    max-height: 264px;
+    margin: 10px 0;
+    border: 1px solid #e7edf5;
+    border-radius: 10px;
+    background: #f5f7fa;
+  }
+
+  .pet-view-target-scrollbar :deep(.pet-view-target-scrollbar-container) {
+    max-height: 262px;
+    overflow-x: hidden;
+    overflow-y: auto;
+  }
+
+  .pet-view-target-list {
+    display: grid;
+    gap: 6px;
+    padding: 8px 12px 8px 8px;
+  }
+
+  .pet-view-target-card {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 4px;
+    min-width: 0;
+    height: 36px;
+    padding: 3px 3px 3px 8px;
+    border: 1px solid #e1e9f3;
+    border-radius: 8px;
+    background: #fff;
+    box-shadow: 0 2px 7px rgba(43, 78, 122, 0.05);
+    transition:
+      border-color 0.16s ease,
+      background 0.16s ease,
+      box-shadow 0.16s ease;
+
+    &:hover {
+      border-color: #b9d2f7;
+      background: #f8fbff;
+      box-shadow: 0 3px 9px rgba(43, 91, 154, 0.09);
+    }
+  }
+
+  .pet-view-target-path {
+    display: block;
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: #3f4854;
+    font-size: 11px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .pet-view-target-remove {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: auto;
+    min-width: 0;
+    height: auto;
+    min-height: 0;
+    padding: 4px;
+    border-radius: 4px;
+    line-height: 1;
+    transition: background 0.1s cubic-bezier(0, 0, 1, 1);
+
+    :deep(.arco-btn-icon) {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      line-height: 1;
+    }
+
+    :deep(.arco-icon) {
+      display: block;
+      font-size: 12px;
+    }
+
+    &:hover {
+      background: var(--color-fill-2);
+    }
+
+    &:active {
+      background: var(--color-fill-3);
+    }
+  }
+}

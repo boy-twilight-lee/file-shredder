@@ -15,16 +15,43 @@ async function createStore(): Promise<AppStore> {
 }
 
 afterEach(async () => {
-  await Promise.all(temporaryDirectories.splice(0).map((directory) => rm(directory, { recursive: true, force: true })));
+  await Promise.all(
+    temporaryDirectories
+      .splice(0)
+      .map((directory) => rm(directory, { recursive: true, force: true })),
+  );
+});
+
+describe('AppStore.getSettings', () => {
+  it('新用户默认使用极速删除模式', async () => {
+    const store = await createStore();
+
+    await expect(store.getSettings()).resolves.toMatchObject({ passes: 0 });
+  });
 });
 
 describe('AppStore.deleteLogs', () => {
   it('支持按 id 批量删除并保留未选记录', async () => {
     const store = await createStore();
     await store.appendLogs([
-      { path: 'C:\\first.txt', success: true, category: 'success', message: '粉碎成功' },
-      { path: 'C:\\second.txt', success: false, category: 'occupied', message: '文件被占用' },
-      { path: 'C:\\third.txt', success: true, category: 'success', message: '粉碎成功' },
+      {
+        path: 'C:\\first.txt',
+        success: true,
+        category: 'success',
+        message: '粉碎成功',
+      },
+      {
+        path: 'C:\\second.txt',
+        success: false,
+        category: 'occupied',
+        message: '文件被占用',
+      },
+      {
+        path: 'C:\\third.txt',
+        success: true,
+        category: 'success',
+        message: '粉碎成功',
+      },
     ]);
     const logs = await store.getLogs();
 

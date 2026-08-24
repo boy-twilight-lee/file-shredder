@@ -1,0 +1,88 @@
+.general-settings-panel {
+  .general-settings-panel-shred-level-list {
+    display: grid;
+    gap: 8px;
+  }
+
+  .general-settings-panel-shred-level {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    width: 100%;
+    padding: 11px 12px;
+    border: 1px solid #e7ebf0;
+    border-radius: 11px;
+    color: #0d1014;
+    text-align: left;
+    background: #f8fafc;
+    cursor: pointer;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease,
+      box-shadow 160ms ease;
+
+    &:hover {
+      border-color: #bed2ff;
+      background: #f4f7ff;
+    }
+  }
+
+  .general-settings-panel-shred-level-active {
+    border-color: #3564ff;
+    background: #f2f5ff;
+    box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.09);
+  }
+
+  .general-settings-panel-shred-level-icon {
+    width: 34px;
+    height: 34px;
+    border-radius: 10px;
+    font-size: 17px;
+  }
+
+  .general-settings-panel-shred-level-content {
+    display: grid;
+    flex: 1;
+    min-width: 0;
+    gap: 3px;
+
+    small {
+      color: #79828f;
+      font-size: 11px;
+      line-height: 1.5;
+    }
+  }
+
+  .general-settings-panel-shred-level-title {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+
+    strong {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    em {
+      padding: 1px 6px;
+      border-radius: 8px;
+      color: #3564ff;
+      font-size: 10px;
+      font-style: normal;
+      background: #e8efff;
+    }
+  }
+
+  .general-settings-panel-shred-level-check {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    color: #fff;
+    background: #3564ff;
+  }
+}

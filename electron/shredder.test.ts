@@ -1,5 +1,11 @@
-import { rmSync } from 'node:fs';
-import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
+import {
+  lstat,
+  mkdir,
+  mkdtemp,
+  readFile,
+  rm,
+  writeFile,
+} from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { describe, expect, it } from 'vitest';
@@ -14,7 +20,9 @@ describe('shredPaths', () => {
 
     const result = await shredPaths([targetPath], 3, () => undefined);
 
-    expect(result).toEqual([{ path: targetPath, success: true }]);
+    expect(result).toEqual([
+      { path: targetPath, success: true, deletedFileCount: 1 },
+    ]);
     await expect(readFile(targetPath)).rejects.toThrow();
   });
 
@@ -24,12 +32,44 @@ describe('shredPaths', () => {
     const progress: ShredProgress[] = [];
     await writeFile(targetPath, 'recoverable data', 'utf8');
 
-    const result = await shredPaths([targetPath], 0, (value) => progress.push(value));
+    const result = await shredPaths([targetPath], 0, (value) =>
+      progress.push(value),
+    );
 
-    expect(result).toEqual([{ path: targetPath, success: true }]);
+    expect(result).toEqual([
+      { path: targetPath, success: true, deletedFileCount: 1 },
+    ]);
     expect(progress.some((value) => value.stage === 'overwriting')).toBe(false);
     expect(progress.some((value) => value.stage === 'removing')).toBe(true);
     await expect(readFile(targetPath)).rejects.toThrow();
+  });
+
+  it('deletes a directory as one system operation in zero-pass fast mode', async () => {
+    const workspace = await mkdtemp(
+      join(tmpdir(), 'file-shredder-fast-directory-'),
+    );
+    const targetDirectory = join(workspace, 'temporary');
+    const progress: ShredProgress[] = [];
+    await mkdir(join(targetDirectory, 'nested'), { recursive: true });
+    await writeFile(join(targetDirectory, 'one.txt'), 'one', 'utf8');
+    await writeFile(join(targetDirectory, 'nested', 'two.txt'), 'two', 'utf8');
+
+    try {
+      const result = await shredPaths([targetDirectory], 0, (value) =>
+        progress.push(value),
+      );
+
+      expect(result).toEqual([
+        { path: targetDirectory, success: true, deletedFileCount: 2 },
+      ]);
+      expect(progress.some((value) => value.stage === 'overwriting')).toBe(
+        false,
+      );
+      expect(progress.every((value) => value.fileCount === 2)).toBe(true);
+      await expect(lstat(targetDirectory)).rejects.toThrow();
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
   });
 
   it('stops before changing files when cancellation is already requested', async () => {
@@ -40,25 +80,38 @@ describe('shredPaths', () => {
     controller.abort();
 
     try {
-      await expect(shredPaths([targetPath], 3, () => undefined, controller.signal)).rejects.toBeInstanceOf(ShredCancelledError);
-      await expect(readFile(targetPath, 'utf8')).resolves.toBe('keep this data');
+      await expect(
+        shredPaths([targetPath], 3, () => undefined, controller.signal),
+      ).rejects.toBeInstanceOf(ShredCancelledError);
+      await expect(readFile(targetPath, 'utf8')).resolves.toBe(
+        'keep this data',
+      );
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
   });
 
   it('stops an active overwrite after receiving cancellation', async () => {
-    const directory = await mkdtemp(join(tmpdir(), 'file-shredder-cancel-active-'));
+    const directory = await mkdtemp(
+      join(tmpdir(), 'file-shredder-cancel-active-'),
+    );
     const targetPath = join(directory, 'large.bin');
     const controller = new AbortController();
     await writeFile(targetPath, Buffer.alloc(2 * 1024 * 1024, 1));
 
     try {
-      const operation = shredPaths([targetPath], 3, (progress) => {
-        if (progress.stage === 'overwriting') controller.abort();
-      }, controller.signal);
+      const operation = shredPaths(
+        [targetPath],
+        3,
+        (progress) => {
+          if (progress.stage === 'overwriting') controller.abort();
+        },
+        controller.signal,
+      );
       await expect(operation).rejects.toBeInstanceOf(ShredCancelledError);
-      await expect(lstat(targetPath)).resolves.toMatchObject({ size: 2 * 1024 * 1024 });
+      await expect(lstat(targetPath)).resolves.toMatchObject({
+        size: 2 * 1024 * 1024,
+      });
     } finally {
       await rm(directory, { recursive: true, force: true });
     }
@@ -69,45 +122,60 @@ describe('shredPaths', () => {
     const targetDirectory = join(workspace, 'private-folder');
     await mkdir(join(targetDirectory, 'nested'), { recursive: true });
     await mkdir(join(targetDirectory, 'empty'), { recursive: true });
-    await writeFile(join(targetDirectory, 'nested', 'secret.txt'), 'sensitive data', 'utf8');
-    await writeFile(join(targetDirectory, 'nested', 'private.txt'), 'more sensitive data', 'utf8');
+    await writeFile(
+      join(targetDirectory, 'nested', 'secret.txt'),
+      'sensitive data',
+      'utf8',
+    );
+    await writeFile(
+      join(targetDirectory, 'nested', 'private.txt'),
+      'more sensitive data',
+      'utf8',
+    );
 
     try {
       const progress: ShredProgress[] = [];
-      const result = await shredPaths([targetDirectory], 3, (value) => progress.push(value));
+      const result = await shredPaths([targetDirectory], 3, (value) =>
+        progress.push(value),
+      );
 
-      expect(result).toEqual([{ path: targetDirectory, success: true }]);
+      expect(result).toEqual([
+        { path: targetDirectory, success: true, deletedFileCount: 2 },
+      ]);
       expect(progress.every((value) => value.fileCount === 2)).toBe(true);
-      expect(progress[progress.length - 1]).toMatchObject({ fileIndex: 2, fileCount: 2, stage: 'done' });
+      expect(progress[progress.length - 1]).toMatchObject({
+        fileIndex: 2,
+        fileCount: 2,
+        stage: 'done',
+      });
       await expect(lstat(targetDirectory)).rejects.toThrow();
     } finally {
       await rm(workspace, { recursive: true, force: true });
     }
   });
 
-  it('merges a successful directory and reports only the nested files that failed', async () => {
-    const workspace = await mkdtemp(join(tmpdir(), 'file-shredder-directory-log-'));
+  it('merges a successfully removed directory into one result', async () => {
+    const workspace = await mkdtemp(
+      join(tmpdir(), 'file-shredder-directory-log-'),
+    );
     const successfulDirectory = join(workspace, 'successful');
-    const partialDirectory = join(workspace, 'partial');
     await mkdir(successfulDirectory);
     await writeFile(join(successfulDirectory, 'one.txt'), 'one', 'utf8');
     await writeFile(join(successfulDirectory, 'two.txt'), 'two', 'utf8');
-    await mkdir(partialDirectory);
-    const removedPath = join(partialDirectory, 'a-removed.txt');
-    const failedPath = join(partialDirectory, 'b-failed.txt');
-    await writeFile(removedPath, 'removed', 'utf8');
-    await writeFile(failedPath, 'failed', 'utf8');
 
     try {
-      const successfulResults = await shredPaths([successfulDirectory], 0, () => undefined);
-      expect(successfulResults).toEqual([{ path: successfulDirectory, success: true }]);
-
-      const failedResults = await shredPaths([partialDirectory], 0, (progress) => {
-        // 在处理首个文件时移除后一文件，稳定模拟递归过程中单个文件失效。
-        if (progress.path === removedPath && progress.stage === 'removing') rmSync(failedPath, { force: true });
-      });
-      expect(failedResults).toHaveLength(1);
-      expect(failedResults[0]).toMatchObject({ path: failedPath, success: false });
+      const successfulResults = await shredPaths(
+        [successfulDirectory],
+        0,
+        () => undefined,
+      );
+      expect(successfulResults).toEqual([
+        {
+          path: successfulDirectory,
+          success: true,
+          deletedFileCount: 2,
+        },
+      ]);
     } finally {
       await rm(workspace, { recursive: true, force: true });
     }
@@ -116,6 +184,10 @@ describe('shredPaths', () => {
   it('refuses a filesystem root', async () => {
     const rootPath = process.platform === 'win32' ? 'C:\\' : '/';
     const result = await shredPaths([rootPath], 3, () => undefined);
-    expect(result[0]).toMatchObject({ success: false, error: '拒绝粉碎磁盘根目录' });
+    expect(result[0]).toMatchObject({
+      success: false,
+      deletedFileCount: 0,
+      error: '拒绝粉碎磁盘根目录',
+    });
   });
 });
