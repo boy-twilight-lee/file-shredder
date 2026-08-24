@@ -1,13 +1,35 @@
-import { app, BrowserWindow, clipboard, dialog, globalShortcut, ipcMain, Menu, nativeImage, Notification, screen, Tray } from 'electron';
-import { existsSync } from 'node:fs';
+import {
+  app,
+  BrowserWindow,
+  clipboard,
+  dialog,
+  globalShortcut,
+  ipcMain,
+  Menu,
+  nativeImage,
+  Notification,
+  screen,
+  Tray,
+} from 'electron';
+import { existsSync, readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { copyFile, mkdir, rm } from 'node:fs/promises';
-import { join, resolve } from 'node:path';
+import { copyFile, mkdir, readFile, rm, stat } from 'node:fs/promises';
+import { basename, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { onWindowDrag } from 'electron-drag-window/electron';
 import { ShredCancelledError, shredPaths } from './shredder';
-import { AppStore, type AppSettings, type ShredLog, type UploadedPetImage } from './store';
-import { installContextMenu, isContextMenuInstalled, removeContextMenu, updateContextMenuIcon } from './windows-integration';
+import {
+  AppStore,
+  type AppSettings,
+  type ShredLog,
+  type UploadedPetImage,
+} from './store';
+import {
+  installContextMenu,
+  isContextMenuInstalled,
+  removeContextMenu,
+  updateContextMenuIcon,
+} from './windows-integration';
 import { getExplorerSelection } from './windows-selection';
 
 const currentDirectory = fileURLToPath(new URL('.', import.meta.url));
@@ -22,6 +44,7 @@ let activeShredController: AbortController | null = null;
 let launchTimer: NodeJS.Timeout | undefined;
 let petFadeTimer: NodeJS.Timeout | undefined;
 let queuedLaunchPaths: string[] = [];
+let wasPetVisibleBeforeSettings = false;
 type PetBubblePlacement = 'left' | 'right';
 interface PetImageTemplate {
   id: string;
@@ -33,9 +56,16 @@ interface PetImageTemplate {
 }
 
 const BUILT_IN_PET_IMAGES = [
-  { id: 'built-in-portrait-1', name: '半身近照', fileName: 'portrait-template-1.png' },
-  { id: 'built-in-portrait-2', name: '双手提带', fileName: 'portrait-template-2.png' },
-  { id: 'built-in-portrait-3', name: '湖畔抬手', fileName: 'portrait-template-3.png' },
+  {
+    id: 'built-in-ao-yin',
+    name: '敖隐',
+    fileName: 'ao-yin.webp',
+  },
+  {
+    id: 'built-in-little-dragon',
+    name: '小龙人',
+    fileName: 'little-dragon.webp',
+  },
 ] as const;
 // 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
 const PET_WINDOW_SIZE = { width: 960, height: 1160 };
@@ -44,20 +74,36 @@ const PET_SIZE_MIN = 100;
 const PET_SIZE_MAX = 320;
 const PET_TEMPLATE_THUMBNAIL_WIDTH = 192;
 const PET_FADE_DURATION_MS = 180;
+const PET_IMAGE_MAX_BYTES = 50 * 1024 * 1024;
+const PET_IMAGE_MIME_TYPES: Record<string, string> = {
+  '.png': 'image/png',
+  '.jpg': 'image/jpeg',
+  '.jpeg': 'image/jpeg',
+  '.jeg': 'image/jpeg',
+  '.svg': 'image/svg+xml',
+  '.webp': 'image/webp',
+  '.gif': 'image/gif',
+};
 let petBubblePlacement: PetBubblePlacement = 'left';
 let isPetExpanded = false;
 let isPetWindowMouseThrough = false;
 let isPetDragging = false;
 let petBubbleBounds: Electron.Rectangle | null = null;
 let petDragStartPosition: Electron.Point | null = null;
-let petCharacterSizeCache: { imagePath: string; width: number; size: Electron.Size } | null = null;
+let petCharacterSizeCache: {
+  imagePath: string;
+  width: number;
+  size: Electron.Size;
+} | null = null;
 const petTemplateThumbnailCache = new Map<string, string>();
 
 // vite-plugin-electron 会在 preload 重新构建后通知主进程，刷新窗口即可载入新桥接代码。
 if (process.env.VITE_DEV_SERVER_URL) {
   process.on('message', (message) => {
     if (message !== 'electron-vite&type=hot-reload') return;
-    BrowserWindow.getAllWindows().forEach((window) => window.webContents.reload());
+    BrowserWindow.getAllWindows().forEach((window) =>
+      window.webContents.reload(),
+    );
   });
 }
 
@@ -68,7 +114,10 @@ function getExecutablePath(): string {
 
 function shouldShowPetOnLaunch(): boolean {
   if (process.argv.includes('--background')) return false;
-  return process.platform !== 'darwin' || !app.getLoginItemSettings().wasOpenedAtLogin;
+  return (
+    process.platform !== 'darwin' ||
+    !app.getLoginItemSettings().wasOpenedAtLogin
+  );
 }
 
 function getIconPath(): string {
@@ -98,18 +147,32 @@ function getUploadedPetImagePath(image: UploadedPetImage): string {
 }
 
 function getActivePetImagePath(): string {
-  const builtIn = BUILT_IN_PET_IMAGES.find((image) => image.id === currentSettings.petImageTemplateId);
+  const builtIn = BUILT_IN_PET_IMAGES.find(
+    (image) => image.id === currentSettings.petImageTemplateId,
+  );
   if (builtIn) return getBuiltInPetImagePath(builtIn.fileName);
-  const uploaded = currentSettings.uploadedPetImages.find((image) => image.id === currentSettings.petImageTemplateId);
+  const uploaded = currentSettings.uploadedPetImages.find(
+    (image) => image.id === currentSettings.petImageTemplateId,
+  );
   if (uploaded) return getUploadedPetImagePath(uploaded);
-  if (currentSettings.customPetImagePath && existsSync(currentSettings.customPetImagePath)) return currentSettings.customPetImagePath;
+  if (
+    currentSettings.customPetImagePath &&
+    existsSync(currentSettings.customPetImagePath)
+  )
+    return currentSettings.customPetImagePath;
   return getBuiltInPetImagePath(BUILT_IN_PET_IMAGES[0].fileName);
 }
 
 function imagePathToDataUrl(imagePath: string): string {
   if (!imagePath || !existsSync(imagePath)) return '';
-  const image = nativeImage.createFromPath(imagePath);
-  return image.isEmpty() ? '' : image.toDataURL();
+  const mimeType = PET_IMAGE_MIME_TYPES[extname(imagePath).toLowerCase()];
+  if (!mimeType) return '';
+  try {
+    // 保留原始图片数据，避免 GIF 动画在 nativeImage 转码后变成静态首帧。
+    return `data:${mimeType};base64,${readFileSync(imagePath).toString('base64')}`;
+  } catch {
+    return '';
+  }
 }
 
 function imagePathToThumbnailDataUrl(imagePath: string): string {
@@ -117,11 +180,46 @@ function imagePathToThumbnailDataUrl(imagePath: string): string {
   const cachedImage = petTemplateThumbnailCache.get(imagePath);
   if (cachedImage) return cachedImage;
   const image = nativeImage.createFromPath(imagePath);
-  if (image.isEmpty()) return '';
+  // SVG 等格式无法生成原生缩略图时，回退到浏览器可直接解码的原始数据。
+  if (image.isEmpty()) return imagePathToDataUrl(imagePath);
   // 设置页仅显示小尺寸预览，避免把数 MB 原图经 IPC 传输并在窗口首次缩放时集中解码。
-  const thumbnail = image.resize({ width: PET_TEMPLATE_THUMBNAIL_WIDTH, quality: 'good' }).toDataURL();
+  const thumbnail = image
+    .resize({ width: PET_TEMPLATE_THUMBNAIL_WIDTH, quality: 'good' })
+    .toDataURL();
   petTemplateThumbnailCache.set(imagePath, thumbnail);
   return thumbnail;
+}
+
+function isValidPetImage(fileExtension: string, imageBuffer: Buffer): boolean {
+  if (fileExtension === '.svg') {
+    const content = imageBuffer
+      .toString('utf8')
+      .replace(/^\uFEFF/, '')
+      .trimStart();
+    return /^(?:<\?xml[^>]*>\s*)?(?:<!--[^]*?-->\s*)*<svg(?:\s|>)/i.test(
+      content,
+    );
+  }
+  if (fileExtension === '.png')
+    return imageBuffer
+      .subarray(0, 8)
+      .equals(Buffer.from([0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a]));
+  if (['.jpg', '.jpeg', '.jeg'].includes(fileExtension))
+    return (
+      imageBuffer[0] === 0xff &&
+      imageBuffer[1] === 0xd8 &&
+      imageBuffer[2] === 0xff
+    );
+  if (fileExtension === '.gif')
+    return ['GIF87a', 'GIF89a'].includes(
+      imageBuffer.subarray(0, 6).toString('ascii'),
+    );
+  if (fileExtension === '.webp')
+    return (
+      imageBuffer.subarray(0, 4).toString('ascii') === 'RIFF' &&
+      imageBuffer.subarray(8, 12).toString('ascii') === 'WEBP'
+    );
+  return false;
 }
 
 function getPetImageDataUrl(): string {
@@ -149,16 +247,27 @@ function getPetImageTemplates(): PetImageTemplate[] {
       deletable: true,
     }));
   // 配置中的模板丢失时，界面和桌宠都回退到第一个内置形象。
-  if (![...builtInTemplates, ...uploadedTemplates].some((image) => image.active)) builtInTemplates[0].active = true;
+  if (
+    ![...builtInTemplates, ...uploadedTemplates].some((image) => image.active)
+  )
+    builtInTemplates[0].active = true;
   return [...builtInTemplates, ...uploadedTemplates];
 }
 
 async function migrateLegacyPetImage(): Promise<void> {
-  if (!currentSettings.customPetImagePath || !existsSync(currentSettings.customPetImagePath) || currentSettings.uploadedPetImages.length > 0) return;
+  if (
+    !currentSettings.customPetImagePath ||
+    !existsSync(currentSettings.customPetImagePath) ||
+    currentSettings.uploadedPetImages.length > 0
+  )
+    return;
   const id = randomUUID();
   const fileName = `${id}.png`;
   await mkdir(getPetImagesDirectory(), { recursive: true });
-  await copyFile(currentSettings.customPetImagePath, join(getPetImagesDirectory(), fileName));
+  await copyFile(
+    currentSettings.customPetImagePath,
+    join(getPetImagesDirectory(), fileName),
+  );
   currentSettings = await store.updateSettings({
     customPetImagePath: '',
     petImageTemplateId: id,
@@ -174,28 +283,52 @@ function notifyPetAppearanceChanged(): void {
 function parseLaunchPaths(argv: string[]): string[] {
   const marker = argv.indexOf('--shred');
   if (marker < 0) return [];
-  return argv.slice(marker + 1).map((item) => resolve(item)).filter(existsSync);
+  return argv
+    .slice(marker + 1)
+    .map((item) => resolve(item))
+    .filter(existsSync);
 }
 
 function parseClipboardPaths(): string[] {
   const candidates = [clipboard.readText(), clipboard.read('text/uri-list')];
   const fileName = clipboard.readBuffer('FileNameW');
-  if (fileName.length > 0) candidates.push(fileName.toString('utf16le').replace(/\0+$/g, ''));
-  return [...new Set(candidates.flatMap((text) => text.split(/\r?\n/))
-    .map((item) => decodeURIComponent(item.trim().replace(/^file:\/\//i, '').replace(/^\/(?=[A-Za-z]:)/, '')))
-    .filter((item) => item.length > 0 && existsSync(item))
-    .map((item) => resolve(item)))];
+  if (fileName.length > 0)
+    candidates.push(fileName.toString('utf16le').replace(/\0+$/g, ''));
+  return [
+    ...new Set(
+      candidates
+        .flatMap((text) => text.split(/\r?\n/))
+        .map((item) =>
+          decodeURIComponent(
+            item
+              .trim()
+              .replace(/^file:\/\//i, '')
+              .replace(/^\/(?=[A-Za-z]:)/, ''),
+          ),
+        )
+        .filter((item) => item.length > 0 && existsSync(item))
+        .map((item) => resolve(item)),
+    ),
+  ];
 }
 
-async function loadView(window: BrowserWindow, view: 'pet' | 'settings'): Promise<void> {
+async function loadView(
+  window: BrowserWindow,
+  view: 'pet' | 'settings',
+): Promise<void> {
   if (process.env.VITE_DEV_SERVER_URL) {
     await window.loadURL(`${process.env.VITE_DEV_SERVER_URL}?view=${view}`);
     return;
   }
-  await window.loadFile(join(currentDirectory, '../dist-renderer/index.html'), { query: { view } });
+  await window.loadFile(join(currentDirectory, '../dist-renderer/index.html'), {
+    query: { view },
+  });
 }
 
-function animatePetOpacity(targetOpacity: number, onComplete?: () => void): void {
+function animatePetOpacity(
+  targetOpacity: number,
+  onComplete?: () => void,
+): void {
   const window = petWindow;
   if (!window || window.isDestroyed()) return;
   clearInterval(petFadeTimer);
@@ -207,9 +340,14 @@ function animatePetOpacity(targetOpacity: number, onComplete?: () => void): void
       petFadeTimer = undefined;
       return;
     }
-    const progress = Math.min(1, (Date.now() - startedAt) / PET_FADE_DURATION_MS);
+    const progress = Math.min(
+      1,
+      (Date.now() - startedAt) / PET_FADE_DURATION_MS,
+    );
     const easedProgress = 1 - (1 - progress) ** 3;
-    window.setOpacity(startOpacity + (targetOpacity - startOpacity) * easedProgress);
+    window.setOpacity(
+      startOpacity + (targetOpacity - startOpacity) * easedProgress,
+    );
     if (progress < 1) return;
     clearInterval(petFadeTimer);
     petFadeTimer = undefined;
@@ -239,15 +377,26 @@ function hidePet(): void {
 }
 
 function getPetCharacterSize(): Electron.Size {
-  const width = Math.min(PET_SIZE_MAX, Math.max(PET_SIZE_MIN, Math.round(currentSettings.petSize)));
+  const width = Math.min(
+    PET_SIZE_MAX,
+    Math.max(PET_SIZE_MIN, Math.round(currentSettings.petSize)),
+  );
   const imagePath = getActivePetImagePath();
-  if (petCharacterSizeCache?.imagePath === imagePath && petCharacterSizeCache.width === width) {
+  if (
+    petCharacterSizeCache?.imagePath === imagePath &&
+    petCharacterSizeCache.width === width
+  ) {
     return petCharacterSizeCache.size;
   }
   // 图片或桌宠尺寸未变化时复用计算结果，避免命中检测反复读取和解码 PNG。
   const activeImage = nativeImage.createFromPath(imagePath);
-  const imageSize = !activeImage.isEmpty() ? activeImage.getSize() : { width: 594, height: 840 };
-  const size = { width, height: Math.round(width * imageSize.height / imageSize.width) };
+  const imageSize = !activeImage.isEmpty()
+    ? activeImage.getSize()
+    : { width: 594, height: 840 };
+  const size = {
+    width,
+    height: Math.round((width * imageSize.height) / imageSize.width),
+  };
   petCharacterSizeCache = { imagePath, width, size };
   return size;
 }
@@ -272,26 +421,53 @@ function getPetCharacterBounds(): Electron.Rectangle | null {
   if (!petWindow) return null;
   const windowBounds = petWindow.getBounds();
   const character = getLocalPetCharacterBounds();
-  return { ...character, x: windowBounds.x + character.x, y: windowBounds.y + character.y };
+  return {
+    ...character,
+    x: windowBounds.x + character.x,
+    y: windowBounds.y + character.y,
+  };
 }
 
-function getRestoredPetWindowPosition(characterSize: Electron.Size, windowSize: Electron.Size): Electron.Point {
+function getRestoredPetWindowPosition(
+  characterSize: Electron.Size,
+  windowSize: Electron.Size,
+): Electron.Point {
   const displays = screen.getAllDisplays();
-  const savedDisplay = displays.find((display) => display.id === currentSettings.petDisplayId);
+  const savedDisplay = displays.find(
+    (display) => display.id === currentSettings.petDisplayId,
+  );
   const display = savedDisplay ?? screen.getPrimaryDisplay();
   const { workArea } = display;
-  const hasSavedPosition = Number.isFinite(currentSettings.petPositionX) && Number.isFinite(currentSettings.petPositionY);
+  const hasSavedPosition =
+    Number.isFinite(currentSettings.petPositionX) &&
+    Number.isFinite(currentSettings.petPositionY);
   let characterX = workArea.x + workArea.width - 225;
   let characterY = workArea.y + workArea.height - 290;
   if (hasSavedPosition) {
-    const relativeX = Math.min(1, Math.max(0, currentSettings.petPositionX as number));
-    const relativeY = Math.min(1, Math.max(0, currentSettings.petPositionY as number));
-    characterX = Math.round(workArea.x + relativeX * workArea.width - characterSize.width / 2);
-    characterY = Math.round(workArea.y + relativeY * workArea.height - characterSize.height / 2);
+    const relativeX = Math.min(
+      1,
+      Math.max(0, currentSettings.petPositionX as number),
+    );
+    const relativeY = Math.min(
+      1,
+      Math.max(0, currentSettings.petPositionY as number),
+    );
+    characterX = Math.round(
+      workArea.x + relativeX * workArea.width - characterSize.width / 2,
+    );
+    characterY = Math.round(
+      workArea.y + relativeY * workArea.height - characterSize.height / 2,
+    );
   }
   // 只限制可见人物，允许用于气泡布局的透明画布自然延伸到工作区外。
-  characterX = Math.min(workArea.x + Math.max(0, workArea.width - characterSize.width), Math.max(workArea.x, characterX));
-  characterY = Math.min(workArea.y + Math.max(0, workArea.height - characterSize.height), Math.max(workArea.y, characterY));
+  characterX = Math.min(
+    workArea.x + Math.max(0, workArea.width - characterSize.width),
+    Math.max(workArea.x, characterX),
+  );
+  characterY = Math.min(
+    workArea.y + Math.max(0, workArea.height - characterSize.height),
+    Math.max(workArea.y, characterY),
+  );
   return {
     x: characterX - Math.round((windowSize.width - characterSize.width) / 2),
     y: characterY - Math.round((windowSize.height - characterSize.height) / 2),
@@ -299,14 +475,26 @@ function getRestoredPetWindowPosition(characterSize: Electron.Size, windowSize: 
 }
 
 async function savePetPositionAfterDrag(): Promise<void> {
-  if (!petWindow || petWindow.isDestroyed() || isPetDragging || !petDragStartPosition) return;
+  if (
+    !petWindow ||
+    petWindow.isDestroyed() ||
+    isPetDragging ||
+    !petDragStartPosition
+  )
+    return;
   const bounds = getPetCharacterBounds();
   if (!bounds) return;
   const display = screen.getDisplayMatching(bounds);
   const centerX = bounds.x + bounds.width / 2;
   const centerY = bounds.y + bounds.height / 2;
-  const relativeX = Math.min(1, Math.max(0, (centerX - display.workArea.x) / display.workArea.width));
-  const relativeY = Math.min(1, Math.max(0, (centerY - display.workArea.y) / display.workArea.height));
+  const relativeX = Math.min(
+    1,
+    Math.max(0, (centerX - display.workArea.x) / display.workArea.width),
+  );
+  const relativeY = Math.min(
+    1,
+    Math.max(0, (centerY - display.workArea.y) / display.workArea.height),
+  );
   currentSettings = await store.updateSettings({
     petDisplayId: display.id,
     petPositionX: relativeX,
@@ -317,7 +505,10 @@ async function savePetPositionAfterDrag(): Promise<void> {
 function restorePetPosition(): void {
   if (!petWindow || petWindow.isDestroyed()) return;
   const [width, height] = petWindow.getSize();
-  const position = getRestoredPetWindowPosition(getPetCharacterSize(), { width, height });
+  const position = getRestoredPetWindowPosition(getPetCharacterSize(), {
+    width,
+    height,
+  });
   petWindow.setPosition(position.x, position.y);
 }
 
@@ -328,18 +519,38 @@ function getLocalPetBubbleBounds(): Electron.Rectangle {
   const centerY = windowSize.height / 2;
   const gap = 14;
   const bubbles: Record<PetBubblePlacement, Electron.Rectangle> = {
-    left: { x: Math.round(centerX - character.width / 2 - gap - PET_BUBBLE_SIZE.width), y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2), ...PET_BUBBLE_SIZE },
-    right: { x: Math.round(centerX + character.width / 2 + gap), y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2), ...PET_BUBBLE_SIZE },
+    left: {
+      x: Math.round(
+        centerX - character.width / 2 - gap - PET_BUBBLE_SIZE.width,
+      ),
+      y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2),
+      ...PET_BUBBLE_SIZE,
+    },
+    right: {
+      x: Math.round(centerX + character.width / 2 + gap),
+      y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2),
+      ...PET_BUBBLE_SIZE,
+    },
   };
   return bubbles[petBubblePlacement];
 }
 
-function containsPoint(bounds: Electron.Rectangle, point: Electron.Point): boolean {
-  return point.x >= bounds.x && point.x <= bounds.x + bounds.width
-    && point.y >= bounds.y && point.y <= bounds.y + bounds.height;
+function containsPoint(
+  bounds: Electron.Rectangle,
+  point: Electron.Point,
+): boolean {
+  return (
+    point.x >= bounds.x &&
+    point.x <= bounds.x + bounds.width &&
+    point.y >= bounds.y &&
+    point.y <= bounds.y + bounds.height
+  );
 }
 
-function expandBounds(bounds: Electron.Rectangle, padding: number): Electron.Rectangle {
+function expandBounds(
+  bounds: Electron.Rectangle,
+  padding: number,
+): Electron.Rectangle {
   return {
     x: bounds.x - padding,
     y: bounds.y - padding,
@@ -349,16 +560,30 @@ function expandBounds(bounds: Electron.Rectangle, padding: number): Electron.Rec
 }
 
 function updatePetWindowMouseThrough(pointer?: Electron.Point): void {
-  if (!petWindow || petWindow.isDestroyed() || !petWindow.isVisible() || isPetDragging) return;
+  if (
+    !petWindow ||
+    petWindow.isDestroyed() ||
+    !petWindow.isVisible() ||
+    isPetDragging
+  )
+    return;
   let localCursor = pointer;
   if (!localCursor) {
     const windowBounds = petWindow.getBounds();
     const cursor = screen.getCursorScreenPoint();
-    localCursor = { x: cursor.x - windowBounds.x, y: cursor.y - windowBounds.y };
+    localCursor = {
+      x: cursor.x - windowBounds.x,
+      y: cursor.y - windowBounds.y,
+    };
   }
   const bubbleBounds = petBubbleBounds ?? getLocalPetBubbleBounds();
-  const isInteractive = containsPoint(expandBounds(getLocalPetCharacterBounds(), 10), localCursor)
-    || (isPetExpanded && containsPoint(expandBounds(bubbleBounds, 6), localCursor));
+  const isInteractive =
+    containsPoint(
+      expandBounds(getLocalPetCharacterBounds(), 10),
+      localCursor,
+    ) ||
+    (isPetExpanded &&
+      containsPoint(expandBounds(bubbleBounds, 6), localCursor));
   if (isPetWindowMouseThrough === !isInteractive) return;
   isPetWindowMouseThrough = !isInteractive;
   // 透明画布区域点击穿透；forward 保留鼠标移动，以便光标重新进入人物或气泡时恢复交互。
@@ -378,16 +603,21 @@ function setPetExpanded(expanded: boolean): void {
   const availableLeft = bounds.x - workArea.x;
   const availableRight = workArea.x + workArea.width - bounds.x - bounds.width;
   // 气泡始终贴在人物侧面，空间不足时选择剩余区域更大的一侧。
-  petBubblePlacement = availableLeft >= PET_BUBBLE_SIZE.width + 14 || availableLeft >= availableRight
-    ? 'left'
-    : 'right';
+  petBubblePlacement =
+    availableLeft >= PET_BUBBLE_SIZE.width + 14 ||
+    availableLeft >= availableRight
+      ? 'left'
+      : 'right';
   updatePetWindowMouseThrough();
   petWindow.webContents.send('pet:placement', petBubblePlacement);
 }
 
 function createPetWindow(): void {
   const characterSize = getPetCharacterSize();
-  const initialPosition = getRestoredPetWindowPosition(characterSize, PET_WINDOW_SIZE);
+  const initialPosition = getRestoredPetWindowPosition(
+    characterSize,
+    PET_WINDOW_SIZE,
+  );
   petWindow = new BrowserWindow({
     ...PET_WINDOW_SIZE,
     ...initialPosition,
@@ -399,14 +629,24 @@ function createPetWindow(): void {
     skipTaskbar: true,
     hasShadow: false,
     show: shouldShowPetOnLaunch(),
-    webPreferences: { preload: join(currentDirectory, 'preload.mjs'), contextIsolation: true, nodeIntegration: false, sandbox: true },
+    webPreferences: {
+      preload: join(currentDirectory, 'preload.mjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+    },
   });
   // Windows 可能按工作区限制超大透明窗口，创建后使用真实尺寸重新保持人物锚点。
   const actualWindowSize = petWindow.getSize();
-  const actualPosition = getRestoredPetWindowPosition(characterSize, { width: actualWindowSize[0], height: actualWindowSize[1] });
+  const actualPosition = getRestoredPetWindowPosition(characterSize, {
+    width: actualWindowSize[0],
+    height: actualWindowSize[1],
+  });
   petWindow.setPosition(actualPosition.x, actualPosition.y);
   // Windows 合成器偶尔会在首帧回退为不透明底色，加载后再次明确透明色。
-  petWindow.webContents.once('did-finish-load', () => petWindow?.setBackgroundColor('#00000000'));
+  petWindow.webContents.once('did-finish-load', () =>
+    petWindow?.setBackgroundColor('#00000000'),
+  );
   loadView(petWindow, 'pet');
   petWindow.on('close', (event) => {
     if (!isQuitting) {
@@ -428,16 +668,35 @@ function createPanelWindow(): BrowserWindow {
     height: 640,
     minWidth: 720,
     minHeight: 520,
-    title: '文件粉碎器 · 设置',
+    title: '文件粉碎精灵 · 设置',
     icon: getIconPath(),
     show: false,
     autoHideMenuBar: true,
     backgroundColor: '#f5f7fa',
-    webPreferences: { preload: join(currentDirectory, 'preload.mjs'), contextIsolation: true, nodeIntegration: false, sandbox: true, devTools: true },
+    webPreferences: {
+      preload: join(currentDirectory, 'preload.mjs'),
+      contextIsolation: true,
+      nodeIntegration: false,
+      sandbox: true,
+      devTools: true,
+    },
   });
-  // Keep the opaque settings panel above the large transparent pet surface to avoid compositor flicker while moving it.
-  window.on('show', () => petWindow?.setAlwaysOnTop(false));
-  window.on('hide', () => petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop));
+  window.on('show', () => {
+    wasPetVisibleBeforeSettings = Boolean(petWindow?.isVisible());
+    // Windows 拖动普通窗口经过超大透明桌宠窗口时会反复重组图层；设置期间移除该透明合成面。
+    if (wasPetVisibleBeforeSettings) petWindow?.hide();
+    petWindow?.setAlwaysOnTop(false);
+    refreshTray();
+  });
+  window.on('hide', () => {
+    petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop);
+    if (wasPetVisibleBeforeSettings && petWindow) {
+      petWindow.setOpacity(1);
+      petWindow.showInactive();
+    }
+    wasPetVisibleBeforeSettings = false;
+    refreshTray();
+  });
   // 设置窗口允许通过 F12 切换开发者工具，便于直接检查元素和计算样式。
   window.webContents.on('before-input-event', (event, input) => {
     if (input.type !== 'keyDown' || input.key !== 'F12') return;
@@ -457,7 +716,9 @@ function createPanelWindow(): BrowserWindow {
 function showSettingsWindow(): void {
   if (!settingsWindow) {
     settingsWindow = createPanelWindow();
-    settingsWindow.on('closed', () => { settingsWindow = null; });
+    settingsWindow.on('closed', () => {
+      settingsWindow = null;
+    });
     return;
   }
   settingsWindow.show();
@@ -466,10 +727,15 @@ function showSettingsWindow(): void {
 
 function applyLoginSetting(enabled: boolean): void {
   if (process.platform === 'win32') {
-    app.setLoginItemSettings({ openAtLogin: enabled, path: getExecutablePath(), args: ['--background'] });
+    app.setLoginItemSettings({
+      openAtLogin: enabled,
+      path: getExecutablePath(),
+      args: ['--background'],
+    });
     return;
   }
-  if (process.platform === 'darwin') app.setLoginItemSettings({ openAtLogin: enabled });
+  if (process.platform === 'darwin')
+    app.setLoginItemSettings({ openAtLogin: enabled });
 }
 
 function registerShortcut(shortcut: string): boolean {
@@ -477,12 +743,30 @@ function registerShortcut(shortcut: string): boolean {
   return globalShortcut.register(shortcut, handleShortcut);
 }
 
-function classifyResult(path: string, success: boolean, error?: string): Omit<ShredLog, 'id' | 'timestamp'> {
-  if (success) return { path, success, category: 'success', message: '粉碎成功' };
+function classifyResult(
+  path: string,
+  success: boolean,
+  error?: string,
+): Omit<ShredLog, 'id' | 'timestamp'> {
+  if (success)
+    return { path, success, category: 'success', message: '粉碎成功' };
   const message = error ?? '未知错误';
-  if (/保护目录/.test(message)) return { path, success, category: 'protected', message };
-  if (/EPERM|EACCES|permission/i.test(message)) return { path, success, category: 'permission', message: `权限不足：${message}` };
-  if (/EBUSY|occupied|used by another/i.test(message)) return { path, success, category: 'occupied', message: `文件被占用：${message}` };
+  if (/保护目录/.test(message))
+    return { path, success, category: 'protected', message };
+  if (/EPERM|EACCES|permission/i.test(message))
+    return {
+      path,
+      success,
+      category: 'permission',
+      message: `权限不足：${message}`,
+    };
+  if (/EBUSY|occupied|used by another/i.test(message))
+    return {
+      path,
+      success,
+      category: 'occupied',
+      message: `文件被占用：${message}`,
+    };
   return { path, success, category: 'unknown', message };
 }
 
@@ -498,8 +782,13 @@ function requestPetConfirmation(paths: string[]): void {
   petWindow?.webContents.send('pet:confirm', targets, currentSettings.passes);
 }
 
-async function requestShred(paths: string[], passes: 0 | 3 | 7 | 35 = currentSettings.passes) {
-  const targets = [...new Set(paths.filter(existsSync).map((item) => resolve(item)))];
+async function requestShred(
+  paths: string[],
+  passes: 0 | 3 | 7 | 35 = currentSettings.passes,
+) {
+  const targets = [
+    ...new Set(paths.filter(existsSync).map((item) => resolve(item))),
+  ];
   if (targets.length === 0 || isShredding) return [];
 
   isShredding = true;
@@ -508,20 +797,42 @@ async function requestShred(paths: string[], passes: 0 | 3 | 7 | 35 = currentSet
   petWindow?.webContents.send('pet:state', 'working');
   const startedAt = Date.now();
   try {
-    const results = await shredPaths(targets, passes, (progress) => {
-      tray?.setToolTip(`正在粉碎 ${progress.fileIndex}/${progress.fileCount}`);
-      petWindow?.webContents.send('pet:progress', progress);
-    }, controller.signal);
+    const results = await shredPaths(
+      targets,
+      passes,
+      (progress) => {
+        tray?.setToolTip(
+          `正在粉碎 ${progress.fileIndex}/${progress.fileCount}`,
+        );
+        petWindow?.webContents.send('pet:progress', progress);
+      },
+      controller.signal,
+    );
     const durationMs = Date.now() - startedAt;
-    await store.appendLogs(results.map((result) => classifyResult(result.path, result.success, result.error)));
+    await store.appendLogs(
+      results.map((result) =>
+        classifyResult(result.path, result.success, result.error),
+      ),
+    );
     const failed = results.filter((result) => !result.success);
     const succeeded = results.length - failed.length;
-    petWindow?.webContents.send('pet:state', failed.length === 0 ? 'success' : 'failure');
-    petWindow?.webContents.send('pet:complete', { succeeded, failed: failed.length, durationMs, cancelled: false });
+    petWindow?.webContents.send(
+      'pet:state',
+      failed.length === 0 ? 'success' : 'failure',
+    );
+    petWindow?.webContents.send('pet:complete', {
+      succeeded,
+      failed: failed.length,
+      durationMs,
+      cancelled: false,
+    });
     if (Notification.isSupported()) {
       new Notification({
         title: failed.length === 0 ? '文件粉碎完成' : '部分目标粉碎失败',
-        body: failed.length === 0 ? `已永久粉碎 ${results.length} 个目标` : `${failed.length} 个目标失败，请在设置的日志中查看原因`,
+        body:
+          failed.length === 0
+            ? `已永久粉碎 ${results.length} 个目标`
+            : `${failed.length} 个目标失败，请在设置的日志中查看原因`,
         icon: getIconPath(),
       }).show();
     }
@@ -532,15 +843,24 @@ async function requestShred(paths: string[], passes: 0 | 3 | 7 | 35 = currentSet
     const failed = error.results.filter((result) => !result.success);
     const succeeded = error.results.length - failed.length;
     if (error.results.length > 0) {
-      await store.appendLogs(error.results.map((result) => classifyResult(result.path, result.success, result.error)));
+      await store.appendLogs(
+        error.results.map((result) =>
+          classifyResult(result.path, result.success, result.error),
+        ),
+      );
     }
     petWindow?.webContents.send('pet:state', 'idle');
-    petWindow?.webContents.send('pet:complete', { succeeded, failed: failed.length, durationMs, cancelled: true });
+    petWindow?.webContents.send('pet:complete', {
+      succeeded,
+      failed: failed.length,
+      durationMs,
+      cancelled: true,
+    });
     return error.results;
   } finally {
     if (activeShredController === controller) activeShredController = null;
     isShredding = false;
-    tray?.setToolTip('文件粉碎器');
+    tray?.setToolTip('文件粉碎精灵');
     setTimeout(() => petWindow?.webContents.send('pet:state', 'idle'), 1800);
     settingsWindow?.webContents.send('logs:updated');
   }
@@ -548,13 +868,18 @@ async function requestShred(paths: string[], passes: 0 | 3 | 7 | 35 = currentSet
 
 async function handleShortcut(): Promise<void> {
   const selectedPaths = await getExplorerSelection();
-  const paths = selectedPaths.length > 0 ? selectedPaths : parseClipboardPaths();
+  const paths =
+    selectedPaths.length > 0 ? selectedPaths : parseClipboardPaths();
   if (paths.length > 0) {
     requestPetConfirmation(paths);
     return;
   }
   if (Notification.isSupported()) {
-    new Notification({ title: '未读取到选中项', body: '请在资源管理器中选择文件后重试', icon: getIconPath() }).show();
+    new Notification({
+      title: '未读取到选中项',
+      body: '请在资源管理器中选择文件后重试',
+      icon: getIconPath(),
+    }).show();
   }
 }
 
@@ -572,24 +897,36 @@ async function setContextMenuEnabled(enabled: boolean): Promise<void> {
   const succeeded = enabled
     ? await installContextMenu(getExecutablePath(), getWindowsIconPath())
     : await removeContextMenu();
-  if (!succeeded) throw new Error(enabled ? '资源管理器右键菜单安装失败' : '资源管理器右键菜单卸载失败');
-  currentSettings = await store.updateSettings({ contextMenuInstalled: enabled, contextMenuAutoInstall: false });
+  if (!succeeded)
+    throw new Error(
+      enabled ? '资源管理器右键菜单安装失败' : '资源管理器右键菜单卸载失败',
+    );
+  currentSettings = await store.updateSettings({
+    contextMenuInstalled: enabled,
+    contextMenuAutoInstall: false,
+  });
   settingsWindow?.webContents.send('settings:changed');
 }
 
 function buildTrayMenu(): Menu {
   return Menu.buildFromTemplate([
-    { label: petWindow?.isVisible() ? '隐藏桌宠' : '显示桌宠', click: () => {
-      if (petWindow?.isVisible()) hidePet();
-      else showPet();
-    } },
+    {
+      label: petWindow?.isVisible() ? '隐藏桌宠' : '显示桌宠',
+      click: () => {
+        if (petWindow?.isVisible()) hidePet();
+        else showPet();
+      },
+    },
     { label: '设置', click: showSettingsWindow },
     { type: 'separator' },
-    { label: '关闭', click: () => {
-      // 托盘关闭表示退出程序，保留用户设置和已安装的系统集成。
-      isQuitting = true;
-      app.quit();
-    } },
+    {
+      label: '关闭',
+      click: () => {
+        // 托盘关闭表示退出程序，保留用户设置和已安装的系统集成。
+        isQuitting = true;
+        app.quit();
+      },
+    },
   ]);
 }
 
@@ -599,18 +936,23 @@ function refreshTray(): void {
 }
 
 function createTray(): void {
-  const trayIcon = nativeImage.createFromPath(getIconPath()).resize({ width: 20, height: 20 });
+  const trayIcon = nativeImage
+    .createFromPath(getIconPath())
+    .resize({ width: 20, height: 20 });
   tray = new Tray(trayIcon);
-  tray.setToolTip('文件粉碎器');
+  tray.setToolTip('文件粉碎精灵');
   tray.on('click', showSettingsWindow);
-  if (process.platform === 'darwin') tray.on('right-click', () => tray?.popUpContextMenu(buildTrayMenu()));
+  if (process.platform === 'darwin')
+    tray.on('right-click', () => tray?.popUpContextMenu(buildTrayMenu()));
   refreshTray();
 }
 
 const singleInstance = app.requestSingleInstanceLock();
 if (!singleInstance) app.quit();
 else {
-  app.on('second-instance', (_event, argv) => queueLaunchPaths(parseLaunchPaths(argv)));
+  app.on('second-instance', (_event, argv) =>
+    queueLaunchPaths(parseLaunchPaths(argv)),
+  );
   app.whenReady().then(async () => {
     currentSettings = await store.getSettings();
     await migrateLegacyPetImage();
@@ -620,46 +962,66 @@ else {
     screen.on('display-metrics-changed', restorePetPosition);
     createTray();
     if (!registerShortcut(currentSettings.shortcut)) {
-      currentSettings = await store.updateSettings({ shortcut: 'CommandOrControl+Alt+X' });
+      currentSettings = await store.updateSettings({
+        shortcut: 'CommandOrControl+Alt+X',
+      });
       registerShortcut(currentSettings.shortcut);
     }
 
     // 资源管理器右键菜单仅由设置项控制，启动时只同步真实状态。
-    if (process.platform === 'win32') await updateContextMenuIcon(getWindowsIconPath());
-    const contextMenuInstalled = process.platform === 'win32'
-      ? await isContextMenuInstalled(getExecutablePath())
-      : false;
+    if (process.platform === 'win32')
+      await updateContextMenuIcon(getWindowsIconPath());
+    const contextMenuInstalled =
+      process.platform === 'win32'
+        ? await isContextMenuInstalled(getExecutablePath())
+        : false;
     // 已安装的菜单在启动时重写一次图标值，确保升级图标后立即同步到资源管理器。
     if (process.platform === 'win32' && contextMenuInstalled) {
       await installContextMenu(getExecutablePath(), getWindowsIconPath());
     }
-    currentSettings = await store.updateSettings({ contextMenuInstalled, contextMenuAutoInstall: false });
+    currentSettings = await store.updateSettings({
+      contextMenuInstalled,
+      contextMenuAutoInstall: false,
+    });
     queueLaunchPaths(parseLaunchPaths(process.argv));
   });
 }
 
 ipcMain.handle('targets:choose', async (_event, kind: 'file' | 'directory') => {
-  const properties: Array<'openFile' | 'openDirectory' | 'multiSelections'> = kind === 'file'
-    ? ['openFile', 'multiSelections']
-    : ['openDirectory', 'multiSelections'];
+  const properties: Array<'openFile' | 'openDirectory' | 'multiSelections'> =
+    kind === 'file'
+      ? ['openFile', 'multiSelections']
+      : ['openDirectory', 'multiSelections'];
   const result = await dialog.showOpenDialog({ properties });
   return result.canceled ? [] : result.filePaths;
 });
 ipcMain.handle('shred:prepare', (_event, paths: unknown) => {
-  if (!Array.isArray(paths) || !paths.every((item) => typeof item === 'string')) throw new Error('无效的路径参数');
+  if (!Array.isArray(paths) || !paths.every((item) => typeof item === 'string'))
+    throw new Error('无效的路径参数');
   return normalizeTargets(paths);
 });
-ipcMain.handle('shred:start', async (_event, paths: unknown, passes: unknown) => {
-  if (!Array.isArray(paths) || !paths.every((item) => typeof item === 'string')) throw new Error('无效的路径参数');
-  if (passes !== 0 && passes !== 3 && passes !== 7 && passes !== 35) throw new Error('无效的清除强度');
-  return requestShred(paths, passes);
-});
+ipcMain.handle(
+  'shred:start',
+  async (_event, paths: unknown, passes: unknown) => {
+    if (
+      !Array.isArray(paths) ||
+      !paths.every((item) => typeof item === 'string')
+    )
+      throw new Error('无效的路径参数');
+    if (passes !== 0 && passes !== 3 && passes !== 7 && passes !== 35)
+      throw new Error('无效的清除强度');
+    return requestShred(paths, passes);
+  },
+);
 ipcMain.handle('shred:cancel', () => {
-  if (!activeShredController || activeShredController.signal.aborted) return false;
+  if (!activeShredController || activeShredController.signal.aborted)
+    return false;
   activeShredController.abort();
   return true;
 });
-ipcMain.on('pet:expanded', (_event, expanded: boolean) => setPetExpanded(Boolean(expanded)));
+ipcMain.on('pet:expanded', (_event, expanded: boolean) =>
+  setPetExpanded(Boolean(expanded)),
+);
 ipcMain.on('pet:bubble-bounds', (_event, bounds: unknown) => {
   if (bounds === null) {
     petBubbleBounds = null;
@@ -668,7 +1030,12 @@ ipcMain.on('pet:bubble-bounds', (_event, bounds: unknown) => {
   }
   if (!bounds || typeof bounds !== 'object') return;
   const candidate = bounds as Partial<Electron.Rectangle>;
-  if (![candidate.x, candidate.y, candidate.width, candidate.height].every(Number.isFinite)) return;
+  if (
+    ![candidate.x, candidate.y, candidate.width, candidate.height].every(
+      Number.isFinite,
+    )
+  )
+    return;
   petBubbleBounds = {
     x: Math.round(candidate.x as number),
     y: Math.round(candidate.y as number),
@@ -678,10 +1045,19 @@ ipcMain.on('pet:bubble-bounds', (_event, bounds: unknown) => {
   updatePetWindowMouseThrough();
 });
 ipcMain.on('pet:pointer-move', (event, pointer: unknown) => {
-  if (!petWindow || event.sender !== petWindow.webContents || !pointer || typeof pointer !== 'object') return;
+  if (
+    !petWindow ||
+    event.sender !== petWindow.webContents ||
+    !pointer ||
+    typeof pointer !== 'object'
+  )
+    return;
   const candidate = pointer as Partial<Electron.Point>;
   if (![candidate.x, candidate.y].every(Number.isFinite)) return;
-  updatePetWindowMouseThrough({ x: candidate.x as number, y: candidate.y as number });
+  updatePetWindowMouseThrough({
+    x: candidate.x as number,
+    y: candidate.y as number,
+  });
 });
 ipcMain.on('ELECTRON_DRAG_START', (event) => {
   if (!petWindow || event.sender !== petWindow.webContents) return;
@@ -696,8 +1072,10 @@ ipcMain.on('ELECTRON_DRAG_OVER', async (event) => {
   isPetDragging = false;
   updatePetWindowMouseThrough();
   const [x, y] = petWindow.getPosition();
-  const hasMoved = Boolean(petDragStartPosition
-    && (petDragStartPosition.x !== x || petDragStartPosition.y !== y));
+  const hasMoved = Boolean(
+    petDragStartPosition &&
+    (petDragStartPosition.x !== x || petDragStartPosition.y !== y),
+  );
   if (!hasMoved) {
     petDragStartPosition = null;
     return;
@@ -711,53 +1089,99 @@ ipcMain.on('ELECTRON_DRAG_OVER', async (event) => {
     petDragStartPosition = null;
   }
 });
-ipcMain.handle('context-menu:install', async () => { await setContextMenuEnabled(true); return true; });
-ipcMain.handle('context-menu:remove', async () => { await setContextMenuEnabled(false); return true; });
-ipcMain.handle('context-menu:status', () => isContextMenuInstalled(getExecutablePath()));
-ipcMain.handle('settings:get', () => currentSettings);
-ipcMain.handle('settings:update', async (_event, patch: Partial<AppSettings>) => {
-  const safePatch = { ...patch };
-  delete safePatch.customPetImagePath;
-  delete safePatch.petImageTemplateId;
-  delete safePatch.uploadedPetImages;
-  if (typeof safePatch.petSize === 'number') {
-    safePatch.petSize = Math.min(PET_SIZE_MAX, Math.max(PET_SIZE_MIN, Math.round(safePatch.petSize)));
-  }
-  if (safePatch.shortcut && safePatch.shortcut !== currentSettings.shortcut && !registerShortcut(safePatch.shortcut)) {
-    registerShortcut(currentSettings.shortcut);
-    throw new Error('快捷键无效或已被其他程序占用');
-  }
-  if (typeof safePatch.contextMenuInstalled === 'boolean' && safePatch.contextMenuInstalled !== currentSettings.contextMenuInstalled) {
-    await setContextMenuEnabled(safePatch.contextMenuInstalled);
-  }
-  currentSettings = await store.updateSettings({ ...safePatch, contextMenuAutoInstall: false });
-  petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop && !settingsWindow?.isVisible());
-  if (typeof safePatch.launchAtLogin === 'boolean') applyLoginSetting(safePatch.launchAtLogin);
-  notifyPetAppearanceChanged();
-  refreshTray();
-  return currentSettings;
+ipcMain.handle('context-menu:install', async () => {
+  await setContextMenuEnabled(true);
+  return true;
 });
+ipcMain.handle('context-menu:remove', async () => {
+  await setContextMenuEnabled(false);
+  return true;
+});
+ipcMain.handle('context-menu:status', () =>
+  isContextMenuInstalled(getExecutablePath()),
+);
+ipcMain.handle('settings:get', () => currentSettings);
+ipcMain.handle(
+  'settings:update',
+  async (_event, patch: Partial<AppSettings>) => {
+    const safePatch = { ...patch };
+    delete safePatch.customPetImagePath;
+    delete safePatch.petImageTemplateId;
+    delete safePatch.uploadedPetImages;
+    if (typeof safePatch.petSize === 'number') {
+      safePatch.petSize = Math.min(
+        PET_SIZE_MAX,
+        Math.max(PET_SIZE_MIN, Math.round(safePatch.petSize)),
+      );
+    }
+    if (
+      safePatch.shortcut &&
+      safePatch.shortcut !== currentSettings.shortcut &&
+      !registerShortcut(safePatch.shortcut)
+    ) {
+      registerShortcut(currentSettings.shortcut);
+      throw new Error('快捷键无效或已被其他程序占用');
+    }
+    if (
+      typeof safePatch.contextMenuInstalled === 'boolean' &&
+      safePatch.contextMenuInstalled !== currentSettings.contextMenuInstalled
+    ) {
+      await setContextMenuEnabled(safePatch.contextMenuInstalled);
+    }
+    currentSettings = await store.updateSettings({
+      ...safePatch,
+      contextMenuAutoInstall: false,
+    });
+    petWindow?.setAlwaysOnTop(
+      currentSettings.alwaysOnTop && !settingsWindow?.isVisible(),
+    );
+    if (typeof safePatch.launchAtLogin === 'boolean')
+      applyLoginSetting(safePatch.launchAtLogin);
+    notifyPetAppearanceChanged();
+    refreshTray();
+    return currentSettings;
+  },
+);
 ipcMain.handle('pet-image:get', () => getPetImageDataUrl());
 ipcMain.handle('pet-image:list', () => getPetImageTemplates());
 ipcMain.handle('pet-image:choose', async () => {
   const result = await dialog.showOpenDialog({
-    title: '选择桌宠 PNG 图片',
+    title: '选择桌宠图片',
     properties: ['openFile'],
-    filters: [{ name: 'PNG 图片', extensions: ['png'] }],
+    filters: [
+      {
+        name: '支持的图片',
+        extensions: ['png', 'jpg', 'jpeg', 'jeg', 'svg', 'webp', 'gif'],
+      },
+    ],
   });
   if (result.canceled || result.filePaths.length === 0) return null;
   const sourcePath = result.filePaths[0];
-  if (nativeImage.createFromPath(sourcePath).isEmpty()) throw new Error('无法读取这张 PNG 图片');
+  const fileExtension = extname(sourcePath).toLowerCase();
+  if (!PET_IMAGE_MIME_TYPES[fileExtension])
+    throw new Error('仅支持 PNG、JPG、JPEG、SVG、WebP 和 GIF 图片');
+  const sourceStats = await stat(sourcePath);
+  if (sourceStats.size > PET_IMAGE_MAX_BYTES)
+    throw new Error('桌宠图片不能超过 50 MB');
+  const imageBuffer = await readFile(sourcePath);
+  if (imageBuffer.byteLength > PET_IMAGE_MAX_BYTES)
+    throw new Error('桌宠图片不能超过 50 MB');
+  if (!isValidPetImage(fileExtension, imageBuffer))
+    throw new Error('图片文件已损坏或格式与扩展名不符');
   const id = randomUUID();
-  const fileName = `${id}.png`;
+  // 保留扩展名才能让 Chromium 按原格式解码，并继续播放 GIF 动画。
+  const fileName = `${id}${fileExtension}`;
   await mkdir(getPetImagesDirectory(), { recursive: true });
   const targetPath = join(getPetImagesDirectory(), fileName);
   await copyFile(sourcePath, targetPath);
-  const uploadedPetImages = [...currentSettings.uploadedPetImages, {
-    id,
-    name: result.filePaths[0].split(/[\\/]/).pop()?.replace(/\.png$/i, '') || '我的桌宠',
-    fileName,
-  }];
+  const uploadedPetImages = [
+    ...currentSettings.uploadedPetImages,
+    {
+      id,
+      name: basename(sourcePath, fileExtension) || '我的桌宠',
+      fileName,
+    },
+  ];
   currentSettings = await store.updateSettings({
     customPetImagePath: '',
     petImageTemplateId: id,
@@ -768,8 +1192,11 @@ ipcMain.handle('pet-image:choose', async () => {
 });
 ipcMain.handle('pet-image:select', async (_event, id: unknown) => {
   if (typeof id !== 'string') throw new Error('无效的桌宠模板');
-  const exists = BUILT_IN_PET_IMAGES.some((image) => image.id === id)
-    || currentSettings.uploadedPetImages.some((image) => image.id === id && existsSync(getUploadedPetImagePath(image)));
+  const exists =
+    BUILT_IN_PET_IMAGES.some((image) => image.id === id) ||
+    currentSettings.uploadedPetImages.some(
+      (image) => image.id === id && existsSync(getUploadedPetImagePath(image)),
+    );
   if (!exists) throw new Error('桌宠模板不存在');
   currentSettings = await store.updateSettings({ petImageTemplateId: id });
   notifyPetAppearanceChanged();
@@ -777,21 +1204,32 @@ ipcMain.handle('pet-image:select', async (_event, id: unknown) => {
 });
 ipcMain.handle('pet-image:delete', async (_event, id: unknown) => {
   if (typeof id !== 'string') throw new Error('无效的桌宠模板');
-  const target = currentSettings.uploadedPetImages.find((image) => image.id === id);
+  const target = currentSettings.uploadedPetImages.find(
+    (image) => image.id === id,
+  );
   if (!target) throw new Error('内置模板不能删除');
   await rm(getUploadedPetImagePath(target), { force: true });
-  const uploadedPetImages = currentSettings.uploadedPetImages.filter((image) => image.id !== id);
+  const uploadedPetImages = currentSettings.uploadedPetImages.filter(
+    (image) => image.id !== id,
+  );
   currentSettings = await store.updateSettings({
-    petImageTemplateId: currentSettings.petImageTemplateId === id ? BUILT_IN_PET_IMAGES[0].id : currentSettings.petImageTemplateId,
+    petImageTemplateId:
+      currentSettings.petImageTemplateId === id
+        ? BUILT_IN_PET_IMAGES[0].id
+        : currentSettings.petImageTemplateId,
     uploadedPetImages,
   });
   notifyPetAppearanceChanged();
   return getPetImageTemplates();
 });
 ipcMain.handle('logs:get', () => store.getLogs());
-ipcMain.handle('logs:clear', async () => { await store.clearLogs(); return true; });
+ipcMain.handle('logs:clear', async () => {
+  await store.clearLogs();
+  return true;
+});
 ipcMain.handle('logs:delete', (_event, ids: unknown) => {
-  if (!Array.isArray(ids) || !ids.every((id) => typeof id === 'string')) throw new Error('无效的粉碎记录参数');
+  if (!Array.isArray(ids) || !ids.every((id) => typeof id === 'string'))
+    throw new Error('无效的粉碎记录参数');
   return store.deleteLogs([...new Set(ids)]);
 });
 ipcMain.handle('app:cleanup-exit', async () => {
@@ -802,7 +1240,9 @@ ipcMain.handle('app:cleanup-exit', async () => {
   setImmediate(() => app.quit());
   return true;
 });
-ipcMain.on('window:hide', (event) => BrowserWindow.fromWebContents(event.sender)?.hide());
+ipcMain.on('window:hide', (event) =>
+  BrowserWindow.fromWebContents(event.sender)?.hide(),
+);
 ipcMain.on('settings:ready', (event) => {
   if (!settingsWindow || event.sender !== settingsWindow.webContents) return;
   settingsWindow.show();

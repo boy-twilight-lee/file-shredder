@@ -44,7 +44,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   contextMenuInstalled: false,
   contextMenuAutoInstall: false,
   customPetImagePath: '',
-  petImageTemplateId: 'built-in-portrait-1',
+  petImageTemplateId: 'built-in-ao-yin',
   uploadedPetImages: [],
   petSize: 200,
   petDisplayId: null,

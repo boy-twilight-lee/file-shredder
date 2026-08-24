@@ -1,3 +1,4 @@
+import { rmSync } from 'node:fs';
 import { lstat, mkdir, mkdtemp, readFile, rm, writeFile } from 'node:fs/promises';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
@@ -79,6 +80,34 @@ describe('shredPaths', () => {
       expect(progress.every((value) => value.fileCount === 2)).toBe(true);
       expect(progress[progress.length - 1]).toMatchObject({ fileIndex: 2, fileCount: 2, stage: 'done' });
       await expect(lstat(targetDirectory)).rejects.toThrow();
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('merges a successful directory and reports only the nested files that failed', async () => {
+    const workspace = await mkdtemp(join(tmpdir(), 'file-shredder-directory-log-'));
+    const successfulDirectory = join(workspace, 'successful');
+    const partialDirectory = join(workspace, 'partial');
+    await mkdir(successfulDirectory);
+    await writeFile(join(successfulDirectory, 'one.txt'), 'one', 'utf8');
+    await writeFile(join(successfulDirectory, 'two.txt'), 'two', 'utf8');
+    await mkdir(partialDirectory);
+    const removedPath = join(partialDirectory, 'a-removed.txt');
+    const failedPath = join(partialDirectory, 'b-failed.txt');
+    await writeFile(removedPath, 'removed', 'utf8');
+    await writeFile(failedPath, 'failed', 'utf8');
+
+    try {
+      const successfulResults = await shredPaths([successfulDirectory], 0, () => undefined);
+      expect(successfulResults).toEqual([{ path: successfulDirectory, success: true }]);
+
+      const failedResults = await shredPaths([partialDirectory], 0, (progress) => {
+        // 在处理首个文件时移除后一文件，稳定模拟递归过程中单个文件失效。
+        if (progress.path === removedPath && progress.stage === 'removing') rmSync(failedPath, { force: true });
+      });
+      expect(failedResults).toHaveLength(1);
+      expect(failedResults[0]).toMatchObject({ path: failedPath, success: false });
     } finally {
       await rm(workspace, { recursive: true, force: true });
     }

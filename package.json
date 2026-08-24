@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "A secure cross-platform file shredder for Windows and macOS.",
   "main": "dist-electron/main.js",
-  "author": "文件粉碎器",
+  "author": "文件粉碎精灵",
   "license": "MIT",
   "type": "module",
   "scripts": {
@@ -43,7 +43,7 @@
   },
   "build": {
     "appId": "com.filetools.fileshredder",
-    "productName": "文件粉碎器",
+    "productName": "文件粉碎精灵",
     "asar": true,
     "afterPack": "scripts/after-pack.cjs",
     "directories": {
@@ -73,7 +73,7 @@
       "target": [
         "portable"
       ],
-      "artifactName": "文件粉碎器-${version}-${arch}.${ext}",
+      "artifactName": "文件粉碎精灵-${version}-${arch}.${ext}",
       "signAndEditExecutable": false
     },
     "mac": {
@@ -89,7 +89,7 @@
       "artifactName": "File-Shredder-${version}-${arch}.${ext}"
     },
     "portable": {
-      "artifactName": "文件粉碎器-${version}-${arch}.${ext}"
+      "artifactName": "文件粉碎精灵-${version}-${arch}.${ext}"
     }
   }
 }

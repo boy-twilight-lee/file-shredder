@@ -44,24 +44,48 @@ async function runReg(args: string[]): Promise<CommandResult> {
     };
     return {
       success: false,
-      returnCode: typeof commandError.code === 'number' ? commandError.code : -1,
+      returnCode:
+        typeof commandError.code === 'number' ? commandError.code : -1,
       output: commandError.stdout ?? '',
       errors: commandError.stderr ?? commandError.message,
     };
   }
 }
 
-async function addValue(keyPath: string, name: string | null, value: string): Promise<boolean> {
+async function addValue(
+  keyPath: string,
+  name: string | null,
+  value: string,
+): Promise<boolean> {
   const valueArgs = name === null ? ['/ve'] : ['/v', name];
-  const result = await runReg(['add', keyPath, ...valueArgs, '/t', 'REG_SZ', '/d', value, '/f']);
+  const result = await runReg([
+    'add',
+    keyPath,
+    ...valueArgs,
+    '/t',
+    'REG_SZ',
+    '/d',
+    value,
+    '/f',
+  ]);
   return result.success;
 }
 
-async function hasRegisteredMenu(menuPaths: string[], executablePath: string): Promise<boolean> {
+async function hasRegisteredMenu(
+  menuPaths: string[],
+  executablePath: string,
+): Promise<boolean> {
   const expectedCommand = `"${executablePath}" --shred "%1"`;
   for (const keyPath of menuPaths) {
     // 使用 reg.exe 的精确数据匹配，避免解析受 Windows 控制台代码页影响的中文输出。
-    const result = await runReg(['query', `${keyPath}\\command`, '/ve', '/f', expectedCommand, '/e']);
+    const result = await runReg([
+      'query',
+      `${keyPath}\\command`,
+      '/ve',
+      '/f',
+      expectedCommand,
+      '/e',
+    ]);
     if (!result.success) return false;
   }
   return true;
@@ -79,12 +103,15 @@ async function removeMenuPaths(menuPaths: string[]): Promise<boolean> {
   return true;
 }
 
-export async function installContextMenu(executablePath: string, iconPath: string): Promise<boolean> {
+export async function installContextMenu(
+  executablePath: string,
+  iconPath: string,
+): Promise<boolean> {
   if (process.platform !== 'win32') return false;
   const command = `"${executablePath}" --shred "%1"`;
   for (const keyPath of MENU_PATHS) {
     const results = await Promise.all([
-      addValue(keyPath, null, '文件粉碎器'),
+      addValue(keyPath, null, '文件粉碎精灵'),
       addValue(keyPath, 'Icon', iconPath),
       addValue(keyPath, 'MultiSelectModel', 'Player'),
       addValue(`${keyPath}\\command`, null, command),
@@ -92,14 +119,18 @@ export async function installContextMenu(executablePath: string, iconPath: strin
     if (results.some((success) => !success)) return false;
   }
   // 新菜单写入成功后再删除旧品牌键，避免升级期间丢失右键菜单。
-  if (!await removeMenuPaths(LEGACY_MENU_PATHS)) return false;
+  if (!(await removeMenuPaths(LEGACY_MENU_PATHS))) return false;
   return isContextMenuInstalled(executablePath);
 }
 
-export async function isContextMenuInstalled(executablePath: string): Promise<boolean> {
+export async function isContextMenuInstalled(
+  executablePath: string,
+): Promise<boolean> {
   if (process.platform !== 'win32') return false;
-  return await hasRegisteredMenu(MENU_PATHS, executablePath)
-    || await hasRegisteredMenu(LEGACY_MENU_PATHS, executablePath);
+  return (
+    (await hasRegisteredMenu(MENU_PATHS, executablePath)) ||
+    (await hasRegisteredMenu(LEGACY_MENU_PATHS, executablePath))
+  );
 }
 
 export async function updateContextMenuIcon(iconPath: string): Promise<void> {

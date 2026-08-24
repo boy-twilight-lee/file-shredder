@@ -123,20 +123,33 @@ async function overwriteFile(filePath: string, context: ShredContext): Promise<v
   await rm(anonymousPath, { force: true });
 }
 
-async function shredEntry(targetPath: string, context: ShredContext): Promise<void> {
+async function shredEntry(targetPath: string, context: ShredContext): Promise<ShredResult[]> {
   throwIfCancelled(context.signal);
   const stats = await lstat(targetPath);
   if (!stats.isDirectory() || stats.isSymbolicLink()) {
     await overwriteFile(targetPath, context);
-    return;
+    return [];
   }
 
   const entries = await readdir(targetPath);
-  for (const entry of entries) await shredEntry(join(targetPath, entry), context);
+  const failures: ShredResult[] = [];
+  for (const entry of entries) {
+    const entryPath = join(targetPath, entry);
+    try {
+      failures.push(...await shredEntry(entryPath, context));
+    } catch (error) {
+      if (error instanceof ShredCancelledError) throw error;
+      // 目录粉碎不中断其余项目，并将真正失败的文件路径交给日志展示。
+      failures.push({ path: entryPath, success: false, error: error instanceof Error ? error.message : '未知错误' });
+    }
+  }
   throwIfCancelled(context.signal);
-  await chmod(targetPath, 0o700);
-  // 文件已逐个安全覆写并删除，此处使用目录专用 API 移除已经清空的目录。
-  await rmdir(targetPath);
+  if (failures.length === 0) {
+    await chmod(targetPath, 0o700);
+    // 文件已逐个安全覆写并删除，此处使用目录专用 API 移除已经清空的目录。
+    await rmdir(targetPath);
+  }
+  return failures;
 }
 
 async function countFiles(targetPath: string, signal?: AbortSignal): Promise<number> {
@@ -177,10 +190,12 @@ export async function shredPaths(paths: string[], passes: 0 | 3 | 7 | 35, report
       targetPath = assertSafeTarget(unresolvedPath);
       await access(targetPath, constants.F_OK);
       const startingFileIndex = context.fileIndex;
-      await shredEntry(targetPath, context);
+      const failures = await shredEntry(targetPath, context);
       if (context.fileIndex === startingFileIndex) context.fileIndex += 1;
       emitProgress(context, targetPath, 1, 1, 'done');
-      results.push({ path: targetPath, success: true });
+      // 完整成功的目录合并为根目录一条记录；失败时只返回实际失败项目。
+      if (failures.length === 0) results.push({ path: targetPath, success: true });
+      else results.push(...failures);
     } catch (error) {
       if (error instanceof ShredCancelledError) throw new ShredCancelledError(results);
       results.push({ path: targetPath, success: false, error: error instanceof Error ? error.message : '未知错误' });
