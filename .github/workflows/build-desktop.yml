@@ -71,7 +71,8 @@ jobs:
         run: npm test
 
       - name: Build application
-        run: npm run ${{ matrix.build_script }}
+        # Release publishing is handled by the dedicated release job below.
+        run: npm run ${{ matrix.build_script }} -- --publish never
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: 'false'
 
