@@ -44,7 +44,7 @@ describe('shredPaths', () => {
     await expect(readFile(targetPath)).rejects.toThrow();
   });
 
-  it('deletes a directory as one system operation in zero-pass fast mode', async () => {
+  it('deletes a directory without reporting files complete before removal', async () => {
     const workspace = await mkdtemp(
       join(tmpdir(), 'file-shredder-fast-directory-'),
     );
@@ -66,6 +66,16 @@ describe('shredPaths', () => {
         false,
       );
       expect(progress.every((value) => value.fileCount === 2)).toBe(true);
+      expect(progress[0]).toMatchObject({
+        completed: 0,
+        fileIndex: 1,
+        stage: 'removing',
+      });
+      expect(progress[progress.length - 1]).toMatchObject({
+        completed: 1,
+        fileIndex: 2,
+        stage: 'done',
+      });
       await expect(lstat(targetDirectory)).rejects.toThrow();
     } finally {
       await rm(workspace, { recursive: true, force: true });
@@ -176,6 +186,68 @@ describe('shredPaths', () => {
           deletedFileCount: 2,
         },
       ]);
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('ignores selected descendants when their parent directory is selected', async () => {
+    const workspace = await mkdtemp(
+      join(tmpdir(), 'file-shredder-overlapping-targets-'),
+    );
+    const targetDirectory = join(workspace, 'parent');
+    const nestedFile = join(targetDirectory, 'nested', 'child.txt');
+    await mkdir(join(targetDirectory, 'nested'), { recursive: true });
+    await writeFile(nestedFile, 'child', 'utf8');
+
+    try {
+      const result = await shredPaths(
+        [nestedFile, targetDirectory, nestedFile],
+        0,
+        () => undefined,
+      );
+
+      expect(result).toEqual([
+        {
+          path: targetDirectory,
+          success: true,
+          deletedFileCount: 1,
+        },
+      ]);
+      await expect(lstat(targetDirectory)).rejects.toThrow();
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
+  });
+
+  it('deletes a large batch with monotonic bounded progress', async () => {
+    const workspace = await mkdtemp(join(tmpdir(), 'file-shredder-batch-'));
+    const targetPaths = Array.from({ length: 300 }, (_, index) =>
+      join(workspace, `batch-${index}.txt`),
+    );
+    const progress: ShredProgress[] = [];
+    await Promise.all(
+      targetPaths.map((targetPath) => writeFile(targetPath, 'batch', 'utf8')),
+    );
+
+    try {
+      const result = await shredPaths(targetPaths, 0, (value) =>
+        progress.push(value),
+      );
+
+      expect(result).toHaveLength(targetPaths.length);
+      expect(result.every((item) => item.success)).toBe(true);
+      expect(
+        progress.every((item) => item.fileCount === targetPaths.length),
+      ).toBe(true);
+      expect(progress.every((item) => item.fileIndex <= item.fileCount)).toBe(
+        true,
+      );
+      expect(progress[progress.length - 1]).toMatchObject({
+        fileIndex: targetPaths.length,
+        fileCount: targetPaths.length,
+        stage: 'done',
+      });
     } finally {
       await rm(workspace, { recursive: true, force: true });
     }

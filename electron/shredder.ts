@@ -45,6 +45,30 @@ const CHUNK_SIZE = 1024 * 1024;
 const SECURE_FILE_CONCURRENCY = 2;
 const FILE_COUNT_CONCURRENCY = 8;
 
+function normalizeTargetPaths(paths: string[]): string[] {
+  const uniquePaths = [...new Set(paths.map((item) => resolve(item)))];
+  const comparablePaths = uniquePaths.map((targetPath) => ({
+    path: targetPath,
+    comparable:
+      process.platform === 'win32'
+        ? targetPath.toLocaleLowerCase()
+        : targetPath,
+  }));
+  // 父目录已包含其子项，避免大批量选择时重复删除并误报 ENOENT。
+  return comparablePaths
+    .filter(
+      (candidate) =>
+        !comparablePaths.some(
+          (possibleParent) =>
+            possibleParent.path !== candidate.path &&
+            candidate.comparable.startsWith(
+              `${possibleParent.comparable}${sep}`,
+            ),
+        ),
+    )
+    .map((item) => item.path);
+}
+
 function fillRandomBuffer(buffer: Buffer, length: number): Promise<void> {
   return new Promise((resolveFill, rejectFill) => {
     randomFill(buffer, 0, length, (error) => {
@@ -148,15 +172,18 @@ async function overwriteFile(
   if (context.passes === 0) {
     // Fast mode intentionally skips overwriting and filename anonymization so the filesystem can delete immediately.
     throwIfCancelled(context.signal);
-    emitProgress(context, filePath, 1, 1, 'removing', fileIndex);
+    emitProgress(context, filePath, 0, 1, 'removing', fileIndex);
     await rm(filePath, { force: true });
     context.deletedFileCount += 1;
+    emitProgress(context, filePath, 1, 1, 'removing', fileIndex);
     return;
   }
   if (stats.isSymbolicLink()) {
     throwIfCancelled(context.signal);
+    emitProgress(context, filePath, 0, 1, 'removing', fileIndex);
     await rm(filePath);
     context.deletedFileCount += 1;
+    emitProgress(context, filePath, 1, 1, 'removing', fileIndex);
     return;
   }
   if (!stats.isFile()) throw new Error('目标不是普通文件');
@@ -202,9 +229,10 @@ async function overwriteFile(
     `.${randomBytes(12).toString('hex')}`,
   );
   await rename(filePath, anonymousPath);
-  emitProgress(context, filePath, 1, 1, 'removing', fileIndex);
+  emitProgress(context, filePath, 0, 1, 'removing', fileIndex);
   await rm(anonymousPath, { force: true });
   context.deletedFileCount += 1;
+  emitProgress(context, filePath, 1, 1, 'removing', fileIndex);
 }
 
 async function shredEntry(
@@ -221,8 +249,8 @@ async function shredEntry(
   if (context.passes === 0) {
     // 极速模式交给系统一次性递归删除，避免为每个目录项执行多轮 JS 异步调用。
     const countedFileCount = context.countedFilesByPath.get(targetPath) ?? 0;
-    context.fileIndex += Math.max(1, countedFileCount);
-    emitProgress(context, targetPath, 1, 1, 'removing');
+    const progressFileCount = Math.max(1, countedFileCount);
+    emitProgress(context, targetPath, 0, 1, 'removing', context.fileIndex + 1);
     await rm(targetPath, {
       recursive: true,
       force: true,
@@ -230,7 +258,9 @@ async function shredEntry(
       retryDelay: 50,
     });
     // 递归删除成功代表预扫描到的全部文件均已移除，目录本身不计入文件数。
+    context.fileIndex += progressFileCount;
     context.deletedFileCount += countedFileCount;
+    emitProgress(context, targetPath, 1, 1, 'removing');
     return [];
   }
 
@@ -330,7 +360,7 @@ export async function shredPaths(
   report: (progress: ShredProgress) => void,
   signal?: AbortSignal,
 ): Promise<ShredResult[]> {
-  const uniquePaths = [...new Set(paths.map((item) => resolve(item)))];
+  const uniquePaths = normalizeTargetPaths(paths);
   const results: ShredResult[] = [];
   const safePaths = uniquePaths.filter((targetPath) => {
     try {

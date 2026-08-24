@@ -1,8 +1,21 @@
-import type { TableColumnData, TableRowSelection } from '@arco-design/web-vue';
+import type {
+  ButtonProps,
+  TableColumnData,
+  TableRowSelection,
+} from '@arco-design/web-vue';
 
 export const PET_SIZE_SAVE_DELAY_MS = 300;
 export const RECORD_PAGE_SIZE = 10;
 export const RECORD_PAGE_SIZE_OPTIONS = [10, 20, 50, 100];
+// 设置页的确认浮层统一使用中等尺寸，避免 Arco 默认 mini 按钮过于紧凑。
+export const MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS: ButtonProps = {
+  size: 'medium',
+  type: 'outline',
+};
+export const MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS: ButtonProps = {
+  size: 'medium',
+  type: 'primary',
+};
 
 export const SHRED_LEVEL_OPTIONS = [
   {

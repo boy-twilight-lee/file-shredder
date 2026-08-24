@@ -165,24 +165,29 @@
             'pet-view-result-title-cancelled': summary?.cancelled,
           }"
         >
-          <component
-            :is="
-              summary?.cancelled
-                ? IconStop
-                : summary?.failed
-                  ? IconCloseCircleFill
-                  : IconCheckCircleFill
-            "
-          />
-          <strong>
-            {{
-              summary?.cancelled
-                ? '删除已取消'
-                : summary?.failed
-                  ? '部分元素删除失败'
-                  : '删除完成'
-            }}
-          </strong>
+          <span class="pet-view-result-title-icon">
+            <component
+              :is="
+                summary?.cancelled
+                  ? IconStop
+                  : summary?.failed
+                    ? IconCloseCircleFill
+                    : IconCheckCircleFill
+              "
+            />
+          </span>
+          <span class="pet-view-result-title-content">
+            <strong>
+              {{
+                summary?.cancelled
+                  ? '删除已取消'
+                  : summary?.failed
+                    ? '部分元素删除失败'
+                    : '删除完成'
+              }}
+            </strong>
+            <small>本次任务结果已汇总</small>
+          </span>
         </div>
         <p
           v-if="summary?.cancelled"
@@ -190,21 +195,28 @@
         >
           已停止后续处理，当前文件可能已经部分覆写。
         </p>
+        <!-- 固定三列可避免大批量任务的结果卡片纵向膨胀。 -->
         <div class="pet-view-result-metrics">
           <div
             v-for="metric in resultMetrics"
             :key="metric.key"
             class="pet-view-result-metric"
-            :class="`pet-view-result-metric-${metric.tone}`"
+            :class="[
+              `pet-view-result-metric-${metric.tone}`,
+              {
+                'pet-view-result-metric-muted':
+                  metric.key === 'failed' && metric.value === 0,
+              },
+            ]"
           >
-            <component
-              :is="metric.icon"
-              class="pet-view-result-metric-icon"
-            />
-            <span
-              ><small>{{ metric.label }}</small
-              ><strong>{{ metric.value }}</strong></span
-            >
+            <span class="pet-view-result-metric-heading">
+              <component
+                :is="metric.icon"
+                class="pet-view-result-metric-icon"
+              />
+              <small>{{ metric.label }}</small>
+            </span>
+            <strong :title="String(metric.value)">{{ metric.value }}</strong>
           </div>
         </div>
         <div class="pet-view-result-footer">

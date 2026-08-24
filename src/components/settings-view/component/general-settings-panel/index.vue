@@ -42,6 +42,10 @@
             <a-popconfirm
               v-if="item.deletable"
               content="删除这个自定义形象？"
+              content-class="settings-view-popconfirm"
+              type="error"
+              :ok-button-props="MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS"
+              :cancel-button-props="MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS"
               @ok="emit('delete-pet-image', item.id)"
             >
               <span
@@ -165,7 +169,11 @@ import {
 } from '@arco-design/web-vue/es/icon';
 import type { Component } from 'vue';
 import type { AppSettings, PetImageTemplate, SettingBooleanKey } from '@/type';
-import { SHRED_LEVEL_OPTIONS } from '@/components/settings-view/constants';
+import {
+  MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
+  MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
+  SHRED_LEVEL_OPTIONS,
+} from '@/components/settings-view/constants';
 
 defineProps<{
   settings: AppSettings;

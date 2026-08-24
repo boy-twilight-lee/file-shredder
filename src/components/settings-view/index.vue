@@ -36,6 +36,7 @@
           v-else
           :logs="logs"
           @delete-logs="deleteLogs"
+          @clear-logs="clearLogs"
         />
       </section>
     </a-spin>
@@ -178,6 +179,16 @@ async function deleteLogs(ids: Array<string | number>): Promise<void> {
   }
 }
 
+async function clearLogs(): Promise<void> {
+  try {
+    await window.shredderApi.clearLogs();
+    logs.value = [];
+    Message.success('已删除全部粉碎记录');
+  } catch (error) {
+    Message.error(error instanceof Error ? error.message : '粉碎记录清空失败');
+  }
+}
+
 onMounted(async () => {
   await refreshData();
   // 首次数据就绪后再通知主进程展示原生窗口，避免初始化期间触发重复重绘。
@@ -206,6 +217,21 @@ onBeforeUnmount(() => {
   margin: 0;
   overflow: hidden;
   background: #f5f7fa;
+}
+
+:global(.settings-view-popconfirm) {
+  min-width: 272px;
+  padding: 18px;
+  border-radius: 12px;
+}
+
+:global(.settings-view-popconfirm .arco-popconfirm-body) {
+  margin-bottom: 18px;
+}
+
+:global(.settings-view-popconfirm .arco-popconfirm-footer > button) {
+  min-width: 72px;
+  margin-left: 10px;
 }
 
 .settings-view {

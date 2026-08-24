@@ -332,9 +332,12 @@ function createPetViewContext(): PetViewContext {
           progressPercent.value,
           calculateProgressPercent(value),
         );
+        const hasCompletedCurrentFile =
+          value.stage === 'done' ||
+          (value.stage === 'removing' && value.completed >= value.total);
         displayedFileIndex.value = Math.max(
           displayedFileIndex.value,
-          value.fileIndex,
+          Math.max(0, value.fileIndex - Number(!hasCompletedCurrentFile)),
         );
         showBubble('progress');
       }),

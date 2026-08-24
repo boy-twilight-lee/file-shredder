@@ -61,13 +61,8 @@ interface PetImageTemplate {
 const BUILT_IN_PET_IMAGES = [
   {
     id: 'built-in-ao-yin',
-    name: '敖隐',
+    name: '默认',
     fileName: 'ao-yin.webp',
-  },
-  {
-    id: 'built-in-little-dragon',
-    name: '小龙人',
-    fileName: 'little-dragon.webp',
   },
 ] as const;
 // 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
