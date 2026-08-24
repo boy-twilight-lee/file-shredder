@@ -17,7 +17,11 @@ import { copyFile, mkdir, readFile, rm, stat } from 'node:fs/promises';
 import { basename, extname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { onWindowDrag } from 'electron-drag-window/electron';
-import { ShredCancelledError, shredPaths } from './shredder';
+import {
+  ShredCancelledError,
+  shredPaths,
+  type ShredProgress,
+} from './shredder';
 import {
   AppStore,
   type AppSettings,
@@ -74,6 +78,9 @@ const PET_SIZE_MAX = 320;
 const PET_TEMPLATE_THUMBNAIL_WIDTH = 192;
 const PET_FADE_DURATION_MS = 180;
 const PET_IMAGE_MAX_BYTES = 50 * 1024 * 1024;
+const PROGRESS_UPDATE_INTERVAL_MS = 80;
+const PATH_VALIDATION_CONCURRENCY = 16;
+const MAX_RETAINED_SHRED_RESULTS = 1000;
 const PET_IMAGE_MIME_TYPES: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -763,12 +770,34 @@ function classifyResult(
   return { path, success, category: 'unknown', message };
 }
 
-function normalizeTargets(paths: string[]): string[] {
-  return [...new Set(paths.filter(existsSync).map((item) => resolve(item)))];
+async function normalizeTargets(paths: string[]): Promise<string[]> {
+  const uniquePaths = [...new Set(paths.map((item) => resolve(item)))];
+  const validPaths = new Array<string | undefined>(uniquePaths.length);
+  let nextIndex = 0;
+
+  async function validateNextPath(): Promise<void> {
+    while (nextIndex < uniquePaths.length) {
+      const currentIndex = nextIndex;
+      nextIndex += 1;
+      try {
+        // 异步且有限并发地访问磁盘，避免超大选区用同步 existsSync 阻塞所有窗口事件。
+        await stat(uniquePaths[currentIndex]);
+        validPaths[currentIndex] = uniquePaths[currentIndex];
+      } catch {
+        validPaths[currentIndex] = undefined;
+      }
+    }
+  }
+
+  const workerCount = Math.min(PATH_VALIDATION_CONCURRENCY, uniquePaths.length);
+  await Promise.all(
+    Array.from({ length: workerCount }, () => validateNextPath()),
+  );
+  return validPaths.filter((path): path is string => Boolean(path));
 }
 
-function requestPetConfirmation(paths: string[]): void {
-  const targets = normalizeTargets(paths);
+async function requestPetConfirmation(paths: string[]): Promise<void> {
+  const targets = await normalizeTargets(paths);
   if (targets.length === 0) return;
   showPet();
   setPetExpanded(true);
@@ -779,9 +808,7 @@ async function requestShred(
   paths: string[],
   passes: 0 | 3 | 7 | 35 = currentSettings.passes,
 ) {
-  const targets = [
-    ...new Set(paths.filter(existsSync).map((item) => resolve(item))),
-  ];
+  const targets = await normalizeTargets(paths);
   if (targets.length === 0 || isShredding) return [];
 
   isShredding = true;
@@ -789,58 +816,96 @@ async function requestShred(
   activeShredController = controller;
   petWindow?.webContents.send('pet:state', 'working');
   const startedAt = Date.now();
+  let pendingProgress: ShredProgress | null = null;
+  let lastProgressSentAt = 0;
+  let progressTimer: NodeJS.Timeout | undefined;
+
+  function dispatchProgress(): void {
+    if (!pendingProgress) return;
+    const progress = pendingProgress;
+    pendingProgress = null;
+    lastProgressSentAt = Date.now();
+    if (progressTimer) {
+      clearTimeout(progressTimer);
+      progressTimer = undefined;
+    }
+    tray?.setToolTip(`正在粉碎 ${progress.fileIndex}/${progress.fileCount}`);
+    petWindow?.webContents.send('pet:progress', progress);
+  }
+
+  function reportProgress(progress: ShredProgress): void {
+    pendingProgress = progress;
+    const elapsed = Date.now() - lastProgressSentAt;
+    if (elapsed >= PROGRESS_UPDATE_INTERVAL_MS) {
+      dispatchProgress();
+      return;
+    }
+    // 合并高频文件与分块进度，只保留间隔内的最新状态，防止 IPC 淹没渲染进程。
+    if (!progressTimer)
+      progressTimer = setTimeout(
+        dispatchProgress,
+        PROGRESS_UPDATE_INTERVAL_MS - elapsed,
+      );
+  }
+
   try {
     const results = await shredPaths(
       targets,
       passes,
-      (progress) => {
-        tray?.setToolTip(
-          `正在粉碎 ${progress.fileIndex}/${progress.fileCount}`,
-        );
-        petWindow?.webContents.send('pet:progress', progress);
-      },
+      reportProgress,
       controller.signal,
     );
+    dispatchProgress();
     const durationMs = Date.now() - startedAt;
+    const retainedResults = results.slice(0, MAX_RETAINED_SHRED_RESULTS);
     await store.appendLogs(
-      results.map((result) =>
+      retainedResults.map((result) =>
         classifyResult(result.path, result.success, result.error),
       ),
     );
-    const failed = results.filter((result) => !result.success);
+    const failedCount = results.reduce(
+      (total, result) => total + Number(!result.success),
+      0,
+    );
     const succeeded = results.reduce(
       (total, result) => total + result.deletedFileCount,
       0,
     );
     petWindow?.webContents.send(
       'pet:state',
-      failed.length === 0 ? 'success' : 'failure',
+      failedCount === 0 ? 'success' : 'failure',
     );
     petWindow?.webContents.send('pet:complete', {
       succeeded,
-      failed: failed.length,
+      failed: failedCount,
       durationMs,
       cancelled: false,
     });
     if (Notification.isSupported()) {
       new Notification({
-        title: failed.length === 0 ? '文件粉碎完成' : '部分目标粉碎失败',
+        title: failedCount === 0 ? '文件粉碎完成' : '部分目标粉碎失败',
         body:
-          failed.length === 0
+          failedCount === 0
             ? `已永久删除 ${succeeded} 个文件`
-            : `已删除 ${succeeded} 个文件，${failed.length} 个项目失败`,
+            : `已删除 ${succeeded} 个文件，${failedCount} 个项目失败`,
         icon: getIconPath(),
       }).show();
     }
-    return results;
+    // 渲染端只判断任务是否启动；限制明细回传体积，避免结构化克隆数万结果造成内存峰值。
+    return retainedResults;
   } catch (error) {
     if (!(error instanceof ShredCancelledError)) throw error;
+    dispatchProgress();
     const durationMs = Date.now() - startedAt;
-    const failed = error.results.filter((result) => !result.success);
+    const retainedResults = error.results.slice(0, MAX_RETAINED_SHRED_RESULTS);
+    const failedCount = error.results.reduce(
+      (total, result) => total + Number(!result.success),
+      0,
+    );
     const succeeded = error.deletedFileCount;
-    if (error.results.length > 0) {
+    if (retainedResults.length > 0) {
       await store.appendLogs(
-        error.results.map((result) =>
+        retainedResults.map((result) =>
           classifyResult(result.path, result.success, result.error),
         ),
       );
@@ -848,12 +913,14 @@ async function requestShred(
     petWindow?.webContents.send('pet:state', 'idle');
     petWindow?.webContents.send('pet:complete', {
       succeeded,
-      failed: failed.length,
+      failed: failedCount,
       durationMs,
       cancelled: true,
     });
-    return error.results;
+    return retainedResults;
   } finally {
+    if (progressTimer) clearTimeout(progressTimer);
+    pendingProgress = null;
     if (activeShredController === controller) activeShredController = null;
     isShredding = false;
     tray?.setToolTip('文件粉碎精灵');
@@ -867,7 +934,7 @@ async function handleShortcut(): Promise<void> {
   const paths =
     selectedPaths.length > 0 ? selectedPaths : parseClipboardPaths();
   if (paths.length > 0) {
-    requestPetConfirmation(paths);
+    await requestPetConfirmation(paths);
     return;
   }
   if (Notification.isSupported()) {
@@ -885,7 +952,7 @@ function queueLaunchPaths(paths: string[]): void {
   launchTimer = setTimeout(async () => {
     const targets = queuedLaunchPaths;
     queuedLaunchPaths = [];
-    requestPetConfirmation(targets);
+    await requestPetConfirmation(targets);
   }, 260);
 }
 
@@ -979,7 +1046,7 @@ ipcMain.handle('targets:choose', async (_event, kind: 'file' | 'directory') => {
   const result = await dialog.showOpenDialog({ properties });
   return result.canceled ? [] : result.filePaths;
 });
-ipcMain.handle('shred:prepare', (_event, paths: unknown) => {
+ipcMain.handle('shred:prepare', async (_event, paths: unknown) => {
   if (!Array.isArray(paths) || !paths.every((item) => typeof item === 'string'))
     throw new Error('无效的路径参数');
   return normalizeTargets(paths);

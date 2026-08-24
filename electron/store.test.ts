@@ -62,3 +62,22 @@ describe('AppStore.deleteLogs', () => {
     await expect(store.getLogs()).resolves.toEqual(remainingLogs);
   });
 });
+
+describe('AppStore.appendLogs', () => {
+  it('超大批次仅持久化记录上限内的数据', async () => {
+    const store = await createStore();
+    const entries = Array.from({ length: 1500 }, (_, index) => ({
+      path: `C:\\batch\\${index}.txt`,
+      success: true,
+      category: 'success' as const,
+      message: '粉碎成功',
+    }));
+
+    await store.appendLogs(entries);
+
+    const logs = await store.getLogs();
+    expect(logs).toHaveLength(1000);
+    expect(logs[0].path).toBe('C:\\batch\\0.txt');
+    expect(logs[999].path).toBe('C:\\batch\\999.txt');
+  });
+});

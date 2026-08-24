@@ -43,6 +43,7 @@ export class ShredCancelledError extends Error {
 
 const CHUNK_SIZE = 1024 * 1024;
 const SECURE_FILE_CONCURRENCY = 2;
+const FILE_COUNT_CONCURRENCY = 8;
 
 function fillRandomBuffer(buffer: Buffer, length: number): Promise<void> {
   return new Promise((resolveFill, rejectFill) => {
@@ -296,12 +297,27 @@ async function countFiles(
     throwIfCancelled(signal);
     const stats = await lstat(targetPath);
     if (!stats.isDirectory() || stats.isSymbolicLink()) return 1;
-    const entries = await readdir(targetPath);
-    if (entries.length === 0) return 0;
-    const counts = await Promise.all(
-      entries.map((entry) => countFiles(join(targetPath, entry), signal)),
-    );
-    return counts.reduce((sum, count) => sum + count, 0);
+    const pendingDirectories = [targetPath];
+    let fileCount = 0;
+    while (pendingDirectories.length > 0) {
+      throwIfCancelled(signal);
+      const directoryPath = pendingDirectories.pop();
+      if (!directoryPath) continue;
+      try {
+        // Dirent 已包含常规文件类型，迭代扫描可避免为数万个文件同时创建 Promise 和 lstat 请求。
+        const entries = await readdir(directoryPath, { withFileTypes: true });
+        for (const entry of entries) {
+          if (entry.isDirectory() && !entry.isSymbolicLink())
+            pendingDirectories.push(join(directoryPath, entry.name));
+          else fileCount += 1;
+        }
+      } catch (error) {
+        if (error instanceof ShredCancelledError) throw error;
+        // 无法读取的目录仍作为一个失败项目计入总数，保持进度与失败结果可见。
+        fileCount += 1;
+      }
+    }
+    return fileCount;
   } catch (error) {
     if (error instanceof ShredCancelledError) throw error;
     return 1;
@@ -325,8 +341,10 @@ export async function shredPaths(
     }
   });
   // 删除前统一统计文件数量，使极速模式与安全覆写模式使用相同的结果口径。
-  const countedFiles = await Promise.all(
-    safePaths.map(async (targetPath) => countFiles(targetPath, signal)),
+  const countedFiles = await mapWithConcurrency(
+    safePaths,
+    FILE_COUNT_CONCURRENCY,
+    (targetPath) => countFiles(targetPath, signal),
   );
   const countedFilesByPath = new Map(
     safePaths.map((targetPath, index) => [targetPath, countedFiles[index]]),

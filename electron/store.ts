@@ -52,6 +52,7 @@ const DEFAULT_SETTINGS: AppSettings = {
   petPositionX: null,
   petPositionY: null,
 };
+const MAX_LOG_COUNT = 1000;
 
 export class AppStore {
   private readonly settingsPath: string;
@@ -109,10 +110,15 @@ export class AppStore {
   ): Promise<void> {
     const logs = await this.getLogs();
     const timestamp = new Date().toISOString();
-    logs.unshift(
-      ...entries.map((entry) => ({ ...entry, id: randomUUID(), timestamp })),
+    // 先截断再生成 UUID，避免超大批次为最终不会展示的记录分配大量对象。
+    const availableEntryCount = Math.min(entries.length, MAX_LOG_COUNT);
+    const appendedLogs = entries
+      .slice(0, availableEntryCount)
+      .map((entry) => ({ ...entry, id: randomUUID(), timestamp }));
+    await this.writeJson(
+      this.logsPath,
+      [...appendedLogs, ...logs].slice(0, MAX_LOG_COUNT),
     );
-    await this.writeJson(this.logsPath, logs.slice(0, 1000));
   }
 
   async clearLogs(): Promise<void> {
