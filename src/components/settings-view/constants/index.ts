@@ -19,24 +19,24 @@ export const SHRED_LEVEL_OPTIONS = [
     value: 0,
     title: '极速删除',
     badge: '最快',
-    descriptionLines: ['不覆写数据，直接删除文件', '删除后的内容可能被恢复'],
+    description: '直接删除，不覆写',
   },
   {
     value: 3,
     title: '日常清理',
     badge: '推荐',
-    descriptionLines: ['覆写 3 次，速度较快', '适合普通文件和日常使用'],
+    description: '覆写 3 次，适合日常',
   },
   {
     value: 7,
     title: '加强清理',
     badge: '更安全',
-    descriptionLines: ['覆写 7 次，耗时更长', '适合包含隐私的文件'],
+    description: '覆写 7 次，更安全',
   },
   {
     value: 35,
     title: '深度清理',
     badge: '非常慢',
-    descriptionLines: ['覆写 35 次，耗时很长', '仅在确有需要时使用'],
+    description: '覆写 35 次，耗时较长',
   },
 ] as const;

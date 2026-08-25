@@ -14,9 +14,9 @@
       ]"
     >
       <template v-if="bubbleMode === 'actions'">
-        <strong class="pet-view-bubble-title">选择粉碎内容</strong>
+        <strong class="pet-view-bubble-title">请选择操作</strong>
         <p class="pet-view-bubble-description">
-          请选择文件或文件夹，也可以直接拖到我身上。
+          文件或文件夹也可以直接拖到我身上。
         </p>
         <div
           class="pet-view-actions"

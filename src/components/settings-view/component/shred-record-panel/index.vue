@@ -65,11 +65,19 @@
               'shred-record-panel-item-selected': isSelected(item.data.id),
             }"
             :style="{ transform: `translateY(${item.start}px)` }"
+            role="checkbox"
+            tabindex="0"
+            :aria-checked="isSelected(item.data.id)"
+            @click="toggleLog(item.data.id)"
+            @keydown.enter.prevent="toggleLog(item.data.id)"
+            @keydown.space.prevent="toggleLog(item.data.id)"
           >
             <div class="shred-record-panel-item-heading">
               <a-checkbox
                 :model-value="isSelected(item.data.id)"
                 :aria-label="`选择 ${item.data.path}`"
+                @click.stop
+                @keydown.stop
                 @change="toggleLog(item.data.id)"
               />
               <strong

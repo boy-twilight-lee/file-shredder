@@ -192,7 +192,6 @@ async function deletePetImage(id: string): Promise<void> {
 async function deleteLogs(ids: Array<string | number>): Promise<void> {
   try {
     logs.value = await window.shredderApi.deleteLogs(ids.map(String));
-    Message.success(`已删除 ${ids.length} 条粉碎记录`);
   } catch (error) {
     Message.error(error instanceof Error ? error.message : '粉碎记录删除失败');
   }

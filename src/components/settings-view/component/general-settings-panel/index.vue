@@ -9,8 +9,7 @@
         <div class="general-settings-panel-pet-heading">
           <h2>桌宠形象</h2>
           <p class="general-settings-panel-pet-tip">
-            支持 PNG、JPG、JPEG、SVG、WebP 和 GIF，单张不超过 50
-            MB，透明背景图片效果最佳。
+            支持常用图片格式，单张不超过 50 MB。
           </p>
         </div>
         <div class="general-settings-panel-template-list">
@@ -70,9 +69,7 @@
         <div class="general-settings-panel-pet-size-section">
           <div class="general-settings-panel-pet-heading">
             <h2>桌宠大小</h2>
-            <p class="general-settings-panel-pet-tip">
-              调整桌宠在桌面上的显示宽度。
-            </p>
+            <p class="general-settings-panel-pet-tip">调整桌宠显示大小。</p>
           </div>
           <div class="general-settings-panel-pet-controls">
             <a-slider
@@ -101,7 +98,7 @@
       <section class="general-settings-panel-card">
         <h2>选择文件清理强度</h2>
         <p class="general-settings-panel-card-description">
-          覆写次数越多，处理时间越长。普通使用选择“日常清理”即可。
+          覆写次数越多越安全，处理时间也越长。
         </p>
         <div
           class="general-settings-panel-shred-level-list"
@@ -129,13 +126,7 @@
                 ><strong>{{ item.title }}</strong
                 ><em>{{ item.badge }}</em></span
               >
-              <small>
-                <span
-                  v-for="line in item.descriptionLines"
-                  :key="line"
-                  >{{ line }}</span
-                >
-              </small>
+              <small>{{ item.description }}</small>
             </span>
             <span
               v-if="settings.passes === item.value"
@@ -149,7 +140,7 @@
       <section class="general-settings-panel-card">
         <h2>系统设置</h2>
         <p class="general-settings-panel-card-description">
-          管理桌宠置顶、开机启动和资源管理器右键菜单等系统行为。
+          管理置顶、开机启动和右键菜单。
         </p>
         <div
           v-for="item in switchOptions"
@@ -227,19 +218,19 @@ const switchOptions: Array<{
   {
     key: 'alwaysOnTop',
     label: '桌宠始终置顶',
-    description: '让桌宠保持在普通窗口上方',
+    description: '保持桌宠显示在其他窗口上方',
     icon: IconPushpin,
   },
   {
     key: 'launchAtLogin',
     label: '开机自动启动',
-    description: '登录 Windows 后在后台自动运行',
+    description: '登录 Windows 后自动运行',
     icon: IconPoweroff,
   },
   {
     key: 'contextMenuInstalled',
     label: '资源管理器右键菜单',
-    description: '在文件和文件夹右键菜单中添加“文件粉碎精灵”',
+    description: '添加文件和文件夹右键菜单',
     icon: IconMenu,
   },
 ];

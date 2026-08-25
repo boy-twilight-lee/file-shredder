@@ -988,7 +988,6 @@ async function setContextMenuEnabled(enabled: boolean): Promise<void> {
 
 function buildTrayMenu(): Menu {
   return Menu.buildFromTemplate([
-    { label: '设置', click: showSettingsBubble },
     {
       label: '关闭',
       click: () => {
