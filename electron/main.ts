@@ -5,11 +5,9 @@ import {
   dialog,
   globalShortcut,
   ipcMain,
-  Menu,
   nativeImage,
   Notification,
   screen,
-  Tray,
 } from 'electron';
 import { existsSync, readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
@@ -47,7 +45,6 @@ import { getExplorerSelection } from './windows-selection';
 const currentDirectory = fileURLToPath(new URL('.', import.meta.url));
 const store = new AppStore(app);
 let petWindow: BrowserWindow | null = null;
-let tray: Tray | null = null;
 let currentSettings: AppSettings;
 let isQuitting = false;
 let isShredding = false;
@@ -659,7 +656,7 @@ function createPetWindow(): void {
   );
   loadView(petWindow);
   petWindow.on('close', (event) => {
-    // 桌宠不再维护独立隐藏状态，程序只能通过托盘“关闭”完整退出。
+    // 桌宠不维护独立隐藏状态，只允许通过气泡菜单触发完整退出。
     if (!isQuitting) event.preventDefault();
   });
   petWindow.on('closed', () => {
@@ -671,7 +668,7 @@ function createPetWindow(): void {
 }
 
 function showSettingsBubble(): void {
-  // 托盘与气泡内入口共用同一设置界面，不再创建第二个 BrowserWindow。
+  // 设置复用桌宠气泡，不再创建第二个 BrowserWindow。
   showPet();
   setPetExpanded(true);
   if (!petWindow) return;
@@ -858,7 +855,6 @@ async function requestShred(
       clearTimeout(progressTimer);
       progressTimer = undefined;
     }
-    tray?.setToolTip(`正在粉碎 ${progress.fileIndex}/${progress.fileCount}`);
     petWindow?.webContents.send('pet:progress', progress);
   }
 
@@ -944,7 +940,6 @@ async function requestShred(
     pendingProgress = null;
     if (activeShredController === controller) activeShredController = null;
     isShredding = false;
-    tray?.setToolTip('文件粉碎精灵');
     setTimeout(() => petWindow?.webContents.send('pet:state', 'idle'), 1800);
     petWindow?.webContents.send('logs:updated');
   }
@@ -990,32 +985,6 @@ async function setContextMenuEnabled(enabled: boolean): Promise<void> {
     contextMenuAutoInstall: false,
   });
   petWindow?.webContents.send('settings:changed');
-}
-
-function buildTrayMenu(): Menu {
-  return Menu.buildFromTemplate([
-    {
-      label: '关闭',
-      click: () => {
-        // 托盘关闭表示退出程序，保留用户设置和已安装的系统集成。
-        isQuitting = true;
-        app.quit();
-      },
-    },
-  ]);
-}
-
-function createTray(): void {
-  const trayIcon = nativeImage
-    .createFromPath(getIconPath())
-    .resize({ width: 20, height: 20 });
-  tray = new Tray(trayIcon);
-  tray.setToolTip('文件粉碎精灵');
-  tray.on('click', showSettingsBubble);
-  if (process.platform === 'darwin')
-    tray.on('right-click', () => tray?.popUpContextMenu(buildTrayMenu()));
-  // macOS 左键仅打开设置，其他平台直接使用静态托盘菜单。
-  tray.setContextMenu(process.platform === 'darwin' ? null : buildTrayMenu());
 }
 
 function handleSecondInstance(argv: string[]): void {
@@ -1067,7 +1036,6 @@ else {
     onWindowDrag();
     screen.on('display-removed', restorePetPosition);
     screen.on('display-metrics-changed', restorePetPosition);
-    createTray();
     if (!registerShortcut(currentSettings.shortcut)) {
       currentSettings = await store.updateSettings({
         shortcut: 'CommandOrControl+Alt+X',
