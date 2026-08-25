@@ -26,6 +26,7 @@
             v-for="item in PET_ACTION_OPTIONS"
             :key="item.key"
             class="pet-view-action"
+            :class="{ 'pet-view-action-close': item.key === 'close' }"
             type="button"
             role="menuitem"
             @click="handleAction(item.key)"
@@ -238,6 +239,7 @@ import {
   IconDelete,
   IconFile,
   IconFolder,
+  IconPoweroff,
   IconSettings,
   IconStop,
 } from '@arco-design/web-vue/es/icon';
@@ -250,6 +252,7 @@ const actionIcons = {
   file: IconFile,
   directory: IconFolder,
   settings: IconSettings,
+  close: IconPoweroff,
 };
 
 const {
@@ -281,6 +284,10 @@ async function handleAction(
   // 设置在当前气泡内切换，其余操作继续调用系统文件选择器。
   if (key === 'settings') {
     showBubble('settings');
+    return;
+  }
+  if (key === 'close') {
+    await window.shredderApi.exitApp();
     return;
   }
   await chooseTargets(key);

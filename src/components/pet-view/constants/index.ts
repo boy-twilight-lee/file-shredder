@@ -10,6 +10,11 @@ export const PET_ACTION_OPTIONS = [
     title: '设置',
     description: '调整桌宠、清理强度和系统选项',
   },
+  {
+    key: 'close',
+    title: '关闭桌宠',
+    description: '退出文件粉碎精灵',
+  },
 ] as const;
 
 // 左键移动超过该距离后视为拖拽，避免释放鼠标时误打开操作菜单。

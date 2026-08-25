@@ -684,10 +684,14 @@ function showSettingsBubble(): void {
 
 function applyLoginSetting(enabled: boolean): void {
   if (process.platform === 'win32') {
+    // 开发环境必须把项目入口传给 electron.exe，否则登录后只会打开默认 Electron 窗口。
+    const isDevelopment = !app.isPackaged;
     app.setLoginItemSettings({
       openAtLogin: enabled,
-      path: getExecutablePath(),
-      args: ['--background'],
+      path: isDevelopment ? process.execPath : getExecutablePath(),
+      args: isDevelopment
+        ? [app.getAppPath(), '--background']
+        : ['--background'],
     });
     return;
   }
@@ -1020,6 +1024,8 @@ else {
   );
   app.whenReady().then(async () => {
     currentSettings = await store.getSettings();
+    // 每次启动都修复已启用的注册项，覆盖旧版本可能写入的 electron.exe 错误命令。
+    if (currentSettings.launchAtLogin) applyLoginSetting(true);
     await migrateLegacyPetImage();
     createPetWindow();
     onWindowDrag();
@@ -1312,6 +1318,12 @@ ipcMain.handle('logs:delete', (_event, ids: unknown) => {
   if (!Array.isArray(ids) || !ids.every((id) => typeof id === 'string'))
     throw new Error('无效的粉碎记录参数');
   return store.deleteLogs([...new Set(ids)]);
+});
+ipcMain.handle('app:exit', () => {
+  // 普通退出保留设置、日志、自启和资源管理器右键菜单。
+  isQuitting = true;
+  setImmediate(() => app.quit());
+  return true;
 });
 ipcMain.handle('app:cleanup-exit', async () => {
   await removeContextMenu();

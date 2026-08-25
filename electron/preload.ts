@@ -48,6 +48,7 @@ contextBridge.exposeInMainWorld('shredderApi', {
   deletePetImage: (id: string) => ipcRenderer.invoke('pet-image:delete', id),
   getLogs: () => ipcRenderer.invoke('logs:get'),
   deleteLogs: (ids: string[]) => ipcRenderer.invoke('logs:delete', ids),
+  exitApp: () => ipcRenderer.invoke('app:exit'),
   cleanupAndExit: () => ipcRenderer.invoke('app:cleanup-exit'),
   setPetExpanded: (expanded: boolean) =>
     ipcRenderer.send('pet:expanded', expanded),

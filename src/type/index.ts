@@ -97,6 +97,7 @@ export interface ShredderApi {
   deletePetImage: (id: string) => Promise<PetImageTemplate[]>;
   getLogs: () => Promise<ShredLog[]>;
   deleteLogs: (ids: string[]) => Promise<ShredLog[]>;
+  exitApp: () => Promise<boolean>;
   cleanupAndExit: () => Promise<boolean>;
   setPetExpanded: (expanded: boolean) => void;
   setPetImageSize: (width: number, height: number) => void;

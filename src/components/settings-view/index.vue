@@ -376,8 +376,7 @@ onBeforeUnmount(() => {
     padding: 12px;
   }
 
-  :deep(.general-settings-panel-template-list),
-  :deep(.general-settings-panel-shred-level-list) {
+  :deep(.general-settings-panel-template-list) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
