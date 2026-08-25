@@ -56,7 +56,6 @@
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';
 import { useDebounceFn } from '@vueuse/core';
-import { onBeforeUnmount, onMounted, ref } from 'vue';
 import type {
   AppSettings,
   PetImageTemplate,

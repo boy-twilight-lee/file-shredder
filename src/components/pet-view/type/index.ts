@@ -1,4 +1,3 @@
-import type { Component, ComputedRef, Ref } from 'vue';
 import type { ShredProgress, ShredSummary } from '@/type';
 
 export type PetState = 'idle' | 'working' | 'success' | 'failure';

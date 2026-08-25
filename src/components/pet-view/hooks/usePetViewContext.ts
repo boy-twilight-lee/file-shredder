@@ -4,17 +4,6 @@ import {
   IconCloseCircleFill,
 } from '@arco-design/web-vue/es/icon';
 import { useEventListener, useResizeObserver } from '@vueuse/core';
-import {
-  computed,
-  inject,
-  nextTick,
-  onBeforeUnmount,
-  onMounted,
-  provide,
-  ref,
-  watch,
-} from 'vue';
-import type { InjectionKey } from 'vue';
 import type {
   PetBubbleMode,
   PetBubblePlacement,

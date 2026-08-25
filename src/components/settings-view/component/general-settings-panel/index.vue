@@ -174,7 +174,6 @@ import {
   IconStorage,
   IconThunderbolt,
 } from '@arco-design/web-vue/es/icon';
-import type { Component } from 'vue';
 import type { AppSettings, PetImageTemplate, SettingBooleanKey } from '@/type';
 import {
   MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,

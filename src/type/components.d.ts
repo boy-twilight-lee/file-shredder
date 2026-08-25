@@ -37,6 +37,8 @@ declare module 'vue' {
     IconStop: typeof import('@arco-design/web-vue/es/icon')['IconStop']
     PetBubble: typeof import('./../components/pet-view/component/pet-bubble/index.vue')['default']
     PetView: typeof import('./../components/pet-view/index.vue')['default']
+    RouterLink: typeof import('vue-router')['RouterLink']
+    RouterView: typeof import('vue-router')['RouterView']
     SettingsView: typeof import('./../components/settings-view/index.vue')['default']
     ShredRecordPanel: typeof import('./../components/settings-view/component/shred-record-panel/index.vue')['default']
   }

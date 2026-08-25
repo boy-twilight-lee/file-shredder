@@ -1,6 +1,7 @@
 import { defineConfig } from 'vite';
 import { fileURLToPath } from 'node:url';
 import vue from '@vitejs/plugin-vue';
+import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
 import { ArcoResolver } from 'unplugin-vue-components/resolvers';
 import electron from 'vite-plugin-electron/simple';
@@ -14,6 +15,12 @@ export default defineConfig({
   },
   plugins: [
     vue(),
+    // 自动引入 Vue 与 Vue Router 的组合式 API，并生成全局类型声明。
+    AutoImport({
+      dts: 'src/type/auto-imports.d.ts',
+      imports: ['vue', 'vue-router'],
+      vueTemplate: true,
+    }),
     // 自动按需引入模板中使用的 Arco 组件、图标及对应样式。
     Components({
       dts: 'src/type/components.d.ts',

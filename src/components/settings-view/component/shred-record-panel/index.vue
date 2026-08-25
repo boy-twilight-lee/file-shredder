@@ -119,7 +119,6 @@
 
 <script setup lang="ts">
 import { useVirtualizer } from '@tanstack/vue-virtual';
-import { computed, nextTick, ref, watch } from 'vue';
 import type { ShredLog } from '@/type';
 import emptyIllustration from '@/styles/icons/empty.svg';
 import { SHRED_RECORD_ITEM_HEIGHT, SHRED_RECORD_OVERSCAN } from './constants';

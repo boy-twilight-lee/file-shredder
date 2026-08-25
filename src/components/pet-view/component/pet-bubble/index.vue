@@ -240,7 +240,6 @@ import {
   IconPoweroff,
   IconSettings,
 } from '@arco-design/web-vue/es/icon';
-import { defineAsyncComponent } from 'vue';
 import { PET_ACTION_OPTIONS } from '@/components/pet-view/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import DeleteBinIcon from '../delete-bin-icon.vue';
