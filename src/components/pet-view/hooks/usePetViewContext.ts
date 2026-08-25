@@ -22,7 +22,7 @@ import type {
   PetViewContext,
 } from '../type';
 import type { ShredProgress, ShredSummary } from '@/type';
-import { PROGRESS_TONE_OPTIONS } from '../constants';
+import { PET_CLICK_DRAG_THRESHOLD, PROGRESS_TONE_OPTIONS } from '../constants';
 
 const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
   Symbol('pet-view-context');
@@ -70,6 +70,8 @@ function createPetViewContext(): PetViewContext {
   const bubbleElement = ref<HTMLElement | null>(
     PET_VIEW_DEFAULTS.bubbleElement,
   );
+  let characterPointerStart: { x: number; y: number } | null = null;
+  let hasDraggedCharacter = false;
   const disposers: Array<() => void> = [];
 
   const petAppearanceStyle = computed(() => ({
@@ -136,6 +138,39 @@ function createPetViewContext(): PetViewContext {
     showBubble('actions');
   }
 
+  function handleCharacterMouseDown(event: MouseEvent): void {
+    characterPointerStart = { x: event.screenX, y: event.screenY };
+    hasDraggedCharacter = false;
+  }
+
+  function updateCharacterDragState(event: MouseEvent): void {
+    if (!characterPointerStart || hasDraggedCharacter) return;
+    const horizontalDistance = event.screenX - characterPointerStart.x;
+    const verticalDistance = event.screenY - characterPointerStart.y;
+    // 使用屏幕坐标判断窗口真实位移；拖窗过程中 client 坐标可能几乎不变。
+    if (
+      Math.hypot(horizontalDistance, verticalDistance) >
+      PET_CLICK_DRAG_THRESHOLD
+    )
+      hasDraggedCharacter = true;
+  }
+
+  function handleCharacterMouseMove(event: MouseEvent): void {
+    if ((event.buttons & 1) === 0) return;
+    updateCharacterDragState(event);
+  }
+
+  function handleCharacterMouseUp(event: MouseEvent): void {
+    if (!characterPointerStart) return;
+    updateCharacterDragState(event);
+    const shouldToggleActions = !hasDraggedCharacter;
+    characterPointerStart = null;
+    hasDraggedCharacter = false;
+    if (!shouldToggleActions) return;
+    if (bubbleMode.value === 'hidden') openActions();
+    else closeBubble();
+  }
+
   function closeBubble(): void {
     if (bubbleMode.value === 'progress') return;
     showBubble('hidden');
@@ -166,6 +201,12 @@ function createPetViewContext(): PetViewContext {
       event.button !== 0 ||
       bubbleMode.value === 'hidden' ||
       bubbleMode.value === 'progress'
+    )
+      return;
+    // 点击人物由抬起事件统一切换气泡，避免捕获阶段先关闭后又重新打开。
+    if (
+      event.target instanceof Element &&
+      event.target.closest('.pet-view-character')
     )
       return;
     if (
@@ -305,6 +346,7 @@ function createPetViewContext(): PetViewContext {
   useEventListener(document, 'pointerdown', handleOutsidePointerDown, {
     capture: true,
   });
+  useEventListener(document, 'mousemove', handleCharacterMouseMove);
   useEventListener(window, 'blur', handleWindowBlur);
 
   onMounted(async () => {
@@ -378,6 +420,8 @@ function createPetViewContext(): PetViewContext {
     cancelShred,
     showBubble,
     openActions,
+    handleCharacterMouseDown,
+    handleCharacterMouseUp,
     handleDrop,
     handleDragEnter,
     handleDragLeave,

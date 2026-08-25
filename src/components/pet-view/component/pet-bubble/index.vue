@@ -99,6 +99,14 @@
       <template v-else-if="bubbleMode === 'progress'">
         <div class="pet-view-progress-heading">
           <strong class="pet-view-bubble-title">正在粉碎，请稍候…</strong>
+          <a-link
+            class="pet-view-progress-cancel"
+            status="danger"
+            :loading="isCancelling"
+            @click="cancelShred"
+          >
+            <icon-stop />{{ isCancelling ? '正在终止' : '取消删除' }}
+          </a-link>
         </div>
         <div
           class="pet-view-progress-panel"
@@ -110,6 +118,16 @@
               >{{ displayedFileIndex }} /
               {{ progress?.fileCount ?? 1 }} 个文件</strong
             >
+          </div>
+          <!-- 当前文件仅展示名称，完整路径通过 title 保留，避免长路径撑高气泡。 -->
+          <div
+            class="pet-view-progress-current-file"
+            :title="progress?.path"
+          >
+            <icon-file />
+            <span>{{
+              progress?.path ? getTargetName(progress.path) : '正在准备目标'
+            }}</span>
           </div>
           <!-- 横向进度条统一表达整个任务的完成度。 -->
           <div
@@ -129,15 +147,6 @@
             <span>总体进度</span>
             <strong>{{ progressPercent }}%</strong>
           </div>
-        </div>
-        <div class="pet-view-progress-actions">
-          <a-link
-            status="danger"
-            :loading="isCancelling"
-            @click="cancelShred"
-          >
-            <icon-stop />{{ isCancelling ? '正在终止' : '取消删除' }}
-          </a-link>
         </div>
       </template>
 

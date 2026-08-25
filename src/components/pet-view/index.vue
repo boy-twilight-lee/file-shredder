@@ -12,8 +12,10 @@
     <div
       class="pet-view-character"
       :class="{ 'pet-view-character-working': petState === 'working' }"
-      @contextmenu.prevent.stop="openActions"
+      @mousedown.left="handleCharacterMouseDown"
       @mousedown.right.stop
+      @mouseup.left="handleCharacterMouseUp"
+      @contextmenu.prevent
     >
       <img
         class="pet-view-image"
@@ -36,7 +38,8 @@ const {
   petState,
   petAppearanceStyle,
   petImageSource,
-  openActions,
+  handleCharacterMouseDown,
+  handleCharacterMouseUp,
   handleDrop,
   handleDragEnter,
   handleDragLeave,

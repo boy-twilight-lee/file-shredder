@@ -44,6 +44,8 @@ export interface PetViewContext {
   cancelShred: () => Promise<void>;
   showBubble: (mode: PetBubbleMode) => void;
   openActions: () => void;
+  handleCharacterMouseDown: (event: MouseEvent) => void;
+  handleCharacterMouseUp: (event: MouseEvent) => void;
   handleDrop: (event: DragEvent) => Promise<void>;
   handleDragEnter: () => void;
   handleDragLeave: () => void;

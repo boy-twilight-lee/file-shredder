@@ -2,7 +2,15 @@
   .pet-view-progress-heading {
     display: flex;
     align-items: center;
+    justify-content: space-between;
+    gap: 10px;
     min-height: 22px;
+  }
+
+  .pet-view-progress-cancel {
+    flex: 0 0 auto;
+    gap: 3px;
+    font-size: 10px;
   }
 
   .pet-view-progress-panel {
@@ -22,7 +30,7 @@
     align-items: center;
     justify-content: space-between;
     gap: 12px;
-    margin-bottom: 14px;
+    margin-bottom: 8px;
     color: #4e5969;
 
     span {
@@ -36,6 +44,30 @@
       color: #1d2129;
       font-size: 12px;
       font-variant-numeric: tabular-nums;
+      white-space: nowrap;
+    }
+  }
+
+  .pet-view-progress-current-file {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    height: 28px;
+    margin-bottom: 12px;
+    padding: 0 9px;
+    overflow: hidden;
+    border-radius: 8px;
+    color: #4e5969;
+    font-size: 10px;
+    background: rgba(255, 255, 255, 0.7);
+
+    .arco-icon {
+      flex: 0 0 auto;
+    }
+
+    span {
+      overflow: hidden;
+      text-overflow: ellipsis;
       white-space: nowrap;
     }
   }
@@ -116,19 +148,6 @@
     box-shadow: 0 7px 18px rgba(0, 168, 84, 0.08);
     .pet-view-progress-bar {
       background: linear-gradient(90deg, #63d99a, #00a854);
-    }
-  }
-
-  .pet-view-progress-actions {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    height: 31px;
-    padding-top: 5px;
-
-    :deep(.arco-link) {
-      gap: 4px;
-      font-size: 11px;
     }
   }
 }

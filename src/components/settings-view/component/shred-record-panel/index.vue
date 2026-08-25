@@ -41,7 +41,7 @@
         <a-input-search
           v-model="pathKeyword"
           class="shred-record-panel-search"
-          size="small"
+          size="medium"
           allow-clear
           placeholder="根据文件路径搜索"
         />

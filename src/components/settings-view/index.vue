@@ -3,8 +3,9 @@
     <a-tabs
       v-model:active-key="activeTab"
       class="settings-view-tabs"
-      type="line"
+      type="capsule"
       size="small"
+      aria-label="设置页面导航"
     >
       <a-tab-pane key="general">
         <template #title><icon-apps />常规设置</template>
@@ -13,7 +14,6 @@
         <template #title><icon-history />粉碎记录</template>
       </a-tab-pane>
     </a-tabs>
-    <div class="settings-view-tabs-divider"></div>
 
     <a-spin
       :loading="isLoading"
@@ -250,39 +250,91 @@ onBeforeUnmount(() => {
 
   .settings-view-tabs {
     flex: 0 0 auto;
-    padding: 0 12px;
+    padding: 8px 12px;
     overflow: visible;
+    border-bottom: 1px solid #e7ebf0;
     background: #fff;
+
     :deep(.arco-tabs-nav) {
       margin: 0;
       padding: 0;
       border: 0;
-      border-radius: 0;
       background: #fff;
       box-shadow: none;
     }
+
     :deep(.arco-tabs-nav::before) {
       display: none;
     }
-    :deep(.arco-tabs-tab) {
-      height: 40px;
-      padding: 0 8px;
-      border-radius: 9px;
+
+    :deep(
+      .arco-tabs-nav-type-capsule
+        .arco-tabs-nav-tab:not(.arco-tabs-nav-tab-scroll)
+    ) {
+      justify-content: center;
     }
+
+    :deep(.arco-tabs-nav-tab-list) {
+      display: inline-flex;
+      gap: 2px;
+      padding: 2px;
+      border: 1px solid #e8ebf0;
+      border-radius: 9px;
+      background: #f2f4f7;
+    }
+
+    :deep(.arco-tabs-tab) {
+      height: 28px;
+      padding: 0 11px;
+      border-radius: 6px;
+      color: #66707d;
+      font-size: 12px;
+      line-height: 28px;
+      transition:
+        color 160ms ease,
+        background-color 160ms ease,
+        box-shadow 160ms ease;
+    }
+
+    :deep(
+      .arco-tabs-nav-type-capsule.arco-tabs-nav-horizontal
+        .arco-tabs-tab:not(:first-of-type)
+    ) {
+      margin-left: 0;
+    }
+
+    :deep(.arco-tabs-tab::before) {
+      display: none;
+    }
+
+    :deep(.arco-tabs-tab:hover) {
+      color: #3564ff;
+      background: rgba(255, 255, 255, 0.64);
+    }
+
+    :deep(.arco-tabs-tab-active),
+    :deep(.arco-tabs-tab-active:hover) {
+      color: #244fd6;
+      font-weight: 500;
+      background: #fff;
+      box-shadow: 0 1px 4px rgba(31, 50, 81, 0.12);
+    }
+
     :deep(.arco-tabs-content) {
       display: none;
     }
+
     :deep(.arco-tabs-tab-title) {
       display: inline-flex;
       align-items: center;
       gap: 6px;
     }
+
+    :deep(.arco-icon) {
+      font-size: 13px;
+    }
   }
-  .settings-view-tabs-divider {
-    flex: 0 0 auto;
-    height: 1px;
-    background: #e7ebf0;
-  }
+
   .settings-view-content {
     display: block;
     flex: 1;
