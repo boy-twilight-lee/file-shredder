@@ -43,6 +43,7 @@ export class ShredCancelledError extends Error {
 
 const CHUNK_SIZE = 1024 * 1024;
 const SECURE_FILE_CONCURRENCY = 2;
+const FAST_FILE_DELETE_CONCURRENCY = 8;
 const FILE_COUNT_CONCURRENCY = 8;
 
 function normalizeTargetPaths(paths: string[]): string[] {
@@ -126,7 +127,6 @@ interface ShredContext {
   fileIndex: number;
   fileCount: number;
   deletedFileCount: number;
-  countedFilesByPath: ReadonlyMap<string, number>;
   startedAt: number;
   signal?: AbortSignal;
   report: (progress: ShredProgress) => void;
@@ -170,9 +170,11 @@ async function overwriteFile(
   context.fileIndex += 1;
   const fileIndex = context.fileIndex;
   if (context.passes === 0) {
-    // Fast mode intentionally skips overwriting and filename anonymization so the filesystem can delete immediately.
+    // 快速模式仍逐文件删除，使文件夹任务可以持续反馈进度并准确记录失败项。
     throwIfCancelled(context.signal);
     emitProgress(context, filePath, 0, 1, 'removing', fileIndex);
+    await chmod(filePath, 0o600);
+    throwIfCancelled(context.signal);
     await rm(filePath, { force: true });
     context.deletedFileCount += 1;
     emitProgress(context, filePath, 1, 1, 'removing', fileIndex);
@@ -246,24 +248,6 @@ async function shredEntry(
     return [];
   }
 
-  if (context.passes === 0) {
-    // 极速模式交给系统一次性递归删除，避免为每个目录项执行多轮 JS 异步调用。
-    const countedFileCount = context.countedFilesByPath.get(targetPath) ?? 0;
-    const progressFileCount = Math.max(1, countedFileCount);
-    emitProgress(context, targetPath, 0, 1, 'removing', context.fileIndex + 1);
-    await rm(targetPath, {
-      recursive: true,
-      force: true,
-      maxRetries: 3,
-      retryDelay: 50,
-    });
-    // 递归删除成功代表预扫描到的全部文件均已移除，目录本身不计入文件数。
-    context.fileIndex += progressFileCount;
-    context.deletedFileCount += countedFileCount;
-    emitProgress(context, targetPath, 1, 1, 'removing');
-    return [];
-  }
-
   const entries = await readdir(targetPath, { withFileTypes: true });
   const failures: ShredResult[] = [];
   const fileEntries: string[] = [];
@@ -275,10 +259,12 @@ async function shredEntry(
     else fileEntries.push(entryPath);
   }
 
-  // 同一目录内有限并发可提升 SSD 吞吐，同时避免过多并行随机写拖慢机械硬盘。
+  // 快速删除可提高并发；安全覆写限制并发，避免同时随机写入拖慢机械硬盘。
   const fileResults = await mapWithConcurrency(
     fileEntries,
-    SECURE_FILE_CONCURRENCY,
+    context.passes === 0
+      ? FAST_FILE_DELETE_CONCURRENCY
+      : SECURE_FILE_CONCURRENCY,
     async (entryPath) => {
       try {
         return await shredEntry(entryPath, context);
@@ -376,9 +362,6 @@ export async function shredPaths(
     FILE_COUNT_CONCURRENCY,
     (targetPath) => countFiles(targetPath, signal),
   );
-  const countedFilesByPath = new Map(
-    safePaths.map((targetPath, index) => [targetPath, countedFiles[index]]),
-  );
   const context: ShredContext = {
     passes,
     fileIndex: 0,
@@ -387,7 +370,6 @@ export async function shredPaths(
       countedFiles.reduce((sum, count) => sum + Math.max(1, count), 0),
     ),
     deletedFileCount: 0,
-    countedFilesByPath,
     startedAt: Date.now(),
     signal,
     report,

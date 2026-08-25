@@ -55,7 +55,11 @@ import type {
   ShredLog,
 } from '@/type';
 import { GeneralSettingsPanel, ShredRecordPanel } from './component';
-import { PET_SIZE_SAVE_DELAY_MS } from './constants';
+import {
+  PET_SIZE_MAX,
+  PET_SIZE_MIN,
+  PET_SIZE_SAVE_DELAY_MS,
+} from './constants';
 
 const defaultSettings: AppSettings = {
   shortcut: 'CommandOrControl+Shift+Delete',
@@ -127,7 +131,10 @@ async function updatePasses(value: AppSettings['passes']): Promise<void> {
 
 function updatePetSize(value: number | undefined): void {
   if (typeof value !== 'number' || !Number.isFinite(value)) return;
-  const normalizedValue = Math.min(320, Math.max(100, Math.round(value)));
+  const normalizedValue = Math.min(
+    PET_SIZE_MAX,
+    Math.max(PET_SIZE_MIN, Math.round(value)),
+  );
   settings.value.petSize = normalizedValue;
   // 连续调整时只在数值停止变化后合并为一次磁盘写入。
   savePetSize(normalizedValue);

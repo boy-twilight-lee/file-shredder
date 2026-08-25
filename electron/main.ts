@@ -68,8 +68,8 @@ const BUILT_IN_PET_IMAGES = [
 // 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
 const PET_WINDOW_SIZE = { width: 960, height: 1160 };
 const PET_BUBBLE_SIZE = { width: 288, height: 340 };
-const PET_SIZE_MIN = 100;
-const PET_SIZE_MAX = 320;
+const PET_SIZE_MIN = 50;
+const PET_SIZE_MAX = 700;
 const PET_TEMPLATE_THUMBNAIL_WIDTH = 192;
 const PET_FADE_DURATION_MS = 180;
 const PET_IMAGE_MAX_BYTES = 50 * 1024 * 1024;

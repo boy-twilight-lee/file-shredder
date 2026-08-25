@@ -67,21 +67,33 @@
             <small>PNG · JPG · SVG · WebP · GIF</small>
           </button>
         </div>
-        <div class="general-settings-panel-pet-controls">
-          <div class="general-settings-panel-pet-size-description">
-            <strong>桌宠大小</strong>
-            <span>调整桌宠在桌面上的显示宽度</span>
+        <div class="general-settings-panel-pet-size-section">
+          <div class="general-settings-panel-pet-heading">
+            <h2>桌宠大小</h2>
+            <p class="general-settings-panel-pet-tip">
+              调整桌宠在桌面上的显示宽度。
+            </p>
           </div>
-          <div class="general-settings-panel-pet-size-input">
-            <a-input-number
+          <div class="general-settings-panel-pet-controls">
+            <a-slider
+              class="general-settings-panel-pet-size-slider"
               :model-value="settings.petSize"
-              :min="100"
-              :max="320"
-              :step="4"
-              hide-button
-              @change="emit('update-pet-size', $event)"
+              :min="PET_SIZE_MIN"
+              :max="PET_SIZE_MAX"
+              :step="PET_SIZE_STEP"
+              @change="updatePetSizeFromSlider"
             />
-            <span>px</span>
+            <div class="general-settings-panel-pet-size-input">
+              <a-input-number
+                :model-value="settings.petSize"
+                :min="PET_SIZE_MIN"
+                :max="PET_SIZE_MAX"
+                :step="PET_SIZE_STEP"
+                hide-button
+                @change="emit('update-pet-size', $event)"
+              />
+              <span>px</span>
+            </div>
           </div>
         </div>
       </section>
@@ -117,7 +129,13 @@
                 ><strong>{{ item.title }}</strong
                 ><em>{{ item.badge }}</em></span
               >
-              <small>{{ item.description }}</small>
+              <small>
+                <span
+                  v-for="line in item.descriptionLines"
+                  :key="line"
+                  >{{ line }}</span
+                >
+              </small>
             </span>
             <span
               v-if="settings.passes === item.value"
@@ -172,6 +190,9 @@ import type { AppSettings, PetImageTemplate, SettingBooleanKey } from '@/type';
 import {
   MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
   MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
+  PET_SIZE_MAX,
+  PET_SIZE_MIN,
+  PET_SIZE_STEP,
   SHRED_LEVEL_OPTIONS,
 } from '@/components/settings-view/constants';
 
@@ -191,6 +212,11 @@ const emit = defineEmits<{
     value: boolean | string | number,
   ];
 }>();
+
+function updatePetSizeFromSlider(value: number | [number, number]): void {
+  // 当前大小控件使用单值滑块，显式收窄 Arco Slider 的区间联合类型。
+  if (typeof value === 'number') emit('update-pet-size', value);
+}
 
 const switchOptions: Array<{
   key: SettingBooleanKey;

@@ -9,7 +9,6 @@ export type PetBubblePlacement = 'left' | 'right';
 export interface PetProgressTone {
   maximum: number;
   tone: string;
-  color: string;
 }
 
 export interface PetResultMetric {
@@ -32,7 +31,6 @@ export interface PetViewContext {
   progressPercent: Ref<number>;
   displayedFileIndex: Ref<number>;
   progressTone: ComputedRef<PetProgressTone>;
-  progressStageLabel: ComputedRef<string>;
   summary: Ref<ShredSummary | null>;
   resultMetrics: ComputedRef<PetResultMetric[]>;
   errorMessage: Ref<string>;

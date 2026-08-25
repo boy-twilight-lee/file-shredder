@@ -105,10 +105,11 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 20px;
-    height: 20px;
+    width: 16px;
+    height: 16px;
     border-radius: 50%;
     color: #fff;
+    font-size: 10px;
     background: #3564ff;
     box-shadow: 0 2px 8px rgba(53, 100, 255, 0.3);
   }
@@ -152,32 +153,16 @@
   .general-settings-panel-pet-controls {
     display: flex;
     align-items: center;
-    justify-content: space-between;
     gap: 16px;
-    margin-top: 14px;
-    padding: 11px 12px;
-    border: 1px solid #edf1f5;
-    border-radius: 10px;
-    background: #f8fafc;
   }
 
-  .general-settings-panel-pet-size-description {
-    flex: 1;
-    min-width: 0;
-    strong,
-    span {
-      display: block;
-    }
-    strong {
-      color: #474f59;
-      font-size: 13px;
-      font-weight: 500;
-    }
-    span {
-      margin-top: 3px;
-      color: #99a1ad;
-      font-size: 11px;
-    }
+  .general-settings-panel-pet-size-section {
+    margin-top: 20px;
+  }
+
+  .general-settings-panel-pet-size-slider {
+    flex: 0 0 300px;
+    width: 300px;
   }
 
   .general-settings-panel-pet-size-input {
@@ -188,7 +173,7 @@
     color: #79828f;
     font-size: 12px;
     :deep(.arco-input-number) {
-      width: 104px;
+      width: 72px;
     }
   }
 }

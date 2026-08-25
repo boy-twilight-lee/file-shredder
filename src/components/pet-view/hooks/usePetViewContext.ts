@@ -84,13 +84,6 @@ function createPetViewContext(): PetViewContext {
       ) ?? PROGRESS_TONE_OPTIONS[PROGRESS_TONE_OPTIONS.length - 1],
   );
 
-  const progressStageLabel = computed(() => {
-    if (!progress.value) return '准备中';
-    if (progress.value.stage === 'removing') return '正在移除';
-    if (progress.value.stage === 'done') return '处理完成';
-    return '正在覆写';
-  });
-
   const formattedDuration = computed(() => {
     const durationMs = summary.value?.durationMs ?? 0;
     if (durationMs < 1000) return `${durationMs} ms`;
@@ -372,7 +365,6 @@ function createPetViewContext(): PetViewContext {
     progressPercent,
     displayedFileIndex,
     progressTone,
-    progressStageLabel,
     summary,
     resultMetrics,
     errorMessage,

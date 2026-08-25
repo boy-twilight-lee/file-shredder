@@ -9,9 +9,9 @@ export const PET_ACTION_OPTIONS = [
 
 // 按总体完成度逐步加深颜色，让用户无需读取数字也能感知任务阶段。
 export const PROGRESS_TONE_OPTIONS = [
-  { maximum: 24, tone: 'cyan', color: '#0eaaa6' },
-  { maximum: 49, tone: 'blue', color: '#165dff' },
-  { maximum: 74, tone: 'purple', color: '#722ed1' },
-  { maximum: 99, tone: 'orange', color: '#f77234' },
-  { maximum: 100, tone: 'green', color: '#00a854' },
+  { maximum: 24, tone: 'cyan' },
+  { maximum: 49, tone: 'blue' },
+  { maximum: 74, tone: 'purple' },
+  { maximum: 99, tone: 'orange' },
+  { maximum: 100, tone: 'green' },
 ] as const;

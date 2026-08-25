@@ -99,36 +99,26 @@
       <template v-else-if="bubbleMode === 'progress'">
         <div class="pet-view-progress-heading">
           <strong class="pet-view-bubble-title">正在粉碎，请稍候…</strong>
-          <span class="pet-view-progress-stage">{{ progressStageLabel }}</span>
         </div>
         <div
           class="pet-view-progress-panel"
           :class="`pet-view-progress-panel-${progressTone.tone}`"
         >
-          <div class="pet-view-progress-overview">
-            <div class="pet-view-progress-circle-wrap">
-              <a-progress
-                class="pet-view-progress-circle"
-                type="circle"
-                size="small"
-                :color="progressTone.color"
-                :percent="progressPercent / 100"
-                :show-text="true"
-                animation
-              />
-            </div>
-            <div class="pet-view-progress-detail">
-              <span><icon-delete />正在安全删除</span>
-              <strong
-                >{{ displayedFileIndex }} /
-                {{ progress?.fileCount ?? 1 }}</strong
-              >
-              <small>已处理文件数量</small>
-            </div>
+          <div class="pet-view-progress-summary">
+            <span><icon-delete />正在安全删除</span>
+            <strong
+              >{{ displayedFileIndex }} /
+              {{ progress?.fileCount ?? 1 }} 个文件</strong
+            >
           </div>
+          <!-- 横向进度条统一表达整个任务的完成度。 -->
           <div
             class="pet-view-progress-track"
-            aria-hidden="true"
+            role="progressbar"
+            aria-label="整体删除进度"
+            :aria-valuenow="progressPercent"
+            aria-valuemin="0"
+            aria-valuemax="100"
           >
             <span
               class="pet-view-progress-bar"
@@ -140,12 +130,6 @@
             <strong>{{ progressPercent }}%</strong>
           </div>
         </div>
-        <span
-          class="pet-view-progress-path"
-          :title="progress?.path"
-        >
-          {{ progress?.path ?? '正在准备目标' }}
-        </span>
         <div class="pet-view-progress-actions">
           <a-link
             status="danger"
@@ -158,24 +142,7 @@
       </template>
 
       <template v-else-if="bubbleMode === 'result'">
-        <div
-          class="pet-view-result-title"
-          :class="{
-            'pet-view-result-title-failure': summary?.failed,
-            'pet-view-result-title-cancelled': summary?.cancelled,
-          }"
-        >
-          <span class="pet-view-result-title-icon">
-            <component
-              :is="
-                summary?.cancelled
-                  ? IconStop
-                  : summary?.failed
-                    ? IconCloseCircleFill
-                    : IconCheckCircleFill
-              "
-            />
-          </span>
+        <div class="pet-view-result-title">
           <span class="pet-view-result-title-content">
             <strong>
               {{
@@ -252,9 +219,7 @@
 
 <script setup lang="ts">
 import {
-  IconCheckCircleFill,
   IconClose,
-  IconCloseCircleFill,
   IconDelete,
   IconFile,
   IconFolder,
@@ -278,7 +243,6 @@ const {
   progressPercent,
   displayedFileIndex,
   progressTone,
-  progressStageLabel,
   summary,
   resultMetrics,
   errorMessage,

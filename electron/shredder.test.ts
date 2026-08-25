@@ -44,7 +44,7 @@ describe('shredPaths', () => {
     await expect(readFile(targetPath)).rejects.toThrow();
   });
 
-  it('deletes a directory without reporting files complete before removal', async () => {
+  it('deletes a directory with progressive per-file updates', async () => {
     const workspace = await mkdtemp(
       join(tmpdir(), 'file-shredder-fast-directory-'),
     );
@@ -71,6 +71,22 @@ describe('shredPaths', () => {
         fileIndex: 1,
         stage: 'removing',
       });
+      expect(
+        progress.some(
+          (value) =>
+            value.stage === 'removing' &&
+            value.completed === 1 &&
+            value.fileIndex === 1,
+        ),
+      ).toBe(true);
+      expect(
+        progress.some(
+          (value) =>
+            value.stage === 'removing' &&
+            value.completed === 1 &&
+            value.fileIndex === 2,
+        ),
+      ).toBe(true);
       expect(progress[progress.length - 1]).toMatchObject({
         completed: 1,
         fileIndex: 2,

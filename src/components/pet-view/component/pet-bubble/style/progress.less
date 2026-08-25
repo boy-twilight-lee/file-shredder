@@ -2,27 +2,12 @@
   .pet-view-progress-heading {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: 10px;
     min-height: 22px;
   }
 
-  .pet-view-progress-stage {
-    flex: 0 0 auto;
-    min-width: 56px;
-    padding: 3px 7px;
-    border-radius: 999px;
-    color: #4e5969;
-    font-size: 10px;
-    line-height: 16px;
-    text-align: center;
-    background: #f2f3f5;
-  }
-
   .pet-view-progress-panel {
-    height: 144px;
     margin-top: 10px;
-    padding: 12px 14px 10px;
+    padding: 16px 14px 12px;
     border: 1px solid #dce7f2;
     border-radius: 14px;
     background: linear-gradient(145deg, #f8fbff 0%, #f2f7fc 100%);
@@ -32,38 +17,12 @@
       box-shadow 0.3s ease;
   }
 
-  .pet-view-progress-overview {
+  .pet-view-progress-summary {
     display: flex;
     align-items: center;
-    justify-content: center;
-    gap: 18px;
-    height: 82px;
-  }
-
-  .pet-view-progress-circle-wrap {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    width: 74px;
-    height: 74px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.76);
-    box-shadow:
-      0 4px 14px rgba(53, 89, 128, 0.1),
-      inset 0 0 0 5px rgba(255, 255, 255, 0.62);
-  }
-
-  .pet-view-progress-circle {
-    flex: 0 0 auto;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .pet-view-progress-detail {
-    display: flex;
-    flex: 1 1 0;
-    flex-direction: column;
-    min-width: 0;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 14px;
     color: #4e5969;
 
     span {
@@ -74,23 +33,15 @@
     }
 
     strong {
-      min-height: 25px;
-      margin: 3px 0 1px;
       color: #1d2129;
-      font-size: 22px;
+      font-size: 12px;
       font-variant-numeric: tabular-nums;
-      line-height: 25px;
       white-space: nowrap;
-    }
-
-    small {
-      color: #86909c;
-      font-size: 10px;
     }
   }
 
   .pet-view-progress-track {
-    height: 7px;
+    height: 10px;
     overflow: hidden;
     border: 1px solid rgba(116, 139, 166, 0.12);
     border-radius: 999px;
@@ -166,18 +117,6 @@
     .pet-view-progress-bar {
       background: linear-gradient(90deg, #63d99a, #00a854);
     }
-  }
-
-  .pet-view-progress-path {
-    display: block;
-    height: 27px;
-    overflow: hidden;
-    padding-top: 9px;
-    color: #474f59;
-    font-size: 11px;
-    line-height: 18px;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .pet-view-progress-actions {
