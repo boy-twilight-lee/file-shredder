@@ -1,19 +1,30 @@
 <template>
   <main class="settings-view">
-    <a-tabs
-      v-model:active-key="activeTab"
-      class="settings-view-tabs"
-      type="capsule"
-      size="small"
-      aria-label="设置页面导航"
-    >
-      <a-tab-pane key="general">
-        <template #title><icon-apps />常规设置</template>
-      </a-tab-pane>
-      <a-tab-pane key="records">
-        <template #title><icon-history />粉碎记录</template>
-      </a-tab-pane>
-    </a-tabs>
+    <header class="settings-view-header">
+      <button
+        class="settings-view-back"
+        type="button"
+        title="返回"
+        aria-label="返回操作菜单"
+        @click="emit('close')"
+      >
+        <icon-left />
+      </button>
+      <a-tabs
+        v-model:active-key="activeTab"
+        class="settings-view-tabs"
+        type="capsule"
+        size="small"
+        aria-label="设置导航"
+      >
+        <a-tab-pane key="general">
+          <template #title><icon-apps />常规设置</template>
+        </a-tab-pane>
+        <a-tab-pane key="records">
+          <template #title><icon-history />粉碎记录</template>
+        </a-tab-pane>
+      </a-tabs>
+    </header>
 
     <a-spin
       :loading="isLoading"
@@ -36,7 +47,6 @@
           v-else
           :logs="logs"
           @delete-logs="deleteLogs"
-          @clear-logs="clearLogs"
         />
       </section>
     </a-spin>
@@ -45,7 +55,7 @@
 
 <script setup lang="ts">
 import { Message } from '@arco-design/web-vue';
-import { IconApps, IconHistory } from '@arco-design/web-vue/es/icon';
+import { IconApps, IconHistory, IconLeft } from '@arco-design/web-vue/es/icon';
 import { useDebounceFn } from '@vueuse/core';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import type {
@@ -60,6 +70,8 @@ import {
   PET_SIZE_MIN,
   PET_SIZE_SAVE_DELAY_MS,
 } from './constants';
+
+const emit = defineEmits<{ close: [] }>();
 
 const defaultSettings: AppSettings = {
   shortcut: 'CommandOrControl+Shift+Delete',
@@ -186,20 +198,8 @@ async function deleteLogs(ids: Array<string | number>): Promise<void> {
   }
 }
 
-async function clearLogs(): Promise<void> {
-  try {
-    await window.shredderApi.clearLogs();
-    logs.value = [];
-    Message.success('已删除全部粉碎记录');
-  } catch (error) {
-    Message.error(error instanceof Error ? error.message : '粉碎记录清空失败');
-  }
-}
-
 onMounted(async () => {
   await refreshData();
-  // 首次数据就绪后再通知主进程展示原生窗口，避免初始化期间触发重复重绘。
-  window.shredderApi.notifySettingsReady();
   disposers.push(
     window.shredderApi.onSettingsChanged(refreshData),
     window.shredderApi.onLogsUpdated(refreshData),
@@ -216,16 +216,6 @@ onBeforeUnmount(() => {
 :global(*) {
   box-sizing: border-box;
 }
-:global(html[data-app-view='settings']),
-:global(html[data-app-view='settings'] body),
-:global(html[data-app-view='settings'] #app) {
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  overflow: hidden;
-  background: #f5f7fa;
-}
-
 :global(.settings-view-popconfirm) {
   min-width: 272px;
   padding: 18px;
@@ -247,13 +237,23 @@ onBeforeUnmount(() => {
   height: 100%;
   overflow: hidden;
   color: #0d1014;
+  background: #f5f7fa;
 
-  .settings-view-tabs {
+  .settings-view-header {
+    display: flex;
     flex: 0 0 auto;
-    padding: 8px 12px;
-    overflow: visible;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 10px 8px 12px;
     border-bottom: 1px solid #e7ebf0;
     background: #fff;
+  }
+
+  .settings-view-tabs {
+    flex: 1;
+    min-width: 0;
+    padding: 0;
+    overflow: visible;
 
     :deep(.arco-tabs-nav) {
       margin: 0;
@@ -335,6 +335,27 @@ onBeforeUnmount(() => {
     }
   }
 
+  .settings-view-back {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    border: 0;
+    border-radius: 8px;
+    color: #79828f;
+    font-size: 15px;
+    background: transparent;
+    cursor: pointer;
+
+    &:hover {
+      color: #244fd6;
+      background: #f0f3f8;
+    }
+  }
+
   .settings-view-content {
     display: block;
     flex: 1;
@@ -345,6 +366,39 @@ onBeforeUnmount(() => {
     height: 100%;
     min-height: 0;
     overflow: hidden;
+  }
+
+  // 气泡宽度有限，设置项改为适合单列阅读和操作的紧凑布局。
+  :deep(.general-settings-panel) {
+    padding: 10px;
+  }
+
+  :deep(.general-settings-panel .general-settings-panel-card) {
+    padding: 12px;
+  }
+
+  :deep(.general-settings-panel-template-list),
+  :deep(.general-settings-panel-shred-level-list) {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  :deep(.general-settings-panel-pet-controls) {
+    gap: 10px;
+  }
+
+  :deep(.general-settings-panel-pet-size-slider) {
+    flex: 1;
+    width: auto;
+    min-width: 0;
+  }
+
+  :deep(.general-settings-panel-switch-row) {
+    padding: 9px;
+  }
+
+  :deep(.general-settings-panel-switch-content span) {
+    font-size: 11px;
+    line-height: 1.4;
   }
 }
 </style>

@@ -13,14 +13,22 @@ import {
 } from 'electron';
 import { existsSync, readFileSync } from 'node:fs';
 import { randomUUID } from 'node:crypto';
-import { copyFile, mkdir, readFile, rm, stat } from 'node:fs/promises';
-import { basename, extname, join, resolve } from 'node:path';
+import { copyFile, lstat, mkdir, readFile, rm, stat } from 'node:fs/promises';
+import {
+  basename,
+  extname,
+  isAbsolute,
+  join,
+  relative,
+  resolve,
+} from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { onWindowDrag } from 'electron-drag-window/electron';
 import {
   ShredCancelledError,
   shredPaths,
   type ShredProgress,
+  type ShredResult,
 } from './shredder';
 import {
   AppStore,
@@ -39,7 +47,6 @@ import { getExplorerSelection } from './windows-selection';
 const currentDirectory = fileURLToPath(new URL('.', import.meta.url));
 const store = new AppStore(app);
 let petWindow: BrowserWindow | null = null;
-let settingsWindow: BrowserWindow | null = null;
 let tray: Tray | null = null;
 let currentSettings: AppSettings;
 let isQuitting = false;
@@ -57,6 +64,10 @@ interface PetImageTemplate {
   active: boolean;
   deletable: boolean;
 }
+interface ShredTargetMetadata {
+  path: string;
+  targetType: 'file' | 'directory';
+}
 
 const BUILT_IN_PET_IMAGES = [
   {
@@ -67,7 +78,8 @@ const BUILT_IN_PET_IMAGES = [
 ] as const;
 // 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
 const PET_WINDOW_SIZE = { width: 960, height: 1160 };
-const PET_BUBBLE_SIZE = { width: 288, height: 340 };
+// 设置是尺寸最大的气泡，主进程按最大边界预判摆放方向和鼠标热区。
+const PET_BUBBLE_SIZE = { width: 360, height: 540 };
 const PET_SIZE_MIN = 50;
 const PET_SIZE_MAX = 700;
 const PET_TEMPLATE_THUMBNAIL_WIDTH = 192;
@@ -283,7 +295,6 @@ async function migrateLegacyPetImage(): Promise<void> {
 
 function notifyPetAppearanceChanged(): void {
   petWindow?.webContents.send('settings:changed');
-  settingsWindow?.webContents.send('settings:changed');
 }
 
 function parseLaunchPaths(argv: string[]): string[] {
@@ -318,17 +329,12 @@ function parseClipboardPaths(): string[] {
   ];
 }
 
-async function loadView(
-  window: BrowserWindow,
-  view: 'pet' | 'settings',
-): Promise<void> {
+async function loadView(window: BrowserWindow): Promise<void> {
   if (process.env.VITE_DEV_SERVER_URL) {
-    await window.loadURL(`${process.env.VITE_DEV_SERVER_URL}?view=${view}`);
+    await window.loadURL(process.env.VITE_DEV_SERVER_URL);
     return;
   }
-  await window.loadFile(join(currentDirectory, '../dist-renderer/index.html'), {
-    query: { view },
-  });
+  await window.loadFile(join(currentDirectory, '../dist-renderer/index.html'));
 }
 
 function animatePetOpacity(
@@ -649,7 +655,7 @@ function createPetWindow(): void {
   petWindow.webContents.once('did-finish-load', () =>
     petWindow?.setBackgroundColor('#00000000'),
   );
-  loadView(petWindow, 'pet');
+  loadView(petWindow);
   petWindow.on('close', (event) => {
     // 桌宠不再维护独立隐藏状态，程序只能通过托盘“关闭”完整退出。
     if (!isQuitting) event.preventDefault();
@@ -662,62 +668,18 @@ function createPetWindow(): void {
   });
 }
 
-function createPanelWindow(): BrowserWindow {
-  const window = new BrowserWindow({
-    width: 960,
-    height: 640,
-    minWidth: 720,
-    minHeight: 520,
-    title: '文件粉碎精灵 · 设置',
-    icon: getIconPath(),
-    show: false,
-    autoHideMenuBar: true,
-    backgroundColor: '#f5f7fa',
-    webPreferences: {
-      preload: join(currentDirectory, 'preload.mjs'),
-      contextIsolation: true,
-      nodeIntegration: false,
-      sandbox: true,
-      devTools: true,
-    },
-  });
-  window.on('show', () => {
-    // Windows 拖动普通窗口经过超大透明桌宠窗口时会反复重组图层；设置期间移除该透明合成面。
-    petWindow?.hide();
-    petWindow?.setOpacity(1);
-    petWindow?.setAlwaysOnTop(false);
-  });
-  window.on('hide', () => {
-    petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop);
-    // 设置窗口关闭后始终恢复桌宠，不再维护独立的显示/隐藏状态。
-    showPet();
-  });
-  // 设置窗口允许通过 F12 切换开发者工具，便于直接检查元素和计算样式。
-  window.webContents.on('before-input-event', (event, input) => {
-    if (input.type !== 'keyDown' || input.key !== 'F12') return;
-    event.preventDefault();
-    window.webContents.toggleDevTools();
-  });
-  loadView(window, 'settings');
-  window.on('close', (event) => {
-    if (!isQuitting) {
-      event.preventDefault();
-      window.hide();
-    }
-  });
-  return window;
-}
-
-function showSettingsWindow(): void {
-  if (!settingsWindow) {
-    settingsWindow = createPanelWindow();
-    settingsWindow.on('closed', () => {
-      settingsWindow = null;
-    });
+function showSettingsBubble(): void {
+  // 托盘与气泡内入口共用同一设置界面，不再创建第二个 BrowserWindow。
+  showPet();
+  setPetExpanded(true);
+  if (!petWindow) return;
+  if (petWindow.webContents.isLoading()) {
+    petWindow.webContents.once('did-finish-load', () =>
+      petWindow?.webContents.send('pet:open-settings'),
+    );
     return;
   }
-  settingsWindow.show();
-  settingsWindow.focus();
+  petWindow.webContents.send('pet:open-settings');
 }
 
 function applyLoginSetting(enabled: boolean): void {
@@ -765,6 +727,71 @@ function classifyResult(
   return { path, success, category: 'unknown', message };
 }
 
+async function getShredTargetMetadata(
+  paths: string[],
+): Promise<ShredTargetMetadata[]> {
+  return Promise.all(
+    paths.map(async (path) => {
+      const stats = await lstat(path);
+      return {
+        path,
+        targetType:
+          stats.isDirectory() && !stats.isSymbolicLink() ? 'directory' : 'file',
+      };
+    }),
+  );
+}
+
+function isPathWithinDirectory(
+  directoryPath: string,
+  targetPath: string,
+): boolean {
+  const relativePath = relative(directoryPath, targetPath);
+  return (
+    relativePath === '' ||
+    (!relativePath.startsWith('..') && !isAbsolute(relativePath))
+  );
+}
+
+function createShredLogs(
+  targets: ShredTargetMetadata[],
+  results: ShredResult[],
+): Array<Omit<ShredLog, 'id' | 'timestamp'>> {
+  const logs: Array<Omit<ShredLog, 'id' | 'timestamp'>> = [];
+  for (const target of targets) {
+    const targetResults = results.filter((result) =>
+      target.targetType === 'directory'
+        ? isPathWithinDirectory(target.path, result.path)
+        : result.path === target.path,
+    );
+    if (targetResults.length === 0) continue;
+    if (target.targetType === 'file') {
+      const result = targetResults[0];
+      logs.push({
+        ...classifyResult(result.path, result.success, result.error),
+        targetType: 'file',
+      });
+      continue;
+    }
+    const succeededCount = targetResults.reduce(
+      (total, result) => total + result.deletedFileCount,
+      0,
+    );
+    const failedResults = targetResults.filter((result) => !result.success);
+    const failedCount = failedResults.length;
+    const success = failedCount === 0;
+    // 文件夹日志只保留顶层目标和数量汇总，避免泄露或堆积大量子文件路径。
+    logs.push({
+      ...classifyResult(target.path, success, failedResults[0]?.error),
+      targetType: 'directory',
+      succeededCount,
+      failedCount,
+      message: `成功 ${succeededCount} 个，失败 ${failedCount} 个`,
+    });
+  }
+  return logs;
+}
+
 async function normalizeTargets(paths: string[]): Promise<string[]> {
   const uniquePaths = [...new Set(paths.map((item) => resolve(item)))];
   const validPaths = new Array<string | undefined>(uniquePaths.length);
@@ -805,6 +832,7 @@ async function requestShred(
 ) {
   const targets = await normalizeTargets(paths);
   if (targets.length === 0 || isShredding) return [];
+  const targetMetadata = await getShredTargetMetadata(targets);
 
   isShredding = true;
   const controller = new AbortController();
@@ -853,11 +881,7 @@ async function requestShred(
     dispatchProgress();
     const durationMs = Date.now() - startedAt;
     const retainedResults = results.slice(0, MAX_RETAINED_SHRED_RESULTS);
-    await store.appendLogs(
-      retainedResults.map((result) =>
-        classifyResult(result.path, result.success, result.error),
-      ),
-    );
+    await store.appendLogs(createShredLogs(targetMetadata, results));
     const failedCount = results.reduce(
       (total, result) => total + Number(!result.success),
       0,
@@ -899,11 +923,7 @@ async function requestShred(
     );
     const succeeded = error.deletedFileCount;
     if (retainedResults.length > 0) {
-      await store.appendLogs(
-        retainedResults.map((result) =>
-          classifyResult(result.path, result.success, result.error),
-        ),
-      );
+      await store.appendLogs(createShredLogs(targetMetadata, error.results));
     }
     petWindow?.webContents.send('pet:state', 'idle');
     petWindow?.webContents.send('pet:complete', {
@@ -920,7 +940,7 @@ async function requestShred(
     isShredding = false;
     tray?.setToolTip('文件粉碎精灵');
     setTimeout(() => petWindow?.webContents.send('pet:state', 'idle'), 1800);
-    settingsWindow?.webContents.send('logs:updated');
+    petWindow?.webContents.send('logs:updated');
   }
 }
 
@@ -963,12 +983,12 @@ async function setContextMenuEnabled(enabled: boolean): Promise<void> {
     contextMenuInstalled: enabled,
     contextMenuAutoInstall: false,
   });
-  settingsWindow?.webContents.send('settings:changed');
+  petWindow?.webContents.send('settings:changed');
 }
 
 function buildTrayMenu(): Menu {
   return Menu.buildFromTemplate([
-    { label: '设置', click: showSettingsWindow },
+    { label: '设置', click: showSettingsBubble },
     {
       label: '关闭',
       click: () => {
@@ -986,7 +1006,7 @@ function createTray(): void {
     .resize({ width: 20, height: 20 });
   tray = new Tray(trayIcon);
   tray.setToolTip('文件粉碎精灵');
-  tray.on('click', showSettingsWindow);
+  tray.on('click', showSettingsBubble);
   if (process.platform === 'darwin')
     tray.on('right-click', () => tray?.popUpContextMenu(buildTrayMenu()));
   // macOS 左键仅打开设置，其他平台直接使用静态托盘菜单。
@@ -1196,9 +1216,7 @@ ipcMain.handle(
       ...safePatch,
       contextMenuAutoInstall: false,
     });
-    petWindow?.setAlwaysOnTop(
-      currentSettings.alwaysOnTop && !settingsWindow?.isVisible(),
-    );
+    petWindow?.setAlwaysOnTop(currentSettings.alwaysOnTop);
     if (typeof safePatch.launchAtLogin === 'boolean')
       applyLoginSetting(safePatch.launchAtLogin);
     notifyPetAppearanceChanged();
@@ -1208,50 +1226,55 @@ ipcMain.handle(
 ipcMain.handle('pet-image:get', () => getPetImageDataUrl());
 ipcMain.handle('pet-image:list', () => getPetImageTemplates());
 ipcMain.handle('pet-image:choose', async () => {
-  const result = await dialog.showOpenDialog({
-    title: '选择桌宠图片',
-    properties: ['openFile'],
-    filters: [
+  try {
+    const result = await dialog.showOpenDialog({
+      title: '选择桌宠图片',
+      properties: ['openFile'],
+      filters: [
+        {
+          name: '支持的图片',
+          extensions: ['png', 'jpg', 'jpeg', 'jeg', 'svg', 'webp', 'gif'],
+        },
+      ],
+    });
+    if (result.canceled || result.filePaths.length === 0) return null;
+    const sourcePath = result.filePaths[0];
+    const fileExtension = extname(sourcePath).toLowerCase();
+    if (!PET_IMAGE_MIME_TYPES[fileExtension])
+      throw new Error('仅支持 PNG、JPG、JPEG、SVG、WebP 和 GIF 图片');
+    const sourceStats = await stat(sourcePath);
+    if (sourceStats.size > PET_IMAGE_MAX_BYTES)
+      throw new Error('桌宠图片不能超过 50 MB');
+    const imageBuffer = await readFile(sourcePath);
+    if (imageBuffer.byteLength > PET_IMAGE_MAX_BYTES)
+      throw new Error('桌宠图片不能超过 50 MB');
+    if (!isValidPetImage(fileExtension, imageBuffer))
+      throw new Error('图片文件已损坏或格式与扩展名不符');
+    const id = randomUUID();
+    // 保留扩展名才能让 Chromium 按原格式解码，并继续播放 GIF 动画。
+    const fileName = `${id}${fileExtension}`;
+    await mkdir(getPetImagesDirectory(), { recursive: true });
+    const targetPath = join(getPetImagesDirectory(), fileName);
+    await copyFile(sourcePath, targetPath);
+    const uploadedPetImages = [
+      ...currentSettings.uploadedPetImages,
       {
-        name: '支持的图片',
-        extensions: ['png', 'jpg', 'jpeg', 'jeg', 'svg', 'webp', 'gif'],
+        id,
+        name: basename(sourcePath, fileExtension) || '我的桌宠',
+        fileName,
       },
-    ],
-  });
-  if (result.canceled || result.filePaths.length === 0) return null;
-  const sourcePath = result.filePaths[0];
-  const fileExtension = extname(sourcePath).toLowerCase();
-  if (!PET_IMAGE_MIME_TYPES[fileExtension])
-    throw new Error('仅支持 PNG、JPG、JPEG、SVG、WebP 和 GIF 图片');
-  const sourceStats = await stat(sourcePath);
-  if (sourceStats.size > PET_IMAGE_MAX_BYTES)
-    throw new Error('桌宠图片不能超过 50 MB');
-  const imageBuffer = await readFile(sourcePath);
-  if (imageBuffer.byteLength > PET_IMAGE_MAX_BYTES)
-    throw new Error('桌宠图片不能超过 50 MB');
-  if (!isValidPetImage(fileExtension, imageBuffer))
-    throw new Error('图片文件已损坏或格式与扩展名不符');
-  const id = randomUUID();
-  // 保留扩展名才能让 Chromium 按原格式解码，并继续播放 GIF 动画。
-  const fileName = `${id}${fileExtension}`;
-  await mkdir(getPetImagesDirectory(), { recursive: true });
-  const targetPath = join(getPetImagesDirectory(), fileName);
-  await copyFile(sourcePath, targetPath);
-  const uploadedPetImages = [
-    ...currentSettings.uploadedPetImages,
-    {
-      id,
-      name: basename(sourcePath, fileExtension) || '我的桌宠',
-      fileName,
-    },
-  ];
-  currentSettings = await store.updateSettings({
-    customPetImagePath: '',
-    petImageTemplateId: id,
-    uploadedPetImages,
-  });
-  notifyPetAppearanceChanged();
-  return getPetImageTemplates();
+    ];
+    currentSettings = await store.updateSettings({
+      customPetImagePath: '',
+      petImageTemplateId: id,
+      uploadedPetImages,
+    });
+    notifyPetAppearanceChanged();
+    return getPetImageTemplates();
+  } finally {
+    // 原生文件选择器会让透明窗口失焦，结束后恢复到设置气泡。
+    petWindow?.webContents.send('pet:open-settings');
+  }
 });
 ipcMain.handle('pet-image:select', async (_event, id: unknown) => {
   if (typeof id !== 'string') throw new Error('无效的桌宠模板');
@@ -1286,10 +1309,6 @@ ipcMain.handle('pet-image:delete', async (_event, id: unknown) => {
   return getPetImageTemplates();
 });
 ipcMain.handle('logs:get', () => store.getLogs());
-ipcMain.handle('logs:clear', async () => {
-  await store.clearLogs();
-  return true;
-});
 ipcMain.handle('logs:delete', (_event, ids: unknown) => {
   if (!Array.isArray(ids) || !ids.every((id) => typeof id === 'string'))
     throw new Error('无效的粉碎记录参数');
@@ -1302,11 +1321,6 @@ ipcMain.handle('app:cleanup-exit', async () => {
   isQuitting = true;
   setImmediate(() => app.quit());
   return true;
-});
-ipcMain.on('settings:ready', (event) => {
-  if (!settingsWindow || event.sender !== settingsWindow.webContents) return;
-  settingsWindow.show();
-  settingsWindow.focus();
 });
 app.on('window-all-closed', () => undefined);
 app.on('will-quit', () => {

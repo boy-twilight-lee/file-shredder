@@ -3,7 +3,14 @@ import type { ShredProgress, ShredSummary } from '@/type';
 
 export type PetState = 'idle' | 'working' | 'success' | 'failure';
 export type PetBubbleMode =
-  'hidden' | 'actions' | 'confirm' | 'progress' | 'result' | 'error' | 'drop';
+  | 'hidden'
+  | 'actions'
+  | 'settings'
+  | 'confirm'
+  | 'progress'
+  | 'result'
+  | 'error'
+  | 'drop';
 export type PetBubblePlacement = 'left' | 'right';
 
 export interface PetProgressTone {

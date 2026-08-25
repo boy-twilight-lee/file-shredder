@@ -1,18 +1,24 @@
 .shred-record-panel {
+  display: flex;
+  flex-direction: column;
   width: 100%;
   height: 100%;
-  padding: 12px;
+  padding: 10px 0 0 10px;
 
-  .shred-record-panel-card {
-    display: flex;
-    flex-direction: column;
-    width: 100%;
-    height: 100%;
-    min-height: 0;
-    padding: 16px;
-    border-radius: 12px;
-    background: #fff;
-    box-shadow: 0 5px 18px rgba(30, 55, 90, 0.045);
+  .shred-record-panel-search {
+    flex: 0 0 auto;
+    width: calc(100% - 10px);
+    height: 28px;
+
+    :deep(.arco-input-wrapper) {
+      height: 28px;
+      font-size: 12px;
+    }
+
+    :deep(.arco-input),
+    :deep(.arco-input::placeholder) {
+      font-size: 12px;
+    }
   }
 
   .shred-record-panel-toolbar {
@@ -20,63 +26,33 @@
     flex: 0 0 auto;
     align-items: center;
     justify-content: space-between;
-    gap: 12px;
-    min-height: 32px;
-    padding: 0 0 10px;
+    min-height: 38px;
+    padding: 6px 12px 6px 2px;
+    color: #66707d;
+    font-size: 12px;
   }
 
-  .shred-record-panel-toolbar-actions {
-    display: flex;
-    flex: 0 0 auto;
+  :deep(.arco-checkbox-label) {
+    font-size: 12px;
+  }
+
+  .shred-record-panel-toolbar :deep(.arco-link) {
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
+    gap: 4px;
+    font-size: 12px;
   }
 
-  .shred-record-panel-toolbar-button {
-    min-width: 112px;
-
-    :deep(.arco-btn-icon) {
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      line-height: 1;
-    }
-
-    :deep(.arco-btn-icon .arco-icon) {
-      display: block;
-      width: 16px;
-      height: 16px;
-      font-size: 16px;
-      vertical-align: middle;
-    }
-  }
-
-  .shred-record-panel-search {
-    flex: 0 0 240px;
-    width: 240px;
-    height: 32px;
-  }
-
-  .shred-record-panel-divider {
-    flex: 0 0 auto;
-    margin: 12px 0 0;
-    border-color: #e7ebf0;
-  }
-
-  .shred-record-panel-pagination {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    min-height: 42px;
-    padding-top: 10px;
+  .shred-record-panel-list {
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
   }
 
   .shred-record-panel-scrollbar {
-    flex: 1;
     width: 100%;
-    min-height: 0;
-    overflow: hidden;
+    height: 100%;
+    overscroll-behavior: contain;
   }
 
   :deep(.shred-record-panel-scrollbar-container) {
@@ -86,32 +62,112 @@
     overflow-y: auto;
   }
 
-  .shred-record-panel-path,
-  .shred-record-panel-message {
-    display: block;
+  :deep(.arco-scrollbar-track-direction-vertical) {
+    right: 0;
+    width: 10px;
+  }
+
+  :deep(.arco-scrollbar-thumb-direction-vertical .arco-scrollbar-thumb-bar) {
+    width: 4px;
+    margin: 0 3px;
+    border-radius: 4px;
+  }
+
+  .shred-record-panel-list-content {
+    position: relative;
+    width: 100%;
+  }
+
+  .shred-record-panel-item {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    top: 0;
+    left: 0;
+    width: calc(100% - 14px);
+    height: 64px;
+    padding: 9px 11px;
     overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+    border: 1px solid #e8edf3;
+    border-radius: 11px;
+    background: #f8fafc;
+    transition:
+      border-color 160ms ease,
+      background-color 160ms ease;
   }
 
-  .shred-record-panel-path {
-    color: #1d252f;
+  .shred-record-panel-item-selected {
+    border-color: #9bb8ff;
+    background: #f2f5ff;
   }
 
-  .shred-record-panel-time,
-  .shred-record-panel-message {
-    color: #79828f;
-    font-size: 12px;
+  .shred-record-panel-item-heading {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
   }
 
-  .shred-record-panel-time {
-    white-space: nowrap;
+  .shred-record-panel-item-meta {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    min-width: 0;
+    margin-top: 5px;
+    padding-left: 21px;
+
+    time {
+      flex: 0 0 auto;
+      color: #99a1ad;
+      font-size: 10px;
+      white-space: nowrap;
+    }
   }
 
   .shred-record-panel-status {
     display: inline-flex;
+    flex: 0 0 auto;
     align-items: center;
-    gap: 4px;
+    gap: 3px;
+    font-size: 11px;
+    font-weight: 500;
+  }
+
+  .shred-record-panel-status-success {
+    color: #00a870;
+  }
+
+  .shred-record-panel-status-failure {
+    color: #f53f3f;
+  }
+
+  .shred-record-panel-path {
+    flex: 1;
+    min-width: 0;
+    overflow: hidden;
+    color: #1d252f;
+    font-size: 12px;
+    font-weight: 500;
+    line-height: 18px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shred-record-panel-message {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    overflow: hidden;
+    color: #f53f3f;
+    font-size: 10px;
+    line-height: 16px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shred-record-panel-message-muted {
+    color: #99a1ad;
   }
 
   .shred-record-panel-empty {
@@ -121,37 +177,32 @@
     align-items: center;
     justify-content: center;
     min-height: 0;
-    padding: 28px 20px;
+    padding: 24px 26px 24px 16px;
     color: #99a1ad;
     text-align: center;
 
     img {
-      width: 190px;
-      max-width: 68%;
+      width: 150px;
+      max-width: 64%;
       height: auto;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
+
     strong {
       color: #474f59;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 600;
     }
+
     span {
-      margin-top: 6px;
-      font-size: 12px;
-      line-height: 1.6;
+      margin-top: 5px;
+      font-size: 11px;
+      line-height: 1.5;
     }
   }
 
-  :deep(.shred-record-panel-pagination .arco-pagination) {
-    flex-wrap: wrap;
-    justify-content: center;
-    row-gap: 8px;
-  }
-
-  :deep(.arco-btn),
-  :deep(.arco-tag),
+  :deep(.arco-input-wrapper),
   :deep(.arco-popconfirm) {
-    border-radius: 9px;
+    border-radius: 8px;
   }
 }

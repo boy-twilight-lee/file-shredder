@@ -9,13 +9,14 @@
         {
           'pet-view-bubble-drop': bubbleMode === 'drop',
           'pet-view-bubble-progress': bubbleMode === 'progress',
+          'pet-view-bubble-settings': bubbleMode === 'settings',
         },
       ]"
     >
       <template v-if="bubbleMode === 'actions'">
-        <strong class="pet-view-bubble-title">想怎么粉碎？</strong>
+        <strong class="pet-view-bubble-title">选择粉碎内容</strong>
         <p class="pet-view-bubble-description">
-          也可以直接把文件或文件夹拖到我身上。
+          请选择文件或文件夹，也可以直接拖到我身上。
         </p>
         <div
           class="pet-view-actions"
@@ -27,7 +28,7 @@
             class="pet-view-action"
             type="button"
             role="menuitem"
-            @click="chooseTargets(item.key)"
+            @click="handleAction(item.key)"
           >
             <span class="pet-view-action-icon-wrap">
               <component
@@ -42,6 +43,11 @@
           </button>
         </div>
       </template>
+
+      <settings-view
+        v-else-if="bubbleMode === 'settings'"
+        @close="showBubble('actions')"
+      />
 
       <template v-else-if="bubbleMode === 'confirm'">
         <strong class="pet-view-bubble-title">确定永久粉碎吗？</strong>
@@ -232,15 +238,18 @@ import {
   IconDelete,
   IconFile,
   IconFolder,
+  IconSettings,
   IconStop,
 } from '@arco-design/web-vue/es/icon';
 import { PET_ACTION_OPTIONS } from '@/components/pet-view/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
+import SettingsView from '@/components/settings-view';
 import DeleteBinIcon from '../delete-bin-icon.vue';
 
 const actionIcons = {
   file: IconFile,
   directory: IconFolder,
+  settings: IconSettings,
 };
 
 const {
@@ -265,6 +274,17 @@ const {
   cancelShred,
   showBubble,
 } = usePetViewContext();
+
+async function handleAction(
+  key: (typeof PET_ACTION_OPTIONS)[number]['key'],
+): Promise<void> {
+  // 设置在当前气泡内切换，其余操作继续调用系统文件选择器。
+  if (key === 'settings') {
+    showBubble('settings');
+    return;
+  }
+  await chooseTargets(key);
+}
 </script>
 
 <style lang="less" scoped>

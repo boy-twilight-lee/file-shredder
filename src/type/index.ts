@@ -74,6 +74,9 @@ export interface ShredLog {
   success: boolean;
   category: 'success' | 'occupied' | 'permission' | 'protected' | 'unknown';
   message: string;
+  targetType?: 'file' | 'directory';
+  succeededCount?: number;
+  failedCount?: number;
 }
 
 export interface ShredderApi {
@@ -93,13 +96,12 @@ export interface ShredderApi {
   selectPetImage: (id: string) => Promise<PetImageTemplate[]>;
   deletePetImage: (id: string) => Promise<PetImageTemplate[]>;
   getLogs: () => Promise<ShredLog[]>;
-  clearLogs: () => Promise<boolean>;
   deleteLogs: (ids: string[]) => Promise<ShredLog[]>;
   cleanupAndExit: () => Promise<boolean>;
   setPetExpanded: (expanded: boolean) => void;
   setPetImageSize: (width: number, height: number) => void;
   setPetBubbleBounds: (bounds: PetBubbleBounds | null) => void;
-  notifySettingsReady: () => void;
+  onOpenSettings: (callback: () => void) => () => void;
   onPetState: (
     callback: (state: 'idle' | 'working' | 'success' | 'failure') => void,
   ) => () => void;

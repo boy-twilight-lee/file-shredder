@@ -3,7 +3,6 @@ import { bindDragEvent } from 'electron-drag-window/renderer';
 import { ElectronDragWindow } from 'electron-drag-window/type';
 
 window.addEventListener('DOMContentLoaded', () => {
-  if (new URLSearchParams(window.location.search).get('view') !== 'pet') return;
   // 指定整个人物容器为热区，库使用 requestAnimationFrame 平滑驱动主进程窗口移动。
   bindDragEvent((channel, ...args) => ipcRenderer.send(channel, ...args), {
     dragMode: ElectronDragWindow.DragMode.Appoint,
@@ -48,7 +47,6 @@ contextBridge.exposeInMainWorld('shredderApi', {
   selectPetImage: (id: string) => ipcRenderer.invoke('pet-image:select', id),
   deletePetImage: (id: string) => ipcRenderer.invoke('pet-image:delete', id),
   getLogs: () => ipcRenderer.invoke('logs:get'),
-  clearLogs: () => ipcRenderer.invoke('logs:clear'),
   deleteLogs: (ids: string[]) => ipcRenderer.invoke('logs:delete', ids),
   cleanupAndExit: () => ipcRenderer.invoke('app:cleanup-exit'),
   setPetExpanded: (expanded: boolean) =>
@@ -57,7 +55,11 @@ contextBridge.exposeInMainWorld('shredderApi', {
     ipcRenderer.send('pet:image-size', { width, height }),
   setPetBubbleBounds: (bounds: unknown) =>
     ipcRenderer.send('pet:bubble-bounds', bounds),
-  notifySettingsReady: () => ipcRenderer.send('settings:ready'),
+  onOpenSettings: (callback: () => void) => {
+    const listener = () => callback();
+    ipcRenderer.on('pet:open-settings', listener);
+    return () => ipcRenderer.removeListener('pet:open-settings', listener);
+  },
   onPetState: (callback: (state: string) => void) => {
     const listener = (_event: Electron.IpcRendererEvent, state: string) =>
       callback(state);

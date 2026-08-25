@@ -1,186 +1,136 @@
 <template>
   <div class="shred-record-panel">
-    <section class="shred-record-panel-card">
-      <div class="shred-record-panel-toolbar">
-        <div class="shred-record-panel-toolbar-actions">
-          <a-popconfirm
-            :content="`确认删除选中的 ${selectedLogKeys.length} 条记录？`"
-            content-class="settings-view-popconfirm"
-            type="error"
-            :ok-button-props="MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS"
-            :cancel-button-props="MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS"
-            @ok="emit('delete-logs', selectedLogKeys)"
-          >
-            <a-button
-              class="shred-record-panel-toolbar-button"
-              size="medium"
-              status="danger"
-              :disabled="selectedLogKeys.length === 0"
-            >
-              <template #icon><icon-delete /></template>批量删除
-            </a-button>
-          </a-popconfirm>
-          <a-popconfirm
-            content="确认删除全部粉碎记录？此操作无法撤销。"
-            content-class="settings-view-popconfirm"
-            type="error"
-            :ok-button-props="MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS"
-            :cancel-button-props="MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS"
-            @ok="emit('clear-logs')"
-          >
-            <a-button
-              class="shred-record-panel-toolbar-button"
-              size="medium"
-              status="danger"
-              :disabled="logs.length === 0"
-            >
-              <template #icon><icon-eraser /></template>删除全部
-            </a-button>
-          </a-popconfirm>
-        </div>
-        <a-input-search
-          v-model="pathKeyword"
-          class="shred-record-panel-search"
-          size="medium"
-          allow-clear
-          placeholder="根据文件路径搜索"
-        />
-      </div>
-      <a-table
-        v-if="filteredLogs.length === 0"
-        class="shred-record-panel-table shred-record-panel-table-empty"
-        row-key="id"
-        :columns="RECORD_TABLE_COLUMNS"
-        :data="[]"
-        :row-selection="RECORD_ROW_SELECTION"
-        :pagination="false"
-        :bordered="false"
-        :hoverable="false"
+    <a-input-search
+      v-model="pathKeyword"
+      class="shred-record-panel-search"
+      size="small"
+      allow-clear
+      placeholder="搜索文件路径"
+    />
+
+    <div class="shred-record-panel-toolbar">
+      <a-checkbox
+        :model-value="isAllFilteredLogsSelected"
+        :indeterminate="isPartiallySelected"
+        :disabled="filteredLogs.length === 0"
+        @change="toggleAllFilteredLogs"
       >
-        <template #empty>
-          <div class="shred-record-panel-empty">
-            <img
-              :src="emptyIllustration"
-              alt=""
-            />
-            <strong>{{ emptyStateTitle }}</strong>
-            <span>{{ emptyStateDescription }}</span>
-          </div>
-        </template>
-      </a-table>
+        {{
+          selectedLogIds.length > 0
+            ? `已选 ${selectedLogIds.length} / 共 ${filteredLogs.length} 条`
+            : `共 ${filteredLogs.length} 条`
+        }}
+      </a-checkbox>
+      <a-link
+        status="danger"
+        :disabled="selectedLogIds.length === 0"
+        @click="emit('delete-logs', selectedLogIds)"
+      >
+        <icon-delete />删除
+      </a-link>
+    </div>
+
+    <div
+      v-if="filteredLogs.length === 0"
+      class="shred-record-panel-empty"
+    >
+      <img
+        :src="emptyIllustration"
+        alt=""
+      />
+      <strong>{{ emptyStateTitle }}</strong>
+      <span>{{ emptyStateDescription }}</span>
+    </div>
+
+    <!-- TanStack 计算可视项，Arco Scrollbar 负责滚动交互与视觉样式。 -->
+    <div
+      v-else
+      ref="listRootElement"
+      class="shred-record-panel-list"
+    >
       <a-scrollbar
-        v-else
         class="shred-record-panel-scrollbar-container"
         outer-class="shred-record-panel-scrollbar"
         disable-horizontal
       >
-        <a-table
-          v-model:selected-keys="selectedLogKeys"
-          class="shred-record-panel-table"
-          row-key="id"
-          :columns="RECORD_TABLE_COLUMNS"
-          :data="paginatedLogs"
-          :row-selection="RECORD_ROW_SELECTION"
-          :pagination="false"
-          :bordered="false"
-          stripe
+        <div
+          class="shred-record-panel-list-content"
+          :style="{ height: `${virtualListTotalSize}px` }"
         >
-          <template #path="{ record }">
-            <span
-              class="shred-record-panel-path"
-              :title="record.path"
-              >{{ record.path }}</span
-            >
-          </template>
-          <template #time="{ record }">
-            <span class="shred-record-panel-time">{{
-              formatLogTime(record.timestamp)
-            }}</span>
-          </template>
-          <template #status="{ record }">
-            <a-tag
-              class="shred-record-panel-status"
-              :color="record.success ? 'green' : 'red'"
-            >
-              <icon-check-circle v-if="record.success" />
-              <icon-close-circle v-else />
-              {{ record.success ? '成功' : '失败' }}
-            </a-tag>
-          </template>
-          <template #message="{ record }">
-            <span
-              class="shred-record-panel-message"
-              :title="record.success ? '' : record.message"
-            >
-              {{ record.success ? '-' : record.message }}
-            </span>
-          </template>
-          <template #actions="{ record }">
-            <a-popconfirm
-              content="确认删除这条粉碎记录？"
-              content-class="settings-view-popconfirm"
-              type="error"
-              :ok-button-props="MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS"
-              :cancel-button-props="MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS"
-              @ok="emit('delete-logs', [record.id])"
-            >
-              <a-link
-                status="danger"
-                title="删除记录"
-                >删除</a-link
+          <article
+            v-for="item in virtualRows"
+            :key="String(item.key)"
+            class="shred-record-panel-item"
+            :class="{
+              'shred-record-panel-item-selected': isSelected(item.data.id),
+            }"
+            :style="{ transform: `translateY(${item.start}px)` }"
+          >
+            <div class="shred-record-panel-item-heading">
+              <a-checkbox
+                :model-value="isSelected(item.data.id)"
+                :aria-label="`选择 ${item.data.path}`"
+                @change="toggleLog(item.data.id)"
+              />
+              <strong
+                class="shred-record-panel-path"
+                :title="item.data.path"
+                >{{ item.data.path }}</strong
               >
-            </a-popconfirm>
-          </template>
-        </a-table>
+              <span
+                class="shred-record-panel-status"
+                :class="
+                  item.data.success
+                    ? 'shred-record-panel-status-success'
+                    : 'shred-record-panel-status-failure'
+                "
+              >
+                <icon-check-circle v-if="item.data.success" />
+                <icon-close-circle v-else />
+                {{ item.data.success ? '成功' : '失败' }}
+              </span>
+            </div>
+            <div class="shred-record-panel-item-meta">
+              <p
+                class="shred-record-panel-message"
+                :class="{
+                  'shred-record-panel-message-muted': item.data.success,
+                }"
+                :title="getLogMessage(item.data)"
+              >
+                {{ getLogMessage(item.data) }}
+              </p>
+              <time>{{ formatLogTime(item.data.timestamp) }}</time>
+            </div>
+          </article>
+        </div>
       </a-scrollbar>
-      <a-divider class="shred-record-panel-divider" />
-      <div class="shred-record-panel-pagination">
-        <a-pagination
-          v-model:current="recordPage"
-          v-model:page-size="recordPageSize"
-          size="small"
-          :total="paginationRenderTotal"
-          :show-total="true"
-          :show-page-size="true"
-          :page-size-options="RECORD_PAGE_SIZE_OPTIONS"
-          :show-jumper="true"
-        >
-          <template #total>共 {{ filteredLogs.length }} 条</template>
-        </a-pagination>
-      </div>
-    </section>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { useVirtualizer } from '@tanstack/vue-virtual';
 import {
   IconCheckCircle,
   IconCloseCircle,
   IconDelete,
-  IconEraser,
 } from '@arco-design/web-vue/es/icon';
+import { computed, nextTick, ref, watch } from 'vue';
 import type { ShredLog } from '@/type';
 import emptyIllustration from '@/styles/icons/empty.svg';
-import {
-  MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
-  MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
-  RECORD_PAGE_SIZE,
-  RECORD_PAGE_SIZE_OPTIONS,
-  RECORD_ROW_SELECTION,
-  RECORD_TABLE_COLUMNS,
-} from '@/components/settings-view/constants';
+import { SHRED_RECORD_ITEM_HEIGHT, SHRED_RECORD_OVERSCAN } from './constants';
 
 const props = defineProps<{ logs: ShredLog[] }>();
 const emit = defineEmits<{
   'delete-logs': [ids: Array<string | number>];
-  'clear-logs': [];
 }>();
 
-const selectedLogKeys = ref<Array<string | number>>([]);
-const recordPage = ref(1);
-const recordPageSize = ref(RECORD_PAGE_SIZE);
+const selectedLogIds = ref<string[]>([]);
 const pathKeyword = ref('');
+const listRootElement = ref<HTMLElement | null>(null);
+const scrollElement = ref<HTMLElement | null>(null);
+const selectedLogIdSet = computed(() => new Set(selectedLogIds.value));
 const filteredLogs = computed(() => {
   const normalizedKeyword = pathKeyword.value.trim().toLocaleLowerCase();
   if (!normalizedKeyword) return props.logs;
@@ -188,17 +138,17 @@ const filteredLogs = computed(() => {
     log.path.toLocaleLowerCase().includes(normalizedKeyword),
   );
 });
-const paginatedLogs = computed(() => {
-  const startIndex = (recordPage.value - 1) * recordPageSize.value;
-  return filteredLogs.value.slice(
-    startIndex,
-    startIndex + recordPageSize.value,
-  );
-});
-// Arco 将 total=0 计算为 0 页；渲染总数至少为 1，以便空状态仍展示第 1 页。
-const paginationRenderTotal = computed(() =>
-  Math.max(filteredLogs.value.length, 1),
+const isAllFilteredLogsSelected = computed(
+  () =>
+    filteredLogs.value.length > 0 &&
+    filteredLogs.value.every((log) => selectedLogIdSet.value.has(log.id)),
 );
+const isPartiallySelected = computed(() => {
+  const selectedCount = filteredLogs.value.filter((log) =>
+    selectedLogIdSet.value.has(log.id),
+  ).length;
+  return selectedCount > 0 && selectedCount < filteredLogs.value.length;
+});
 const emptyStateTitle = computed(() =>
   props.logs.length === 0 ? '暂无粉碎记录' : '未找到匹配路径',
 );
@@ -207,24 +157,87 @@ const emptyStateDescription = computed(() =>
     ? '完成文件粉碎后，处理结果会显示在这里。'
     : '请尝试输入其他文件路径关键字。',
 );
+const rowVirtualizer = useVirtualizer(
+  computed(() => ({
+    count: filteredLogs.value.length,
+    getScrollElement: () => scrollElement.value,
+    estimateSize: () => SHRED_RECORD_ITEM_HEIGHT,
+    getItemKey: (index: number) => filteredLogs.value[index]?.id ?? index,
+    overscan: SHRED_RECORD_OVERSCAN,
+  })),
+);
+const virtualRows = computed(() =>
+  rowVirtualizer.value.getVirtualItems().map((item) => ({
+    ...item,
+    data: filteredLogs.value[item.index],
+  })),
+);
+const virtualListTotalSize = computed(() =>
+  rowVirtualizer.value.getTotalSize(),
+);
+
+function isSelected(id: string): boolean {
+  return selectedLogIdSet.value.has(id);
+}
+
+function toggleLog(id: string): void {
+  selectedLogIds.value = isSelected(id)
+    ? selectedLogIds.value.filter((item) => item !== id)
+    : [...selectedLogIds.value, id];
+}
+
+function toggleAllFilteredLogs(
+  value: boolean | Array<string | number | boolean>,
+): void {
+  if (Array.isArray(value)) return;
+  const filteredIds = filteredLogs.value.map((log) => log.id);
+  if (value) {
+    selectedLogIds.value = [
+      ...new Set([...selectedLogIds.value, ...filteredIds]),
+    ];
+    return;
+  }
+  const filteredIdSet = new Set(filteredIds);
+  selectedLogIds.value = selectedLogIds.value.filter(
+    (id) => !filteredIdSet.has(id),
+  );
+}
 
 function formatLogTime(timestamp: string): string {
   return new Date(timestamp).toLocaleString();
 }
 
-watch([() => filteredLogs.value.length, recordPageSize], ([logCount]) => {
-  // 删除记录、外部刷新或切换每页条数后，确保当前页仍然有效。
-  const lastPage = Math.max(1, Math.ceil(logCount / recordPageSize.value));
-  recordPage.value = Math.min(recordPage.value, lastPage);
-  selectedLogKeys.value = selectedLogKeys.value.filter((id) =>
-    props.logs.some((log) => log.id === String(id)),
-  );
+function getLogMessage(log: ShredLog): string {
+  if (log.targetType === 'directory' && !log.success)
+    return `成功 ${log.succeededCount ?? 0} 个，失败 ${log.failedCount ?? 0} 个`;
+  if (log.targetType === 'directory') return '文件夹已安全删除';
+  return log.success ? '文件已安全删除' : log.message;
+}
+
+watch(listRootElement, async (element) => {
+  await nextTick();
+  // TanStack 需要监听 Arco 内部的真实滚动容器，而不是组件外层节点。
+  scrollElement.value =
+    element?.querySelector<HTMLElement>(
+      '.shred-record-panel-scrollbar-container',
+    ) ?? null;
 });
 
-watch(pathKeyword, () => {
-  // 新的路径筛选从第一页展示，避免保留旧页码后出现空白页。
-  recordPage.value = 1;
+watch(pathKeyword, async () => {
+  selectedLogIds.value = [];
+  await nextTick();
+  rowVirtualizer.value.scrollToOffset(0);
 });
+
+watch(
+  () => props.logs,
+  (logs) => {
+    // 删除或外部刷新后清理已不存在的记录，避免批量操作携带失效 ID。
+    selectedLogIds.value = selectedLogIds.value.filter((id) =>
+      logs.some((log) => log.id === id),
+    );
+  },
+);
 </script>
 
 <style lang="less" scoped>

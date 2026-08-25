@@ -1,9 +1,14 @@
 export const PET_ACTION_OPTIONS = [
-  { key: 'file', title: '选择文件', description: '支持一次选择多个文件' },
+  { key: 'file', title: '选择文件', description: '支持同时选择多个文件' },
   {
     key: 'directory',
     title: '选择文件夹',
-    description: '粉碎文件夹内的全部内容',
+    description: '包含文件夹内的所有内容',
+  },
+  {
+    key: 'settings',
+    title: '设置',
+    description: '调整桌宠、清理强度和系统选项',
   },
 ] as const;
 

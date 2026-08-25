@@ -214,6 +214,12 @@ function createPetViewContext(): PetViewContext {
       bubbleElement.value?.contains(event.target)
     )
       return;
+    // 设置中的确认框会挂载到 body，点击浮层仍属于气泡内部交互。
+    if (
+      event.target instanceof Element &&
+      event.target.closest('.arco-trigger-popup')
+    )
+      return;
     closeBubble();
   }
 
@@ -352,6 +358,9 @@ function createPetViewContext(): PetViewContext {
   onMounted(async () => {
     disposers.push(
       window.shredderApi.onSettingsChanged(refreshPetAppearance),
+      window.shredderApi.onOpenSettings(() => {
+        if (bubbleMode.value !== 'progress') showBubble('settings');
+      }),
       window.shredderApi.onPetState((state) => {
         petState.value = state;
       }),

@@ -33,6 +33,9 @@ export interface ShredLog {
   success: boolean;
   category: 'success' | 'occupied' | 'permission' | 'protected' | 'unknown';
   message: string;
+  targetType?: 'file' | 'directory';
+  succeededCount?: number;
+  failedCount?: number;
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
