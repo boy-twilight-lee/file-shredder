@@ -54,8 +54,7 @@
 </template>
 
 <script setup lang="ts">
-import { Message } from '@arco-design/web-vue';
-import { IconApps, IconHistory, IconLeft } from '@arco-design/web-vue/es/icon';
+import Message from '@arco-design/web-vue/es/message';
 import { useDebounceFn } from '@vueuse/core';
 import { onBeforeUnmount, onMounted, ref } from 'vue';
 import type {
@@ -70,6 +69,7 @@ import {
   PET_SIZE_MIN,
   PET_SIZE_SAVE_DELAY_MS,
 } from './constants';
+import '@arco-design/web-vue/es/message/style/css.js';
 
 const emit = defineEmits<{ close: [] }>();
 

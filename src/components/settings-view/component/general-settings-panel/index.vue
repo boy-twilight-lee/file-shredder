@@ -166,10 +166,8 @@
 
 <script setup lang="ts">
 import {
-  IconCheck,
   IconDelete,
   IconMenu,
-  IconPlus,
   IconPoweroff,
   IconPushpin,
   IconSafe,

@@ -235,18 +235,20 @@
 
 <script setup lang="ts">
 import {
-  IconClose,
-  IconDelete,
   IconFile,
   IconFolder,
   IconPoweroff,
   IconSettings,
-  IconStop,
 } from '@arco-design/web-vue/es/icon';
+import { defineAsyncComponent } from 'vue';
 import { PET_ACTION_OPTIONS } from '@/components/pet-view/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
-import SettingsView from '@/components/settings-view';
 import DeleteBinIcon from '../delete-bin-icon.vue';
+
+// 设置页仅在用户首次打开时加载，减少桌宠首屏脚本的解析与执行量。
+const SettingsView = defineAsyncComponent(
+  () => import('@/components/settings-view'),
+);
 
 const actionIcons = {
   file: IconFile,

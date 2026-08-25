@@ -119,11 +119,6 @@
 
 <script setup lang="ts">
 import { useVirtualizer } from '@tanstack/vue-virtual';
-import {
-  IconCheckCircle,
-  IconCloseCircle,
-  IconDelete,
-} from '@arco-design/web-vue/es/icon';
 import { computed, nextTick, ref, watch } from 'vue';
 import type { ShredLog } from '@/type';
 import emptyIllustration from '@/styles/icons/empty.svg';

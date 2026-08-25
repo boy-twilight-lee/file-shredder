@@ -54,7 +54,9 @@ let isShredding = false;
 let activeShredController: AbortController | null = null;
 let launchTimer: NodeJS.Timeout | undefined;
 let petFadeTimer: NodeJS.Timeout | undefined;
+let startupMaintenanceTimer: NodeJS.Timeout | undefined;
 let queuedLaunchPaths: string[] = [];
+let shouldOpenSettingsOnReady = false;
 type PetBubblePlacement = 'left' | 'right';
 interface PetImageTemplate {
   id: string;
@@ -1016,17 +1018,51 @@ function createTray(): void {
   tray.setContextMenu(process.platform === 'darwin' ? null : buildTrayMenu());
 }
 
+function handleSecondInstance(argv: string[]): void {
+  const launchPaths = parseLaunchPaths(argv);
+  if (launchPaths.length > 0) {
+    queueLaunchPaths(launchPaths);
+    return;
+  }
+  // 登录启动产生的重复实例保持静默，用户主动再次启动时唤醒已有设置界面。
+  if (argv.includes('--background')) return;
+  if (!petWindow) {
+    shouldOpenSettingsOnReady = true;
+    return;
+  }
+  showSettingsBubble();
+}
+
+async function runStartupMaintenance(): Promise<void> {
+  // 兼容迁移和系统集成会触发磁盘及注册表 I/O，延后执行以免阻塞首屏。
+  if (currentSettings.launchAtLogin) applyLoginSetting(true);
+  await migrateLegacyPetImage();
+  if (process.platform !== 'win32') return;
+  await updateContextMenuIcon(getWindowsIconPath());
+  const contextMenuInstalled =
+    await isContextMenuInstalled(getExecutablePath());
+  if (contextMenuInstalled)
+    await installContextMenu(getExecutablePath(), getWindowsIconPath());
+  currentSettings = await store.updateSettings({
+    contextMenuInstalled,
+    contextMenuAutoInstall: false,
+  });
+}
+
+function scheduleStartupMaintenance(): void {
+  startupMaintenanceTimer = setTimeout(() => {
+    runStartupMaintenance().catch((error: unknown) => {
+      console.error('Startup maintenance failed:', error);
+    });
+  }, 1000);
+}
+
 const singleInstance = app.requestSingleInstanceLock();
 if (!singleInstance) app.quit();
 else {
-  app.on('second-instance', (_event, argv) =>
-    queueLaunchPaths(parseLaunchPaths(argv)),
-  );
+  app.on('second-instance', (_event, argv) => handleSecondInstance(argv));
   app.whenReady().then(async () => {
     currentSettings = await store.getSettings();
-    // 每次启动都修复已启用的注册项，覆盖旧版本可能写入的 electron.exe 错误命令。
-    if (currentSettings.launchAtLogin) applyLoginSetting(true);
-    await migrateLegacyPetImage();
     createPetWindow();
     onWindowDrag();
     screen.on('display-removed', restorePetPosition);
@@ -1038,23 +1074,12 @@ else {
       });
       registerShortcut(currentSettings.shortcut);
     }
-
-    // 资源管理器右键菜单仅由设置项控制，启动时只同步真实状态。
-    if (process.platform === 'win32')
-      await updateContextMenuIcon(getWindowsIconPath());
-    const contextMenuInstalled =
-      process.platform === 'win32'
-        ? await isContextMenuInstalled(getExecutablePath())
-        : false;
-    // 已安装的菜单在启动时重写一次图标值，确保升级图标后立即同步到资源管理器。
-    if (process.platform === 'win32' && contextMenuInstalled) {
-      await installContextMenu(getExecutablePath(), getWindowsIconPath());
-    }
-    currentSettings = await store.updateSettings({
-      contextMenuInstalled,
-      contextMenuAutoInstall: false,
-    });
     queueLaunchPaths(parseLaunchPaths(process.argv));
+    if (shouldOpenSettingsOnReady) {
+      shouldOpenSettingsOnReady = false;
+      showSettingsBubble();
+    }
+    scheduleStartupMaintenance();
   });
 }
 
@@ -1336,6 +1361,7 @@ ipcMain.handle('app:cleanup-exit', async () => {
 app.on('window-all-closed', () => undefined);
 app.on('will-quit', () => {
   clearTimeout(launchTimer);
+  clearTimeout(startupMaintenanceTimer);
   clearInterval(petFadeTimer);
   globalShortcut.unregisterAll();
 });
