@@ -1,4 +1,4 @@
-import type { ShredProgress, ShredSummary } from '@/type';
+import type { ShredProgress, ShredSummary, ShredTarget } from '@/type';
 
 export type PetState = 'idle' | 'working' | 'success' | 'failure';
 export type PetBubbleMode =
@@ -32,7 +32,7 @@ export interface PetViewContext {
   bubbleElement: Ref<HTMLElement | null>;
   bubbleMode: Ref<PetBubbleMode>;
   bubblePlacement: Ref<PetBubblePlacement>;
-  selectedPaths: Ref<string[]>;
+  selectedTargets: Ref<ShredTarget[]>;
   progress: Ref<ShredProgress | null>;
   progressPercent: Ref<number>;
   displayedFileIndex: Ref<number>;

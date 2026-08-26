@@ -28,7 +28,6 @@ declare module 'vue' {
     IconApps: typeof import('@arco-design/web-vue/es/icon')['IconApps']
     IconCheck: typeof import('@arco-design/web-vue/es/icon')['IconCheck']
     IconCheckCircle: typeof import('@arco-design/web-vue/es/icon')['IconCheckCircle']
-    IconClose: typeof import('@arco-design/web-vue/es/icon')['IconClose']
     IconCloseCircle: typeof import('@arco-design/web-vue/es/icon')['IconCloseCircle']
     IconDelete: typeof import('@arco-design/web-vue/es/icon')['IconDelete']
     IconHistory: typeof import('@arco-design/web-vue/es/icon')['IconHistory']

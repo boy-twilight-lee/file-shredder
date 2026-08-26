@@ -8,16 +8,25 @@
         `pet-view-bubble-${bubblePlacement}`,
         {
           'pet-view-bubble-drop': bubbleMode === 'drop',
+          'pet-view-bubble-actions': bubbleMode === 'actions',
+          'pet-view-bubble-confirm': bubbleMode === 'confirm',
           'pet-view-bubble-progress': bubbleMode === 'progress',
           'pet-view-bubble-settings': bubbleMode === 'settings',
         },
       ]"
     >
       <template v-if="bubbleMode === 'actions'">
-        <strong class="pet-view-bubble-title">请选择操作</strong>
-        <p class="pet-view-bubble-description">
-          文件或文件夹也可以直接拖到我身上。
-        </p>
+        <header class="pet-view-home-header">
+          <img
+            class="pet-view-home-avatar"
+            :src="appIconSource"
+            alt="文件粉碎精灵"
+          />
+          <span class="pet-view-home-heading">
+            <strong>文件粉碎精灵</strong>
+            <small>安全、彻底地清理文件</small>
+          </span>
+        </header>
         <div
           class="pet-view-actions"
           role="menu"
@@ -26,7 +35,7 @@
             v-for="item in PET_ACTION_OPTIONS"
             :key="item.key"
             class="pet-view-action"
-            :class="{ 'pet-view-action-close': item.key === 'close' }"
+            :class="`pet-view-action-${item.tone}`"
             type="button"
             role="menuitem"
             @click="handleAction(item.key)"
@@ -38,11 +47,19 @@
               />
             </span>
             <span class="pet-view-action-content">
-              <strong>{{ item.title }}</strong>
+              <span class="pet-view-action-heading">
+                <strong>{{ item.title }}</strong>
+                <small class="pet-view-action-badge">{{ item.badge }}</small>
+              </span>
               <small>{{ item.description }}</small>
             </span>
+            <icon-right class="pet-view-action-chevron" />
           </button>
         </div>
+        <footer class="pet-view-home-tip">
+          <span class="pet-view-home-tip-icon"><icon-heart-fill /></span>
+          <span>小贴士：文件或文件夹也可以直接拖到我身上。</span>
+        </footer>
       </template>
 
       <settings-view
@@ -51,55 +68,80 @@
       />
 
       <template v-else-if="bubbleMode === 'confirm'">
-        <strong class="pet-view-bubble-title">确定永久粉碎吗？</strong>
-        <p class="pet-view-bubble-description">
-          共 {{ selectedPaths.length }} 项，此操作不可撤销。
-        </p>
+        <header class="pet-view-confirm-heading">
+          <span class="pet-view-confirm-heading-content">
+            <strong>确定永久粉碎吗？</strong>
+            <small>
+              共 {{ selectedTargets.length }} 项，此操作<span>不可撤销</span>。
+            </small>
+          </span>
+        </header>
         <a-scrollbar
           class="pet-view-target-scrollbar-container"
           outer-class="pet-view-target-scrollbar"
-          outer-style="max-height: 264px"
+          outer-style="max-height: 366px"
           disable-horizontal
         >
           <div class="pet-view-target-list">
             <div
-              v-for="path in selectedPaths"
-              :key="path"
+              v-for="target in selectedTargets"
+              :key="target.path"
               class="pet-view-target-card"
             >
               <span
-                class="pet-view-target-path"
-                :title="path"
-                >{{ getTargetName(path) }}</span
+                class="pet-view-target-icon-wrap"
+                :class="`pet-view-target-icon-wrap-${target.targetType}`"
               >
+                <component
+                  :is="
+                    target.targetType === 'directory' ? IconFolder : IconFile
+                  "
+                  class="pet-view-target-icon"
+                />
+              </span>
+              <span class="pet-view-target-content">
+                <strong
+                  class="pet-view-target-path"
+                  :title="target.path"
+                  >{{ getTargetName(target.path) }}</strong
+                >
+                <small>{{
+                  target.size === null ? '未知' : formatFileSize(target.size)
+                }}</small>
+              </span>
               <a-button
                 class="pet-view-target-remove"
                 type="text"
                 size="small"
                 status="danger"
                 title="移除"
-                :aria-label="`移除 ${path}`"
-                @click.stop="removeTarget(path)"
+                :aria-label="`移除 ${target.path}`"
+                @click.stop="removeTarget(target.path)"
               >
                 <template #icon><icon-delete /></template>
               </a-button>
             </div>
           </div>
         </a-scrollbar>
+        <div class="pet-view-confirm-warning">
+          <icon-exclamation-circle-fill />
+          <span>粉碎后将无法找回，请确认文件已备份。</span>
+        </div>
         <div class="pet-view-bubble-footer pet-view-confirm-actions">
-          <a-link
-            class="pet-view-confirm-link"
+          <a-button
+            type="outline"
+            size="small"
             @click="closeBubble"
-            ><icon-close />取消</a-link
+            >取消</a-button
           >
-          <a-link
-            class="pet-view-confirm-link"
-            status="danger"
+          <a-button
+            type="primary"
+            size="small"
             :loading="isSubmitting"
             @click="confirmShred"
           >
-            <icon-delete />粉碎
-          </a-link>
+            确定
+          </a-button>
         </div>
       </template>
 
@@ -120,21 +162,29 @@
           :class="`pet-view-progress-panel-${progressTone.tone}`"
         >
           <div class="pet-view-progress-summary">
-            <span><icon-delete />正在安全删除</span>
-            <strong
-              >{{ displayedFileIndex }} /
-              {{ progress?.fileCount ?? 1 }} 个文件</strong
-            >
+            <span class="pet-view-progress-status">
+              <span class="pet-view-progress-status-icon"><icon-delete /></span>
+              <strong>正在安全删除</strong>
+            </span>
+            <span class="pet-view-progress-count">
+              <strong>{{ displayedFileIndex }}</strong>
+              <span>/ {{ progress?.fileCount ?? 1 }} 个文件</span>
+            </span>
           </div>
           <!-- 当前文件仅展示名称，完整路径通过 title 保留，避免长路径撑高气泡。 -->
           <div
             class="pet-view-progress-current-file"
             :title="progress?.path"
           >
-            <icon-file />
-            <span>{{
-              progress?.path ? getTargetName(progress.path) : '正在准备目标'
-            }}</span>
+            <span class="pet-view-progress-current-file-icon">
+              <icon-file />
+            </span>
+            <span class="pet-view-progress-current-file-content">
+              <small>当前文件</small>
+              <strong>{{
+                progress?.path ? getTargetName(progress.path) : '正在准备目标'
+              }}</strong>
+            </span>
           </div>
           <!-- 横向进度条统一表达整个任务的完成度。 -->
           <div
@@ -235,11 +285,15 @@
 
 <script setup lang="ts">
 import {
+  IconExclamationCircleFill,
   IconFile,
   IconFolder,
+  IconHeartFill,
   IconPoweroff,
+  IconRight,
   IconSettings,
 } from '@arco-design/web-vue/es/icon';
+import appIconSource from '@/assets/app-icon.png';
 import { PET_ACTION_OPTIONS } from '@/components/pet-view/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import DeleteBinIcon from '../delete-bin-icon.vue';
@@ -256,11 +310,20 @@ const actionIcons = {
   close: IconPoweroff,
 };
 
+function formatFileSize(size: number): string {
+  // 仅格式化主进程已返回的字节数，避免渲染列表时再次访问文件系统。
+  if (size < 1024) return `${size} B`;
+  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
+  if (size < 1024 * 1024 * 1024)
+    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
+  return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
+}
+
 const {
   bubbleElement,
   bubbleMode,
   bubblePlacement,
-  selectedPaths,
+  selectedTargets,
   progress,
   progressPercent,
   displayedFileIndex,

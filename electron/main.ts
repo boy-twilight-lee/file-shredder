@@ -53,7 +53,7 @@ let launchTimer: NodeJS.Timeout | undefined;
 let petFadeTimer: NodeJS.Timeout | undefined;
 let startupMaintenanceTimer: NodeJS.Timeout | undefined;
 let queuedLaunchPaths: string[] = [];
-let shouldOpenSettingsOnReady = false;
+let shouldShowPetOnReady = false;
 type PetBubblePlacement = 'left' | 'right';
 interface PetImageTemplate {
   id: string;
@@ -66,6 +66,7 @@ interface PetImageTemplate {
 interface ShredTargetMetadata {
   path: string;
   targetType: 'file' | 'directory';
+  size: number | null;
 }
 
 const BUILT_IN_PET_IMAGES = [
@@ -736,10 +737,12 @@ async function getShredTargetMetadata(
   return Promise.all(
     paths.map(async (path) => {
       const stats = await lstat(path);
+      const isDirectory = stats.isDirectory() && !stats.isSymbolicLink();
       return {
         path,
-        targetType:
-          stats.isDirectory() && !stats.isSymbolicLink() ? 'directory' : 'file',
+        targetType: isDirectory ? 'directory' : 'file',
+        // 复用类型识别所需的 lstat 结果，不为列表大小增加额外磁盘访问。
+        size: isDirectory ? null : stats.size,
       };
     }),
   );
@@ -822,8 +825,10 @@ async function normalizeTargets(paths: string[]): Promise<string[]> {
 }
 
 async function requestPetConfirmation(paths: string[]): Promise<void> {
-  const targets = await normalizeTargets(paths);
-  if (targets.length === 0) return;
+  const normalizedPaths = await normalizeTargets(paths);
+  if (normalizedPaths.length === 0) return;
+  // 在主进程读取真实文件类型，避免渲染进程根据扩展名误判文件夹。
+  const targets = await getShredTargetMetadata(normalizedPaths);
   showPet();
   setPetExpanded(true);
   petWindow?.webContents.send('pet:confirm', targets, currentSettings.passes);
@@ -993,13 +998,13 @@ function handleSecondInstance(argv: string[]): void {
     queueLaunchPaths(launchPaths);
     return;
   }
-  // 登录启动产生的重复实例保持静默，用户主动再次启动时唤醒已有设置界面。
+  // 登录启动产生的重复实例保持静默，用户主动再次启动时只唤醒桌宠本体。
   if (argv.includes('--background')) return;
   if (!petWindow) {
-    shouldOpenSettingsOnReady = true;
+    shouldShowPetOnReady = true;
     return;
   }
-  showSettingsBubble();
+  showPet();
 }
 
 async function runStartupMaintenance(): Promise<void> {
@@ -1043,9 +1048,9 @@ else {
       registerShortcut(currentSettings.shortcut);
     }
     queueLaunchPaths(parseLaunchPaths(process.argv));
-    if (shouldOpenSettingsOnReady) {
-      shouldOpenSettingsOnReady = false;
-      showSettingsBubble();
+    if (shouldShowPetOnReady) {
+      shouldShowPetOnReady = false;
+      showPet();
     }
     scheduleStartupMaintenance();
   });
@@ -1062,7 +1067,8 @@ ipcMain.handle('targets:choose', async (_event, kind: 'file' | 'directory') => {
 ipcMain.handle('shred:prepare', async (_event, paths: unknown) => {
   if (!Array.isArray(paths) || !paths.every((item) => typeof item === 'string'))
     throw new Error('无效的路径参数');
-  return normalizeTargets(paths);
+  const normalizedPaths = await normalizeTargets(paths);
+  return getShredTargetMetadata(normalizedPaths);
 });
 ipcMain.handle(
   'shred:start',

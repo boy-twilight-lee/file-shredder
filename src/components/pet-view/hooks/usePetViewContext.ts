@@ -14,7 +14,7 @@ import type {
   PetState,
   PetViewContext,
 } from '../type';
-import type { ShredProgress, ShredSummary } from '@/type';
+import type { ShredProgress, ShredSummary, ShredTarget } from '@/type';
 import { PET_CLICK_DRAG_THRESHOLD, PROGRESS_TONE_OPTIONS } from '../constants';
 
 const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
@@ -25,7 +25,7 @@ const PET_VIEW_DEFAULTS = {
   petState: 'idle' as PetState,
   bubbleMode: 'hidden' as PetBubbleMode,
   bubblePlacement: 'left' as PetBubblePlacement,
-  selectedPaths: [] as string[],
+  selectedTargets: [] as ShredTarget[],
   presetPasses: 3 as 0 | 3 | 7 | 35,
   progress: null as ShredProgress | null,
   progressPercent: 0,
@@ -47,7 +47,9 @@ function createPetViewContext(): PetViewContext {
   const bubblePlacement = ref<PetBubblePlacement>(
     PET_VIEW_DEFAULTS.bubblePlacement,
   );
-  const selectedPaths = ref<string[]>([...PET_VIEW_DEFAULTS.selectedPaths]);
+  const selectedTargets = ref<ShredTarget[]>([
+    ...PET_VIEW_DEFAULTS.selectedTargets,
+  ]);
   const presetPasses = ref<0 | 3 | 7 | 35>(PET_VIEW_DEFAULTS.presetPasses);
   const progress = ref<ShredProgress | null>(PET_VIEW_DEFAULTS.progress);
   const progressPercent = ref<number>(PET_VIEW_DEFAULTS.progressPercent);
@@ -277,16 +279,16 @@ function createPetViewContext(): PetViewContext {
   }
 
   async function prepareTargets(paths: string[]): Promise<void> {
-    const [validPaths, settings] = await Promise.all([
+    const [validTargets, settings] = await Promise.all([
       window.shredderApi.prepareShred(paths),
       window.shredderApi.getSettings(),
     ]);
-    if (validPaths.length === 0) {
+    if (validTargets.length === 0) {
       errorMessage.value = '没有找到可粉碎的文件或文件夹，请检查路径后重试。';
       showBubble('error');
       return;
     }
-    selectedPaths.value = validPaths;
+    selectedTargets.value = validTargets;
     presetPasses.value = settings.passes;
     showBubble('confirm');
   }
@@ -297,9 +299,11 @@ function createPetViewContext(): PetViewContext {
   }
 
   function removeTarget(path: string): void {
-    selectedPaths.value = selectedPaths.value.filter((item) => item !== path);
+    selectedTargets.value = selectedTargets.value.filter(
+      (item) => item.path !== path,
+    );
     // 全部移除后不保留无目标的确认状态，直接返回选择入口。
-    if (selectedPaths.value.length === 0) showBubble('actions');
+    if (selectedTargets.value.length === 0) showBubble('actions');
   }
 
   function getTargetName(path: string): string {
@@ -317,7 +321,7 @@ function createPetViewContext(): PetViewContext {
     showBubble('progress');
     try {
       // Vue 会把 ref 中的数组转为 Proxy；进入 contextBridge 前必须展开为 Electron 可克隆的普通数组。
-      const targets = [...selectedPaths.value];
+      const targets = selectedTargets.value.map((target) => target.path);
       const results = await window.shredderApi.shred(
         targets,
         presetPasses.value,
@@ -418,8 +422,8 @@ function createPetViewContext(): PetViewContext {
       window.shredderApi.onPetState((state) => {
         petState.value = state;
       }),
-      window.shredderApi.onPetConfirm((paths, passes) => {
-        selectedPaths.value = paths;
+      window.shredderApi.onPetConfirm((targets, passes) => {
+        selectedTargets.value = targets;
         presetPasses.value = passes;
         showBubble('confirm');
       }),
@@ -467,7 +471,7 @@ function createPetViewContext(): PetViewContext {
     bubbleElement,
     bubbleMode,
     bubblePlacement,
-    selectedPaths,
+    selectedTargets,
     progress,
     progressPercent,
     displayedFileIndex,

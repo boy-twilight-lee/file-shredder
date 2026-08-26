@@ -22,6 +22,12 @@ export interface ShredSummary {
   cancelled: boolean;
 }
 
+export interface ShredTarget {
+  path: string;
+  targetType: 'file' | 'directory';
+  size: number | null;
+}
+
 export interface PetBubbleBounds {
   x: number;
   y: number;
@@ -82,7 +88,7 @@ export interface ShredLog {
 export interface ShredderApi {
   getPathForFile: (file: File) => string;
   chooseTargets: (kind: 'file' | 'directory') => Promise<string[]>;
-  prepareShred: (paths: string[]) => Promise<string[]>;
+  prepareShred: (paths: string[]) => Promise<ShredTarget[]>;
   shred: (paths: string[], passes: 0 | 3 | 7 | 35) => Promise<ShredResult[]>;
   cancelShred: () => Promise<boolean>;
   installContextMenu: () => Promise<boolean>;
@@ -107,7 +113,7 @@ export interface ShredderApi {
     callback: (state: 'idle' | 'working' | 'success' | 'failure') => void,
   ) => () => void;
   onPetConfirm: (
-    callback: (paths: string[], passes: 0 | 3 | 7 | 35) => void,
+    callback: (targets: ShredTarget[], passes: 0 | 3 | 7 | 35) => void,
   ) => () => void;
   onPetProgress: (callback: (progress: ShredProgress) => void) => () => void;
   onPetComplete: (callback: (summary: ShredSummary) => void) => () => void;

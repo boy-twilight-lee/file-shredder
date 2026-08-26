@@ -1,6 +1,7 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { bindDragEvent } from 'electron-drag-window/renderer';
 import { ElectronDragWindow } from 'electron-drag-window/type';
+import type { ShredTarget } from '../src/type';
 
 window.addEventListener('DOMContentLoaded', () => {
   // 指定整个人物容器为热区，库使用 requestAnimationFrame 平滑驱动主进程窗口移动。
@@ -68,13 +69,13 @@ contextBridge.exposeInMainWorld('shredderApi', {
     return () => ipcRenderer.removeListener('pet:state', listener);
   },
   onPetConfirm: (
-    callback: (paths: string[], passes: 0 | 3 | 7 | 35) => void,
+    callback: (targets: ShredTarget[], passes: 0 | 3 | 7 | 35) => void,
   ) => {
     const listener = (
       _event: Electron.IpcRendererEvent,
-      paths: string[],
+      targets: ShredTarget[],
       passes: 0 | 3 | 7 | 35,
-    ) => callback(paths, passes);
+    ) => callback(targets, passes);
     ipcRenderer.on('pet:confirm', listener);
     return () => ipcRenderer.removeListener('pet:confirm', listener);
   },
