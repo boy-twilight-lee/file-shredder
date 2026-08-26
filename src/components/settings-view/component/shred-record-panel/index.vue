@@ -21,13 +21,22 @@
             : `共 ${filteredLogs.length} 条`
         }}
       </a-checkbox>
-      <a-link
-        status="danger"
+      <a-popconfirm
+        :content="`确定删除选中的 ${selectedLogIds.length} 条粉碎记录吗？`"
+        content-class="settings-view-popconfirm"
+        type="error"
         :disabled="selectedLogIds.length === 0"
-        @click="emit('delete-logs', selectedLogIds)"
+        :ok-button-props="MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS"
+        :cancel-button-props="MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS"
+        @ok="deleteSelectedLogs"
       >
-        <icon-delete />删除
-      </a-link>
+        <a-link
+          status="danger"
+          :disabled="selectedLogIds.length === 0"
+        >
+          <icon-delete />删除
+        </a-link>
+      </a-popconfirm>
     </div>
 
     <div
@@ -121,6 +130,10 @@
 import { useVirtualizer } from '@tanstack/vue-virtual';
 import type { ShredLog } from '@/type';
 import emptyIllustration from '@/styles/icons/empty.svg';
+import {
+  MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
+  MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
+} from '@/components/settings-view/constants';
 import { SHRED_RECORD_ITEM_HEIGHT, SHRED_RECORD_OVERSCAN } from './constants';
 
 const props = defineProps<{ logs: ShredLog[] }>();
@@ -203,6 +216,11 @@ function toggleAllFilteredLogs(
   selectedLogIds.value = selectedLogIds.value.filter(
     (id) => !filteredIdSet.has(id),
   );
+}
+
+function deleteSelectedLogs(): void {
+  // 复制当前选择，避免确认浮层关闭期间的响应式变化影响本次删除目标。
+  emit('delete-logs', [...selectedLogIds.value]);
 }
 
 function formatLogTime(timestamp: string): string {

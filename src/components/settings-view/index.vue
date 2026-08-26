@@ -36,12 +36,12 @@
           :settings="settings"
           :pet-image-templates="petImageTemplates"
           :is-choosing-pet-image="isChoosingPetImage"
+          :on-before-change="updateBooleanSetting"
           @choose-pet-image="choosePetImage"
           @select-pet-image="selectPetImage"
           @delete-pet-image="deletePetImage"
           @update-pet-size="updatePetSize"
           @update-passes="updatePasses"
-          @update-boolean-setting="updateBooleanSetting"
         />
         <shred-record-panel
           v-else
@@ -120,20 +120,25 @@ async function refreshData(): Promise<void> {
   isLoading.value = false;
 }
 
-async function saveSettingsPatch(patch: Partial<AppSettings>): Promise<void> {
+async function saveSettingsPatch(
+  patch: Partial<AppSettings>,
+): Promise<boolean> {
   try {
     settings.value = await window.shredderApi.updateSettings(patch);
+    return true;
   } catch (error) {
     Message.error(error instanceof Error ? error.message : '设置保存失败');
     settings.value = await window.shredderApi.getSettings();
+    return false;
   }
 }
 
 async function updateBooleanSetting(
   key: SettingBooleanKey,
   value: boolean | string | number,
-): Promise<void> {
-  await saveSettingsPatch({ [key]: Boolean(value) });
+): Promise<boolean> {
+  // Switch 等待设置落盘完成后再切换，避免系统操作期间出现状态回跳和重复点击。
+  return saveSettingsPatch({ [key]: Boolean(value) });
 }
 
 async function updatePasses(value: AppSettings['passes']): Promise<void> {
@@ -191,6 +196,7 @@ async function deletePetImage(id: string): Promise<void> {
 async function deleteLogs(ids: Array<string | number>): Promise<void> {
   try {
     logs.value = await window.shredderApi.deleteLogs(ids.map(String));
+    Message.success(`已删除 ${ids.length} 条粉碎记录`);
   } catch (error) {
     Message.error(error instanceof Error ? error.message : '粉碎记录删除失败');
   }
@@ -227,6 +233,13 @@ onBeforeUnmount(() => {
 :global(.settings-view-popconfirm .arco-popconfirm-footer > button) {
   min-width: 72px;
   margin-left: 10px;
+}
+
+// Arco Message 默认覆盖整个透明窗口；设置打开时改为在气泡自身顶部居中。
+:global(html[data-settings-message-aligned='true'] .arco-message-list-top) {
+  top: var(--settings-message-top);
+  left: var(--settings-message-left);
+  width: var(--settings-message-width);
 }
 
 .settings-view {

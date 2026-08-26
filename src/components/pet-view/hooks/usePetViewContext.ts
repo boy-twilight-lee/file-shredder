@@ -3,7 +3,11 @@ import {
   IconClockCircle,
   IconCloseCircleFill,
 } from '@arco-design/web-vue/es/icon';
-import { useEventListener, useResizeObserver } from '@vueuse/core';
+import {
+  useEventListener,
+  useMutationObserver,
+  useResizeObserver,
+} from '@vueuse/core';
 import type {
   PetBubbleMode,
   PetBubblePlacement,
@@ -61,6 +65,7 @@ function createPetViewContext(): PetViewContext {
   );
   let characterPointerStart: { x: number; y: number } | null = null;
   let hasDraggedCharacter = false;
+  let bubbleBoundsFrame = 0;
   const disposers: Array<() => void> = [];
 
   const petAppearanceStyle = computed(() => ({
@@ -165,18 +170,72 @@ function createPetViewContext(): PetViewContext {
     showBubble('hidden');
   }
 
+  function clearSettingsMessagePosition(): void {
+    const rootStyle = document.documentElement.style;
+    delete document.documentElement.dataset.settingsMessageAligned;
+    rootStyle.removeProperty('--settings-message-left');
+    rootStyle.removeProperty('--settings-message-top');
+    rootStyle.removeProperty('--settings-message-width');
+  }
+
+  function updateSettingsMessagePosition(bounds: DOMRect): void {
+    const root = document.documentElement;
+    // Message 挂载在 body 下，需要同步气泡真实边界，避免按透明窗口居中后偏离设置页。
+    root.dataset.settingsMessageAligned = 'true';
+    root.style.setProperty('--settings-message-left', `${bounds.left}px`);
+    root.style.setProperty('--settings-message-top', `${bounds.top + 12}px`);
+    root.style.setProperty('--settings-message-width', `${bounds.width}px`);
+  }
+
+  function getInteractiveBubbleBounds(bounds: DOMRect): {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  } {
+    let left = bounds.left;
+    let top = bounds.top;
+    let right = bounds.right;
+    let bottom = bounds.bottom;
+    // Arco 浮层挂载在 body 下，必须并入窗口热区，否则超出气泡的部分会点击穿透。
+    document
+      .querySelectorAll<HTMLElement>('.arco-trigger-popup')
+      .forEach((popup) => {
+        const popupBounds = popup.getBoundingClientRect();
+        const popupStyle = window.getComputedStyle(popup);
+        if (
+          popupBounds.width <= 0 ||
+          popupBounds.height <= 0 ||
+          popupStyle.display === 'none' ||
+          popupStyle.visibility === 'hidden'
+        )
+          return;
+        left = Math.min(left, popupBounds.left);
+        top = Math.min(top, popupBounds.top);
+        right = Math.max(right, popupBounds.right);
+        bottom = Math.max(bottom, popupBounds.bottom);
+      });
+    return { x: left, y: top, width: right - left, height: bottom - top };
+  }
+
   function reportBubbleBounds(): void {
     if (bubbleMode.value === 'hidden' || !bubbleElement.value) {
+      clearSettingsMessagePosition();
       window.shredderApi.setPetBubbleBounds(null);
       return;
     }
     const bounds = bubbleElement.value.getBoundingClientRect();
-    // 主进程依据气泡真实尺寸切换鼠标穿透，避免动态内容底部无法点击。
-    window.shredderApi.setPetBubbleBounds({
-      x: bounds.x,
-      y: bounds.y,
-      width: bounds.width,
-      height: bounds.height,
+    if (bubbleMode.value === 'settings') updateSettingsMessagePosition(bounds);
+    else clearSettingsMessagePosition();
+    // 主进程依据气泡及其浮层的联合尺寸切换鼠标穿透。
+    window.shredderApi.setPetBubbleBounds(getInteractiveBubbleBounds(bounds));
+  }
+
+  function scheduleBubbleBoundsReport(): void {
+    if (bubbleBoundsFrame) return;
+    bubbleBoundsFrame = requestAnimationFrame(() => {
+      bubbleBoundsFrame = 0;
+      reportBubbleBounds();
     });
   }
 
@@ -338,6 +397,12 @@ function createPetViewContext(): PetViewContext {
 
   // VueUse 负责观察目标切换和组件卸载，避免动态气泡重复绑定原生监听器。
   useResizeObserver(bubbleElement, reportBubbleBounds);
+  useMutationObserver(document.body, scheduleBubbleBoundsReport, {
+    attributes: true,
+    attributeFilter: ['class', 'style'],
+    childList: true,
+    subtree: true,
+  });
   useEventListener(document, 'pointerdown', handleOutsidePointerDown, {
     capture: true,
   });
@@ -389,6 +454,8 @@ function createPetViewContext(): PetViewContext {
   watch([bubbleMode, bubblePlacement], syncBubbleBounds, { flush: 'post' });
 
   onBeforeUnmount(() => {
+    if (bubbleBoundsFrame) cancelAnimationFrame(bubbleBoundsFrame);
+    clearSettingsMessagePosition();
     window.shredderApi.setPetBubbleBounds(null);
     disposers.forEach((dispose) => dispose());
   });

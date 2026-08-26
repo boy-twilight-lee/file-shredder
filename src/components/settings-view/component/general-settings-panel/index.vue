@@ -156,7 +156,7 @@
           </div>
           <a-switch
             :model-value="settings[item.key]"
-            @change="emit('update-boolean-setting', item.key, $event)"
+            :before-change="(value) => onBeforeChange(item.key, value)"
           />
         </div>
       </section>
@@ -188,6 +188,10 @@ defineProps<{
   settings: AppSettings;
   petImageTemplates: PetImageTemplate[];
   isChoosingPetImage: boolean;
+  onBeforeChange: (
+    key: SettingBooleanKey,
+    value: boolean | string | number,
+  ) => Promise<boolean>;
 }>();
 const emit = defineEmits<{
   'choose-pet-image': [];
@@ -195,10 +199,6 @@ const emit = defineEmits<{
   'delete-pet-image': [id: string];
   'update-pet-size': [value: number | undefined];
   'update-passes': [value: AppSettings['passes']];
-  'update-boolean-setting': [
-    key: SettingBooleanKey,
-    value: boolean | string | number,
-  ];
 }>();
 
 function updatePetSizeFromSlider(value: number | [number, number]): void {
