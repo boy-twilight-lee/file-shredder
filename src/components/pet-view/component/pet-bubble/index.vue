@@ -11,6 +11,7 @@
           'pet-view-bubble-actions': bubbleMode === 'actions',
           'pet-view-bubble-confirm': bubbleMode === 'confirm',
           'pet-view-bubble-progress': bubbleMode === 'progress',
+          'pet-view-bubble-result': bubbleMode === 'result',
           'pet-view-bubble-settings': bubbleMode === 'settings',
         },
       ]"
@@ -180,7 +181,6 @@
               <icon-file />
             </span>
             <span class="pet-view-progress-current-file-content">
-              <small>当前文件</small>
               <strong>{{
                 progress?.path ? getTargetName(progress.path) : '正在准备目标'
               }}</strong>
@@ -204,6 +204,10 @@
             <span>总体进度</span>
             <strong>{{ progressPercent }}%</strong>
           </div>
+          <div class="pet-view-progress-security">
+            <icon-safe />
+            <span>安全粉碎 · 后台执行中</span>
+          </div>
         </div>
       </template>
 
@@ -222,12 +226,6 @@
             <small>本次任务结果已汇总</small>
           </span>
         </div>
-        <p
-          v-if="summary?.cancelled"
-          class="pet-view-result-warning"
-        >
-          已停止后续处理，当前文件可能已经部分覆写。
-        </p>
         <!-- 固定三列可避免大批量任务的结果卡片纵向膨胀。 -->
         <div class="pet-view-result-metrics">
           <div
@@ -243,14 +241,46 @@
             ]"
           >
             <span class="pet-view-result-metric-heading">
-              <component
-                :is="metric.icon"
+              <img
                 class="pet-view-result-metric-icon"
+                :src="metric.icon"
+                alt=""
+                aria-hidden="true"
+                draggable="false"
               />
               <small>{{ metric.label }}</small>
             </span>
             <strong :title="String(metric.value)">{{ metric.value }}</strong>
+            <img
+              class="pet-view-result-metric-background-icon"
+              :src="metric.backgroundIcon"
+              alt=""
+              aria-hidden="true"
+              draggable="false"
+            />
           </div>
+        </div>
+        <!-- 结果提示根据最终状态提供对应的后续建议。 -->
+        <div
+          class="pet-view-result-tip"
+          :class="
+            summary?.cancelled
+              ? 'pet-view-result-tip-cancelled'
+              : summary?.failed
+                ? 'pet-view-result-tip-failure'
+                : 'pet-view-result-tip-success'
+          "
+        >
+          <icon-info-circle />
+          <span>
+            {{
+              summary?.cancelled
+                ? '任务已停止，当前文件可能已经部分覆写。'
+                : summary?.failed
+                  ? '失败文件已保留，请检查占用状态后重新尝试。'
+                  : '文件已安全粉碎，无法通过常规方式恢复。'
+            }}
+          </span>
         </div>
         <div class="pet-view-result-footer">
           <a-link
@@ -289,8 +319,10 @@ import {
   IconFile,
   IconFolder,
   IconHeartFill,
+  IconInfoCircle,
   IconPoweroff,
   IconRight,
+  IconSafe,
   IconSettings,
 } from '@arco-design/web-vue/es/icon';
 import appIconSource from '@/assets/app-icon.png';

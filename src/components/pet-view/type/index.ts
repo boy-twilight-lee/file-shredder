@@ -21,7 +21,8 @@ export interface PetResultMetric {
   key: string;
   label: string;
   value: string | number;
-  icon: Component;
+  icon: string;
+  backgroundIcon: string;
   tone: string;
 }
 

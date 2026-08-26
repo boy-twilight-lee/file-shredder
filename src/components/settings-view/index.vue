@@ -251,6 +251,7 @@ onBeforeUnmount(() => {
   background: #f5f7fa;
 
   .settings-view-header {
+    position: relative;
     display: flex;
     flex: 0 0 auto;
     align-items: center;
@@ -347,6 +348,10 @@ onBeforeUnmount(() => {
   }
 
   .settings-view-back {
+    position: absolute;
+    z-index: 1;
+    top: 50%;
+    left: 12px;
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
@@ -360,6 +365,7 @@ onBeforeUnmount(() => {
     font-size: 15px;
     background: transparent;
     cursor: pointer;
+    transform: translateY(-50%);
 
     &:hover {
       color: #244fd6;

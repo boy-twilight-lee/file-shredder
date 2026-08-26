@@ -1,4 +1,9 @@
 .pet-view-bubble {
+  &.pet-view-bubble-result {
+    width: 344px;
+    padding: 14px;
+  }
+
   .pet-view-result-title {
     display: flex;
     align-items: center;
@@ -23,28 +28,56 @@
     }
   }
 
-  .pet-view-result-warning {
-    margin: 8px 2px 0;
+  .pet-view-result-tip {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    margin: 0 0 10px;
     padding: 6px 8px;
+    border: 1px solid transparent;
     border-radius: 8px;
-    color: #86909c;
     font-size: 10px;
-    line-height: 1.5;
-    background: #f7f8fa;
+    line-height: 16px;
+
+    > svg {
+      flex: 0 0 auto;
+      font-size: 13px;
+    }
+  }
+
+  .pet-view-result-tip-success {
+    border-color: rgba(0, 168, 84, 0.14);
+    color: #008f49;
+    background: #f2fbf5;
+  }
+
+  .pet-view-result-tip-failure {
+    border-color: rgba(245, 63, 63, 0.14);
+    color: #d9363e;
+    background: #fff3f3;
+  }
+
+  .pet-view-result-tip-cancelled {
+    border-color: rgba(255, 125, 0, 0.16);
+    color: #d46b08;
+    background: #fff7e8;
   }
 
   .pet-view-result-metrics {
     display: grid;
     grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 6px;
+    gap: 8px;
     margin: 12px 0 10px;
   }
 
   .pet-view-result-metric {
+    position: relative;
     display: grid;
     min-width: 0;
-    gap: 6px;
-    padding: 9px 8px 8px;
+    min-height: 78px;
+    gap: 8px;
+    padding: 11px 10px 10px;
+    overflow: hidden;
     border: 1px solid transparent;
     border-radius: 11px;
     background: #f7f8fa;
@@ -52,16 +85,18 @@
     small {
       overflow: hidden;
       color: #86909c;
-      font-size: 10px;
+      font-size: 11px;
       line-height: 1.3;
       text-overflow: ellipsis;
       white-space: nowrap;
     }
 
     strong {
+      position: relative;
+      z-index: 1;
       overflow: hidden;
       color: #1d2129;
-      font-size: 17px;
+      font-size: 20px;
       font-variant-numeric: tabular-nums;
       font-weight: 650;
       letter-spacing: -0.5px;
@@ -72,6 +107,8 @@
   }
 
   .pet-view-result-metric-heading {
+    position: relative;
+    z-index: 1;
     display: flex;
     min-width: 0;
     align-items: center;
@@ -79,32 +116,51 @@
   }
 
   .pet-view-result-metric-icon {
+    display: block;
     flex: 0 0 auto;
-    font-size: 12px;
+    width: 15px;
+    height: 15px;
+    object-fit: contain;
+  }
+
+  .pet-view-result-metric-background-icon {
+    position: absolute;
+    right: -12px;
+    bottom: -14px;
+    width: 46px;
+    height: 46px;
+    object-fit: contain;
+    opacity: 0.08;
+    pointer-events: none;
   }
 
   .pet-view-result-metric-success {
     color: #00a854;
     border-color: rgba(0, 168, 84, 0.1);
-    background: #f2fbf5;
+    background: linear-gradient(145deg, #f8fdf9, #effaf3);
   }
 
   .pet-view-result-metric-failure {
     color: #f53f3f;
     border-color: rgba(245, 63, 63, 0.1);
-    background: #fff3f3;
+    background: linear-gradient(145deg, #fffafa, #fff0f0);
   }
 
   .pet-view-result-metric-duration {
     color: #165dff;
     border-color: rgba(22, 93, 255, 0.1);
-    background: #f2f6ff;
+    background: linear-gradient(145deg, #f9fbff, #eef4ff);
   }
 
   .pet-view-result-metric-muted {
     border-color: #eef0f3;
     color: #86909c;
     background: #f7f8fa;
+
+    .pet-view-result-metric-icon,
+    .pet-view-result-metric-background-icon {
+      filter: grayscale(1);
+    }
   }
 
   .pet-view-result-footer {

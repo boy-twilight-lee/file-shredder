@@ -1,9 +1,4 @@
 import {
-  IconCheckCircleFill,
-  IconClockCircle,
-  IconCloseCircleFill,
-} from '@arco-design/web-vue/es/icon';
-import {
   useEventListener,
   useMutationObserver,
   useResizeObserver,
@@ -15,6 +10,11 @@ import type {
   PetViewContext,
 } from '../type';
 import type { ShredProgress, ShredSummary, ShredTarget } from '@/type';
+import resultCheckIcon from '@/assets/icons/result-check-filled.svg';
+import resultClockIcon from '@/assets/icons/result-clock.svg';
+import resultCloseIcon from '@/assets/icons/result-close-filled.svg';
+import resultFileIcon from '@/assets/icons/result-file.svg';
+import resultWarningIcon from '@/assets/icons/result-warning.svg';
 import { PET_CLICK_DRAG_THRESHOLD, PROGRESS_TONE_OPTIONS } from '../constants';
 
 const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
@@ -91,26 +91,30 @@ function createPetViewContext(): PetViewContext {
     return `${minutes} min ${seconds} s`;
   });
 
+  // 结果图标本地化保存，确保离线运行时也能保持一致视觉。
   const resultMetrics = computed(() => [
     {
       key: 'succeeded',
       label: '已删文件',
       value: summary.value?.succeeded ?? 0,
-      icon: IconCheckCircleFill,
+      icon: resultCheckIcon,
+      backgroundIcon: resultFileIcon,
       tone: 'success',
     },
     {
       key: 'failed',
       label: '删除失败',
       value: summary.value?.failed ?? 0,
-      icon: IconCloseCircleFill,
+      icon: resultCloseIcon,
+      backgroundIcon: resultWarningIcon,
       tone: 'failure',
     },
     {
       key: 'duration',
       label: '处理时间',
       value: formattedDuration.value,
-      icon: IconClockCircle,
+      icon: resultClockIcon,
+      backgroundIcon: resultClockIcon,
       tone: 'duration',
     },
   ]);
