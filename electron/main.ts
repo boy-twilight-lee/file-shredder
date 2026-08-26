@@ -74,11 +74,6 @@ const BUILT_IN_PET_IMAGES = [
     name: '敖隐',
     fileName: 'ao-yin.webp',
   },
-  {
-    id: 'built-in-sun-shangxiang',
-    name: '孙尚香',
-    fileName: 'sun-shangxiang.webp',
-  },
 ] as const;
 // 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
 const PET_WINDOW_SIZE = { width: 960, height: 1160 };
