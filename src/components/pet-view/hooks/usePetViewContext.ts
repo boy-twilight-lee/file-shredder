@@ -10,11 +10,6 @@ import type {
   PetViewContext,
 } from '../type';
 import type { ShredProgress, ShredSummary, ShredTarget } from '@/type';
-import resultCheckIcon from '@/assets/icons/result-check-filled.svg';
-import resultClockIcon from '@/assets/icons/result-clock.svg';
-import resultCloseIcon from '@/assets/icons/result-close-filled.svg';
-import resultFileIcon from '@/assets/icons/result-file.svg';
-import resultWarningIcon from '@/assets/icons/result-warning.svg';
 import { PET_CLICK_DRAG_THRESHOLD, PROGRESS_TONE_OPTIONS } from '../constants';
 
 const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
@@ -91,30 +86,30 @@ function createPetViewContext(): PetViewContext {
     return `${minutes} min ${seconds} s`;
   });
 
-  // 结果图标本地化保存，确保离线运行时也能保持一致视觉。
+  // 图标名对应本地 SVG 文件名，由 SvgIcon 统一渲染并保证离线可用。
   const resultMetrics = computed(() => [
     {
       key: 'succeeded',
       label: '已删文件',
       value: summary.value?.succeeded ?? 0,
-      icon: resultCheckIcon,
-      backgroundIcon: resultFileIcon,
+      icon: 'result-check-filled',
+      backgroundIcon: 'result-file',
       tone: 'success',
     },
     {
       key: 'failed',
       label: '删除失败',
       value: summary.value?.failed ?? 0,
-      icon: resultCloseIcon,
-      backgroundIcon: resultWarningIcon,
+      icon: 'result-close-filled',
+      backgroundIcon: 'result-warning',
       tone: 'failure',
     },
     {
       key: 'duration',
       label: '处理时间',
       value: formattedDuration.value,
-      icon: resultClockIcon,
-      backgroundIcon: resultClockIcon,
+      icon: 'result-clock',
+      backgroundIcon: 'result-clock',
       tone: 'duration',
     },
   ]);

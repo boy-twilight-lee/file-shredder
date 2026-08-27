@@ -26,7 +26,11 @@ describe('AppStore.getSettings', () => {
   it('新用户默认使用极速删除模式', async () => {
     const store = await createStore();
 
-    await expect(store.getSettings()).resolves.toMatchObject({ passes: 0 });
+    await expect(store.getSettings()).resolves.toMatchObject({
+      passes: 0,
+      systemNotifications: true,
+    });
+    await expect(store.getSettings()).resolves.not.toHaveProperty('shortcut');
   });
 });
 

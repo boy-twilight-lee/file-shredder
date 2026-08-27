@@ -37,6 +37,7 @@
     "@vitejs/plugin-vue": "^5.2.1",
     "electron": "^39.8.10",
     "electron-builder": "^25.1.8",
+    "fast-glob": "^3.3.3",
     "less": "^4.2.2",
     "prettier": "^3.9.6",
     "rcedit": "^4.0.1",
@@ -46,6 +47,7 @@
     "vite": "^6.0.5",
     "vite-plugin-electron": "^0.29.0",
     "vite-plugin-electron-renderer": "^0.14.6",
+    "vite-plugin-svg-icons": "^2.0.1",
     "vitest": "^2.1.8",
     "vue-tsc": "^2.2.0"
   },

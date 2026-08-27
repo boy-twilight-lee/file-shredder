@@ -36,11 +36,11 @@ export interface PetBubbleBounds {
 }
 
 export interface AppSettings {
-  shortcut: string;
   passes: 0 | 3 | 7 | 35;
   confirmBeforeShred: boolean;
   alwaysOnTop: boolean;
   launchAtLogin: boolean;
+  systemNotifications: boolean;
   contextMenuInstalled: boolean;
   contextMenuAutoInstall: boolean;
   customPetImagePath: string;
@@ -71,6 +71,7 @@ export type SettingBooleanKey =
   | 'confirmBeforeShred'
   | 'alwaysOnTop'
   | 'launchAtLogin'
+  | 'systemNotifications'
   | 'contextMenuInstalled';
 
 export interface ShredLog {

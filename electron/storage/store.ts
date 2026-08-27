@@ -4,11 +4,11 @@ import { randomUUID } from 'node:crypto';
 import type { App } from 'electron';
 
 export interface AppSettings {
-  shortcut: string;
   passes: 0 | 3 | 7 | 35;
   confirmBeforeShred: boolean;
   alwaysOnTop: boolean;
   launchAtLogin: boolean;
+  systemNotifications: boolean;
   contextMenuInstalled: boolean;
   contextMenuAutoInstall: boolean;
   customPetImagePath: string;
@@ -39,12 +39,13 @@ export interface ShredLog {
 }
 
 const DEFAULT_SETTINGS: AppSettings = {
-  shortcut: 'CommandOrControl+Shift+Delete',
   // 新用户默认使用不覆写数据的极速删除模式。
   passes: 0,
   confirmBeforeShred: true,
   alwaysOnTop: true,
   launchAtLogin: false,
+  // 保留旧版本清理完成后会通知用户的默认行为。
+  systemNotifications: true,
   contextMenuInstalled: false,
   contextMenuAutoInstall: false,
   customPetImagePath: '',
@@ -91,9 +92,10 @@ export class AppStore {
 
   async getSettings(): Promise<AppSettings> {
     const storedSettings = await this.readJson<
-      Partial<AppSettings> & { snapToEdge?: boolean }
+      Partial<AppSettings> & { shortcut?: string; snapToEdge?: boolean }
     >(this.settingsPath, {});
-    // 清除旧版本遗留的吸附选项，后续保存时不会再写回配置文件。
+    // 清除旧版本遗留且界面已不再提供的配置，后续保存时不会再写回。
+    delete storedSettings.shortcut;
     delete storedSettings.snapToEdge;
     return { ...DEFAULT_SETTINGS, ...storedSettings };
   }

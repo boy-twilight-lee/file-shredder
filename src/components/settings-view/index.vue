@@ -73,12 +73,12 @@ import '@arco-design/web-vue/es/message/style/css.js';
 const emit = defineEmits<{ close: [] }>();
 
 const defaultSettings: AppSettings = {
-  shortcut: 'CommandOrControl+Shift+Delete',
   // 设置读取完成前也保持极速删除为默认选中状态。
   passes: 0,
   confirmBeforeShred: true,
   alwaysOnTop: true,
   launchAtLogin: false,
+  systemNotifications: true,
   contextMenuInstalled: false,
   contextMenuAutoInstall: false,
   customPetImagePath: '',

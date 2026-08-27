@@ -168,6 +168,7 @@
 import {
   IconDelete,
   IconMenu,
+  IconNotification,
   IconPoweroff,
   IconPushpin,
   IconSafe,
@@ -223,6 +224,12 @@ const switchOptions: Array<{
     label: '开机自动启动',
     description: '登录 Windows 后自动运行',
     icon: IconPoweroff,
+  },
+  {
+    key: 'systemNotifications',
+    label: '开启系统通知',
+    description: '清理完成后发送结果通知',
+    icon: IconNotification,
   },
   {
     key: 'contextMenuInstalled',

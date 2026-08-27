@@ -241,22 +241,16 @@
             ]"
           >
             <span class="pet-view-result-metric-heading">
-              <img
+              <svg-icon
                 class="pet-view-result-metric-icon"
-                :src="metric.icon"
-                alt=""
-                aria-hidden="true"
-                draggable="false"
+                :name="metric.icon"
               />
               <small>{{ metric.label }}</small>
             </span>
             <strong :title="String(metric.value)">{{ metric.value }}</strong>
-            <img
+            <svg-icon
               class="pet-view-result-metric-background-icon"
-              :src="metric.backgroundIcon"
-              alt=""
-              aria-hidden="true"
-              draggable="false"
+              :name="metric.backgroundIcon"
             />
           </div>
         </div>

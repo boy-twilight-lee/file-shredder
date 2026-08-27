@@ -40,5 +40,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SettingsView: typeof import('./../components/settings-view/index.vue')['default']
     ShredRecordPanel: typeof import('./../components/settings-view/component/shred-record-panel/index.vue')['default']
+    SvgIcon: typeof import('./../components/svg-icon/index.vue')['default']
   }
 }
