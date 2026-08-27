@@ -253,33 +253,35 @@ onBeforeUnmount(() => {
   // 气泡宽度有限，设置项改为适合单列阅读和操作的紧凑布局。
   &:deep(.general-settings-panel) {
     padding: 10px;
-  }
 
-  &:deep(.general-settings-panel .general-settings-panel-card) {
-    padding: 12px;
-  }
+    .general-settings-panel-card {
+      padding: 12px;
+    }
 
-  &:deep(.general-settings-panel-template-list) {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
+    .general-settings-panel-template-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
 
-  &:deep(.general-settings-panel-pet-controls) {
-    gap: 10px;
-  }
+    .general-settings-panel-pet-controls {
+      gap: 10px;
+    }
 
-  &:deep(.general-settings-panel-pet-size-slider) {
-    flex: 1;
-    width: auto;
-    min-width: 0;
-  }
+    .general-settings-panel-pet-size-slider {
+      flex: 1;
+      width: auto;
+      min-width: 0;
+    }
 
-  &:deep(.general-settings-panel-switch-row) {
-    padding: 9px;
-  }
+    .general-settings-panel-switch-row {
+      padding: 9px;
+    }
 
-  &:deep(.general-settings-panel-switch-content span) {
-    font-size: 11px;
-    line-height: 1.4;
+    .general-settings-panel-switch-content {
+      span {
+        font-size: 11px;
+        line-height: 1.4;
+      }
+    }
   }
 }
 </style>

@@ -4,21 +4,25 @@
   min-height: 0;
 
   // 为滚动条保留足够热区，避免窗口缩放时误触。
-  &:deep(.arco-scrollbar-track-direction-vertical) {
-    right: 0;
-    width: 14px;
-  }
+  &:deep(.arco-scrollbar) {
+    .arco-scrollbar-track-direction-vertical {
+      right: 0;
+      width: 14px;
+    }
 
-  &:deep(.arco-scrollbar-thumb-direction-vertical .arco-scrollbar-thumb-bar) {
-    width: 6px;
-    margin: 0 4px;
-    border-radius: 6px;
-  }
+    .arco-scrollbar-thumb-direction-vertical {
+      .arco-scrollbar-thumb-bar {
+        width: 6px;
+        margin: 0 4px;
+        border-radius: 6px;
+      }
+    }
 
-  &:deep(.general-settings-panel-scrollbar-container) {
-    height: 100%;
-    overflow-x: hidden;
-    overflow-y: auto;
+    .general-settings-panel-scrollbar-container {
+      height: 100%;
+      overflow-x: hidden;
+      overflow-y: auto;
+    }
   }
 }
 
@@ -79,7 +83,7 @@
   .general-settings-panel-switch-icon {
     width: 32px;
     height: 32px;
-    margin-top: 0 !important;
+    margin-top: 0;
     border-radius: 9px;
     font-size: 16px;
   }
@@ -108,7 +112,7 @@
     }
   }
 
-  &:deep(.arco-input-wrapper, .arco-btn, .arco-popconfirm) {
+  &:deep(:is(.arco-input-wrapper, .arco-btn, .arco-popconfirm)) {
     border-radius: 9px;
   }
 
@@ -165,12 +169,33 @@
       cursor: wait;
       opacity: 0.65;
     }
-  }
 
-  .general-settings-panel-template-active {
-    border-color: #3564ff;
-    background: #f2f5ff;
-    box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.1);
+    &.general-settings-panel-template-active {
+      border-color: #3564ff;
+      background: #f2f5ff;
+      box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.1);
+    }
+
+    &.general-settings-panel-template-upload {
+      justify-content: center;
+      color: #3564ff;
+      border-style: dashed;
+      background: #fff;
+
+      svg {
+        font-size: 24px;
+      }
+
+      span {
+        font-size: 12px;
+      }
+
+      small {
+        color: #99a1ad;
+        font-size: 9px;
+        white-space: nowrap;
+      }
+    }
   }
 
   .general-settings-panel-template-preview {
@@ -251,27 +276,6 @@
     }
   }
 
-  .general-settings-panel-template-upload {
-    justify-content: center;
-    color: #3564ff;
-    border-style: dashed;
-    background: #fff;
-
-    svg {
-      font-size: 24px;
-    }
-
-    span {
-      font-size: 12px;
-    }
-
-    small {
-      color: #99a1ad;
-      font-size: 9px;
-      white-space: nowrap;
-    }
-  }
-
   .general-settings-panel-pet-controls {
     display: flex;
     align-items: center;
@@ -330,16 +334,16 @@
       border-color: #bed2ff;
       background: #f4f7ff;
     }
-  }
 
-  .general-settings-panel-shred-level-active {
-    border-color: #3564ff;
-    background: #f2f5ff;
-    box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.09);
+    &.general-settings-panel-shred-level-active {
+      border-color: #3564ff;
+      background: #f2f5ff;
+      box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.09);
 
-    .general-settings-panel-shred-level-icon {
-      color: #fff;
-      background: #3564ff;
+      .general-settings-panel-shred-level-icon {
+        color: #fff;
+        background: #3564ff;
+      }
     }
   }
 

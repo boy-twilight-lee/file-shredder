@@ -80,15 +80,14 @@
     gap: 4px;
     font-weight: 500;
     white-space: nowrap;
-  }
 
-  .shred-record-panel-status-success {
-    color: #00a870;
-  }
+    &.shred-record-panel-status-success {
+      color: #00a870;
+    }
 
-  .shred-record-panel-status-failure,
-  .shred-record-panel-result-failure {
-    color: #f53f3f;
+    &.shred-record-panel-status-failure {
+      color: #f53f3f;
+    }
   }
 
   .shred-record-panel-result {
@@ -96,6 +95,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+
+    &.shred-record-panel-result-failure {
+      color: #f53f3f;
+    }
   }
 
   .shred-record-panel-table {

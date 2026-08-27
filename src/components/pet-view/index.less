@@ -5,7 +5,7 @@
   height: 100%;
   margin: 0;
   overflow: hidden;
-  background: transparent !important;
+  background: transparent;
 }
 
 .pet-view {
@@ -26,56 +26,56 @@
     border-radius: 18px;
     transform: translate(-50%, -50%);
     -webkit-app-region: no-drag;
-  }
 
-  .pet-view-character-working,
-  .pet-view-character-success,
-  .pet-view-character-failure {
-    &::before {
-      position: absolute;
-      z-index: 0;
-      top: 50%;
-      left: 50%;
-      width: calc(var(--pet-height) * 0.78);
-      height: calc(var(--pet-height) * 0.78);
-      border: 2px solid var(--pet-wave-color);
-      border-radius: 50%;
-      background: radial-gradient(
-        circle,
-        var(--pet-wave-background) 0%,
-        transparent 70%
-      );
-      box-shadow:
-        0 0 12px var(--pet-wave-shadow),
-        0 0 28px var(--pet-wave-glow),
-        inset 0 0 18px var(--pet-wave-background);
-      content: '';
-      opacity: 0;
-      pointer-events: none;
-      will-change: opacity, transform;
-      animation: pet-ring-wave 1.8s cubic-bezier(0.2, 0.65, 0.3, 1) infinite;
+    &.pet-view-character-working,
+    &.pet-view-character-success,
+    &.pet-view-character-failure {
+      &::before {
+        position: absolute;
+        z-index: 0;
+        top: 50%;
+        left: 50%;
+        width: calc(var(--pet-height) * 0.78);
+        height: calc(var(--pet-height) * 0.78);
+        border: 2px solid var(--pet-wave-color);
+        border-radius: 50%;
+        background: radial-gradient(
+          circle,
+          var(--pet-wave-background) 0%,
+          transparent 70%
+        );
+        box-shadow:
+          0 0 12px var(--pet-wave-shadow),
+          0 0 28px var(--pet-wave-glow),
+          inset 0 0 18px var(--pet-wave-background);
+        content: '';
+        opacity: 0;
+        pointer-events: none;
+        will-change: opacity, transform;
+        animation: pet-ring-wave 1.8s cubic-bezier(0.2, 0.65, 0.3, 1) infinite;
+      }
     }
-  }
 
-  .pet-view-character-working {
-    --pet-wave-color: rgba(126, 211, 255, 0.78);
-    --pet-wave-background: rgba(84, 169, 255, 0.1);
-    --pet-wave-shadow: rgba(126, 211, 255, 0.32);
-    --pet-wave-glow: rgba(40, 120, 255, 0.2);
-  }
+    &.pet-view-character-working {
+      --pet-wave-color: rgba(126, 211, 255, 0.78);
+      --pet-wave-background: rgba(84, 169, 255, 0.1);
+      --pet-wave-shadow: rgba(126, 211, 255, 0.32);
+      --pet-wave-glow: rgba(40, 120, 255, 0.2);
+    }
 
-  .pet-view-character-success {
-    --pet-wave-color: rgba(65, 204, 112, 0.82);
-    --pet-wave-background: rgba(38, 165, 85, 0.11);
-    --pet-wave-shadow: rgba(65, 204, 112, 0.36);
-    --pet-wave-glow: rgba(38, 165, 85, 0.24);
-  }
+    &.pet-view-character-success {
+      --pet-wave-color: rgba(65, 204, 112, 0.82);
+      --pet-wave-background: rgba(38, 165, 85, 0.11);
+      --pet-wave-shadow: rgba(65, 204, 112, 0.36);
+      --pet-wave-glow: rgba(38, 165, 85, 0.24);
+    }
 
-  .pet-view-character-failure {
-    --pet-wave-color: rgba(255, 92, 65, 0.82);
-    --pet-wave-background: rgba(255, 76, 38, 0.1);
-    --pet-wave-shadow: rgba(255, 92, 65, 0.36);
-    --pet-wave-glow: rgba(255, 76, 38, 0.24);
+    &.pet-view-character-failure {
+      --pet-wave-color: rgba(255, 92, 65, 0.82);
+      --pet-wave-background: rgba(255, 76, 38, 0.1);
+      --pet-wave-shadow: rgba(255, 76, 38, 0.36);
+      --pet-wave-glow: rgba(255, 76, 38, 0.24);
+    }
   }
 
   .pet-view-image {
@@ -89,18 +89,18 @@
     // 默认不加轮廓阴影，避免透明边缘在深色桌面上呈现为白底。
     filter: none;
     transition: filter 0.25s ease;
-  }
 
-  .pet-view-image-working {
-    filter: saturate(1.12) drop-shadow(0 0 14px rgba(82, 133, 255, 0.44));
-  }
+    &.pet-view-image-working {
+      filter: saturate(1.12) drop-shadow(0 0 14px rgba(82, 133, 255, 0.44));
+    }
 
-  .pet-view-image-success {
-    filter: drop-shadow(0 0 16px rgba(38, 165, 85, 0.72));
-  }
+    &.pet-view-image-success {
+      filter: drop-shadow(0 0 16px rgba(38, 165, 85, 0.72));
+    }
 
-  .pet-view-image-failure {
-    filter: grayscale(0.55) drop-shadow(0 0 12px rgba(255, 76, 38, 0.5));
+    &.pet-view-image-failure {
+      filter: grayscale(0.55) drop-shadow(0 0 12px rgba(255, 76, 38, 0.5));
+    }
   }
 }
 
