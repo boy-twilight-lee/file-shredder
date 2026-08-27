@@ -13,6 +13,7 @@
           'pet-view-bubble-progress': bubbleMode === 'progress',
           'pet-view-bubble-result': bubbleMode === 'result',
           'pet-view-bubble-settings': bubbleMode === 'settings',
+          'pet-view-bubble-records': bubbleMode === 'records',
         },
       ]"
     >
@@ -65,6 +66,11 @@
 
       <settings-view
         v-else-if="bubbleMode === 'settings'"
+        @close="showBubble('actions')"
+      />
+
+      <shred-record-view
+        v-else-if="bubbleMode === 'records'"
         @close="showBubble('actions')"
       />
 
@@ -313,6 +319,7 @@ import {
   IconFile,
   IconFolder,
   IconHeartFill,
+  IconHistory,
   IconInfoCircle,
   IconPoweroff,
   IconRight,
@@ -328,11 +335,15 @@ import DeleteBinIcon from '../delete-bin-icon.vue';
 const SettingsView = defineAsyncComponent(
   () => import('@/components/settings-view'),
 );
+const ShredRecordView = defineAsyncComponent(
+  () => import('@/components/shred-record-view'),
+);
 
 const actionIcons = {
   file: IconFile,
   directory: IconFolder,
   settings: IconSettings,
+  records: IconHistory,
   close: IconPoweroff,
 };
 
@@ -371,9 +382,13 @@ const {
 async function handleAction(
   key: (typeof PET_ACTION_OPTIONS)[number]['key'],
 ): Promise<void> {
-  // 设置在当前气泡内切换，其余操作继续调用系统文件选择器。
+  // 管理页面在当前气泡内切换，其余操作继续调用系统文件选择器。
   if (key === 'settings') {
     showBubble('settings');
+    return;
+  }
+  if (key === 'records') {
+    showBubble('records');
     return;
   }
   if (key === 'close') {

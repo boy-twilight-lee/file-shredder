@@ -1,29 +1,15 @@
 <template>
   <main class="settings-view">
     <header class="settings-view-header">
-      <button
+      <a-link
         class="settings-view-back"
-        type="button"
         title="返回"
         aria-label="返回操作菜单"
         @click="emit('close')"
       >
         <icon-left />
-      </button>
-      <a-tabs
-        v-model:active-key="activeTab"
-        class="settings-view-tabs"
-        type="capsule"
-        size="small"
-        aria-label="设置导航"
-      >
-        <a-tab-pane key="general">
-          <template #title><icon-apps />常规设置</template>
-        </a-tab-pane>
-        <a-tab-pane key="records">
-          <template #title><icon-history />粉碎记录</template>
-        </a-tab-pane>
-      </a-tabs>
+      </a-link>
+      <h1 class="settings-view-title">常规设置</h1>
     </header>
 
     <a-spin
@@ -32,7 +18,6 @@
     >
       <section class="settings-view-body">
         <general-settings-panel
-          v-if="activeTab === 'general'"
           :settings="settings"
           :pet-image-templates="petImageTemplates"
           :is-choosing-pet-image="isChoosingPetImage"
@@ -43,11 +28,6 @@
           @update-pet-size="updatePetSize"
           @update-passes="updatePasses"
         />
-        <shred-record-panel
-          v-else
-          :logs="logs"
-          @delete-logs="deleteLogs"
-        />
       </section>
     </a-spin>
   </main>
@@ -56,13 +36,8 @@
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';
 import { useDebounceFn } from '@vueuse/core';
-import type {
-  AppSettings,
-  PetImageTemplate,
-  SettingBooleanKey,
-  ShredLog,
-} from '@/type';
-import { GeneralSettingsPanel, ShredRecordPanel } from './component';
+import type { AppSettings, PetImageTemplate, SettingBooleanKey } from '@/type';
+import { GeneralSettingsPanel } from './component';
 import {
   PET_SIZE_MAX,
   PET_SIZE_MIN,
@@ -91,10 +66,8 @@ const defaultSettings: AppSettings = {
 };
 const settings = ref<AppSettings>({ ...defaultSettings });
 const petImageTemplates = ref<PetImageTemplate[]>([]);
-const logs = ref<ShredLog[]>([]);
 const isLoading = ref(true);
 const isChoosingPetImage = ref(false);
-const activeTab = ref<'general' | 'records'>('general');
 const disposers: Array<() => void> = [];
 
 // VueUse 统一管理防抖状态，并暴露 cancel 供组件卸载时取消尚未执行的保存。
@@ -103,20 +76,14 @@ const savePetSize = useDebounceFn(async (value: number) => {
 }, PET_SIZE_SAVE_DELAY_MS);
 
 async function refreshData(): Promise<void> {
-  const [
-    storedSettings,
-    contextMenuInstalled,
-    storedLogs,
-    storedPetImageTemplates,
-  ] = await Promise.all([
-    window.shredderApi.getSettings(),
-    window.shredderApi.getContextMenuStatus(),
-    window.shredderApi.getLogs(),
-    window.shredderApi.getPetImageTemplates(),
-  ]);
+  const [storedSettings, contextMenuInstalled, storedPetImageTemplates] =
+    await Promise.all([
+      window.shredderApi.getSettings(),
+      window.shredderApi.getContextMenuStatus(),
+      window.shredderApi.getPetImageTemplates(),
+    ]);
   settings.value = { ...storedSettings, contextMenuInstalled };
   petImageTemplates.value = storedPetImageTemplates;
-  logs.value = storedLogs;
   isLoading.value = false;
 }
 
@@ -193,21 +160,9 @@ async function deletePetImage(id: string): Promise<void> {
   }
 }
 
-async function deleteLogs(ids: Array<string | number>): Promise<void> {
-  try {
-    logs.value = await window.shredderApi.deleteLogs(ids.map(String));
-    Message.success(`已删除 ${ids.length} 条粉碎记录`);
-  } catch (error) {
-    Message.error(error instanceof Error ? error.message : '粉碎记录删除失败');
-  }
-}
-
 onMounted(async () => {
   await refreshData();
-  disposers.push(
-    window.shredderApi.onSettingsChanged(refreshData),
-    window.shredderApi.onLogsUpdated(refreshData),
-  );
+  disposers.push(window.shredderApi.onSettingsChanged(refreshData));
 });
 
 onBeforeUnmount(() => {
@@ -251,126 +206,39 @@ onBeforeUnmount(() => {
   background: #f5f7fa;
 
   .settings-view-header {
-    position: relative;
     display: flex;
     flex: 0 0 auto;
     align-items: center;
     gap: 8px;
-    padding: 8px 10px 8px 12px;
+    height: 44px;
+    padding: 8px 12px;
     border-bottom: 1px solid #e7ebf0;
     background: #fff;
   }
 
-  .settings-view-tabs {
-    flex: 1;
-    min-width: 0;
-    padding: 0;
-    overflow: visible;
-
-    :deep(.arco-tabs-nav) {
-      margin: 0;
-      padding: 0;
-      border: 0;
-      background: #fff;
-      box-shadow: none;
-    }
-
-    :deep(.arco-tabs-nav::before) {
-      display: none;
-    }
-
-    :deep(
-      .arco-tabs-nav-type-capsule
-        .arco-tabs-nav-tab:not(.arco-tabs-nav-tab-scroll)
-    ) {
-      justify-content: center;
-    }
-
-    :deep(.arco-tabs-nav-tab-list) {
-      display: inline-flex;
-      gap: 2px;
-      padding: 2px;
-      border: 1px solid #e8ebf0;
-      border-radius: 9px;
-      background: #f2f4f7;
-    }
-
-    :deep(.arco-tabs-tab) {
-      height: 28px;
-      padding: 0 11px;
-      border-radius: 6px;
-      color: #66707d;
-      font-size: 12px;
-      line-height: 28px;
-      transition:
-        color 160ms ease,
-        background-color 160ms ease,
-        box-shadow 160ms ease;
-    }
-
-    :deep(
-      .arco-tabs-nav-type-capsule.arco-tabs-nav-horizontal
-        .arco-tabs-tab:not(:first-of-type)
-    ) {
-      margin-left: 0;
-    }
-
-    :deep(.arco-tabs-tab::before) {
-      display: none;
-    }
-
-    :deep(.arco-tabs-tab:hover) {
-      color: #3564ff;
-      background: rgba(255, 255, 255, 0.64);
-    }
-
-    :deep(.arco-tabs-tab-active),
-    :deep(.arco-tabs-tab-active:hover) {
-      color: #244fd6;
-      font-weight: 500;
-      background: #fff;
-      box-shadow: 0 1px 4px rgba(31, 50, 81, 0.12);
-    }
-
-    :deep(.arco-tabs-content) {
-      display: none;
-    }
-
-    :deep(.arco-tabs-tab-title) {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    :deep(.arco-icon) {
-      font-size: 13px;
-    }
-  }
-
   .settings-view-back {
-    position: absolute;
-    z-index: 1;
-    top: 50%;
-    left: 12px;
     display: inline-flex;
     flex: 0 0 auto;
     align-items: center;
     justify-content: center;
-    width: 28px;
-    height: 28px;
     padding: 0;
-    border: 0;
-    border-radius: 8px;
     color: #79828f;
     font-size: 15px;
-    background: transparent;
+    line-height: 1;
     cursor: pointer;
-    transform: translateY(-50%);
 
     &:hover {
       color: #244fd6;
-      background: #f0f3f8;
     }
+  }
+
+  .settings-view-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
   }
 
   .settings-view-content {

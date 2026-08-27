@@ -1,0 +1,78 @@
+:global(*) {
+  box-sizing: border-box;
+}
+
+:global(.shred-record-view-popconfirm) {
+  min-width: 260px;
+  padding: 12px;
+  border-radius: 8px;
+}
+
+:global(.shred-record-view-popconfirm .arco-popconfirm-body) {
+  margin-bottom: 12px;
+}
+
+:global(.shred-record-view-popconfirm .arco-popconfirm-footer > button) {
+  min-width: 64px;
+  margin-left: 6px;
+}
+
+// Arco Message 挂载在 body 下，按当前大弹窗的实际边界居中展示。
+:global(html[data-settings-message-aligned='true'] .arco-message-list-top) {
+  top: var(--settings-message-top);
+  left: var(--settings-message-left);
+  width: var(--settings-message-width);
+}
+
+.shred-record-view {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: #1d2129;
+  background: #f7f8fa;
+
+  .shred-record-view-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e7ebf0;
+    background: #fff;
+  }
+
+  .shred-record-view-back {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #79828f;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      color: #244fd6;
+    }
+  }
+
+  .shred-record-view-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  .shred-record-view-content {
+    display: block;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+  }
+}

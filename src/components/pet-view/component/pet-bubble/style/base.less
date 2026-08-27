@@ -63,6 +63,31 @@
     }
   }
 
+  // 记录页根据桌宠尺寸自适应宽度，并始终停靠在人物左右两侧。
+  &.pet-view-bubble-records {
+    top: 50%;
+    // 表格总宽 804px，加内容区左右内边距 32px 与气泡边框 2px。
+    width: 838px;
+    max-width: calc(50% - var(--pet-width) / 2 - 28px);
+    height: 560px;
+    padding: 0;
+    overflow: hidden;
+    border-radius: 16px;
+    transform: translateY(-50%);
+
+    &.pet-view-bubble-left {
+      right: calc(50% + var(--pet-width) / 2 + 14px);
+      left: auto;
+      transform-origin: right center;
+    }
+
+    &.pet-view-bubble-right {
+      right: auto;
+      left: calc(50% + var(--pet-width) / 2 + 14px);
+      transform-origin: left center;
+    }
+  }
+
   .pet-view-bubble-title {
     display: block;
     color: #0d1014;
@@ -195,6 +220,10 @@
 
   .pet-view-action-purple {
     .pet-view-action-tone(#7a5af8);
+  }
+
+  .pet-view-action-orange {
+    .pet-view-action-tone(#f59e0b);
   }
 
   .pet-view-action-red {

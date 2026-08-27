@@ -12,7 +12,6 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AButton: typeof import('@arco-design/web-vue')['Button']
-    ACheckbox: typeof import('@arco-design/web-vue')['Checkbox']
     AInputNumber: typeof import('@arco-design/web-vue')['InputNumber']
     AInputSearch: typeof import('@arco-design/web-vue')['InputSearch']
     ALink: typeof import('@arco-design/web-vue')['Link']
@@ -21,16 +20,13 @@ declare module 'vue' {
     ASlider: typeof import('@arco-design/web-vue')['Slider']
     ASpin: typeof import('@arco-design/web-vue')['Spin']
     ASwitch: typeof import('@arco-design/web-vue')['Switch']
-    ATabPane: typeof import('@arco-design/web-vue')['TabPane']
-    ATabs: typeof import('@arco-design/web-vue')['Tabs']
+    ATable: typeof import('@arco-design/web-vue')['Table']
     DeleteBinIcon: typeof import('./../components/pet-view/component/delete-bin-icon.vue')['default']
     GeneralSettingsPanel: typeof import('./../components/settings-view/component/general-settings-panel/index.vue')['default']
-    IconApps: typeof import('@arco-design/web-vue/es/icon')['IconApps']
     IconCheck: typeof import('@arco-design/web-vue/es/icon')['IconCheck']
     IconCheckCircle: typeof import('@arco-design/web-vue/es/icon')['IconCheckCircle']
     IconCloseCircle: typeof import('@arco-design/web-vue/es/icon')['IconCloseCircle']
     IconDelete: typeof import('@arco-design/web-vue/es/icon')['IconDelete']
-    IconHistory: typeof import('@arco-design/web-vue/es/icon')['IconHistory']
     IconLeft: typeof import('@arco-design/web-vue/es/icon')['IconLeft']
     IconPlus: typeof import('@arco-design/web-vue/es/icon')['IconPlus']
     IconStop: typeof import('@arco-design/web-vue/es/icon')['IconStop']
@@ -39,7 +35,8 @@ declare module 'vue' {
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
     SettingsView: typeof import('./../components/settings-view/index.vue')['default']
-    ShredRecordPanel: typeof import('./../components/settings-view/component/shred-record-panel/index.vue')['default']
+    ShredRecordPanel: typeof import('./../components/shred-record-view/component/shred-record-panel/index.vue')['default']
+    ShredRecordView: typeof import('./../components/shred-record-view/index.vue')['default']
     SvgIcon: typeof import('./../components/svg-icon/index.vue')['default']
   }
 }

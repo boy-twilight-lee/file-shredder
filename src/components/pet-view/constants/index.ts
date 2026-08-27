@@ -21,6 +21,13 @@ export const PET_ACTION_OPTIONS = [
     tone: 'purple',
   },
   {
+    key: 'records',
+    title: '粉碎记录',
+    description: '查看文件与文件夹的历史清理结果',
+    badge: '历史记录',
+    tone: 'orange',
+  },
+  {
     key: 'close',
     title: '关闭桌宠',
     description: '退出文件粉碎精灵',

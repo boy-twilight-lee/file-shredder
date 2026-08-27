@@ -24,9 +24,9 @@ export interface PetWindowManager {
 type PetBubblePlacement = 'left' | 'right';
 
 // 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
-const PET_WINDOW_SIZE = { width: 960, height: 1160 };
-// 设置是尺寸最大的气泡，主进程按最大边界预判摆放方向和鼠标热区。
-const PET_BUBBLE_SIZE = { width: 360, height: 540 };
+const PET_WINDOW_SIZE = { width: 2240, height: 1160 };
+// 记录表格是尺寸最大的气泡，主进程按其边界选择桌宠旁空间更充足的一侧。
+const PET_BUBBLE_SIZE = { width: 900, height: 560 };
 const PET_SIZE_MIN = 50;
 const PET_SIZE_MAX = 700;
 const PET_FADE_DURATION_MS = 180;

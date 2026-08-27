@@ -1,0 +1,69 @@
+import type {
+  ButtonProps,
+  TableColumnData,
+  TableRowSelection,
+} from '@arco-design/web-vue';
+import type { VirtualListProps } from '@arco-design/web-vue/es/_components/virtual-list-v2/interface';
+
+// 数据列使用固定宽度，确保气泡宽度与单行表格内容精确匹配。
+export const SHRED_RECORD_COLUMNS: TableColumnData[] = [
+  {
+    title: '文件路径',
+    dataIndex: 'path',
+    slotName: 'path-cell',
+    width: 250,
+    ellipsis: true,
+    tooltip: true,
+  },
+  {
+    title: '状态',
+    dataIndex: 'success',
+    slotName: 'status-cell',
+    width: 100,
+  },
+  {
+    title: '处理结果',
+    dataIndex: 'message',
+    slotName: 'result-cell',
+    width: 250,
+    ellipsis: true,
+    tooltip: true,
+  },
+  {
+    title: '粉碎时间',
+    dataIndex: 'timestamp',
+    slotName: 'time-cell',
+    width: 160,
+    ellipsis: true,
+    tooltip: true,
+  },
+];
+
+export const SHRED_RECORD_ROW_SELECTION: TableRowSelection = {
+  type: 'checkbox',
+  showCheckedAll: true,
+  width: 44,
+  fixed: true,
+};
+
+// 横向尺寸等于选择列和所有数据列之和，空间不足时由 Arco 提供横向滚动。
+export const SHRED_RECORD_TABLE_SCROLL = { x: 804, y: 406 };
+export const SHRED_RECORD_TIME_FORMAT = 'YYYY-MM-DD HH:mm';
+
+export const SHRED_RECORD_VIRTUAL_LIST_PROPS: VirtualListProps = {
+  height: 406,
+  threshold: 20,
+  fixedSize: true,
+  estimatedSize: 44,
+  buffer: 8,
+};
+
+// 确认浮层使用中等按钮，适配 PC 端鼠标操作的点击面积。
+export const MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS: ButtonProps = {
+  size: 'medium',
+  type: 'outline',
+};
+export const MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS: ButtonProps = {
+  size: 'medium',
+  type: 'primary',
+};

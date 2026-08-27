@@ -226,7 +226,8 @@ function createPetViewContext(): PetViewContext {
       return;
     }
     const bounds = bubbleElement.value.getBoundingClientRect();
-    if (bubbleMode.value === 'settings') updateSettingsMessagePosition(bounds);
+    if (bubbleMode.value === 'settings' || bubbleMode.value === 'records')
+      updateSettingsMessagePosition(bounds);
     else clearSettingsMessagePosition();
     // 主进程依据气泡及其浮层的联合尺寸切换鼠标穿透。
     window.shredderApi.setPetBubbleBounds(getInteractiveBubbleBounds(bounds));

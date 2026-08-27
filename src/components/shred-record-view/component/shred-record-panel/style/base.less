@@ -1,0 +1,124 @@
+.shred-record-panel {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  height: 100%;
+  padding: 12px 16px 16px;
+  overflow: hidden;
+  background: #fff;
+
+  .shred-record-panel-toolbar {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    min-height: 32px;
+    margin-bottom: 12px;
+  }
+
+  .shred-record-panel-search {
+    width: 248px;
+  }
+
+  .shred-record-panel-summary {
+    margin-left: auto;
+    color: #86909c;
+    font-size: 12px;
+    white-space: nowrap;
+
+    .shred-record-panel-summary-total,
+    .shred-record-panel-summary-selected {
+      font-weight: 500;
+    }
+
+    .shred-record-panel-summary-total {
+      color: #f59e0b;
+    }
+
+    .shred-record-panel-summary-selected {
+      color: #165dff;
+    }
+  }
+
+  .shred-record-panel-toolbar :deep(.arco-btn) {
+    min-width: 92px;
+    height: 32px;
+    margin-left: 14px;
+    padding: 0 12px;
+    border-color: #e5e6eb;
+    border-radius: 6px;
+    font-size: 12px;
+  }
+
+  .shred-record-panel-path {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+    overflow: hidden;
+    color: #1d2129;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+
+    > span {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+  }
+
+  .shred-record-panel-path-icon {
+    flex: 0 0 auto;
+    color: inherit;
+    font-size: 16px;
+    line-height: 1;
+  }
+
+  .shred-record-panel-status {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-weight: 500;
+    white-space: nowrap;
+  }
+
+  .shred-record-panel-status-success {
+    color: #00a870;
+  }
+
+  .shred-record-panel-status-failure,
+  .shred-record-panel-result-failure {
+    color: #f53f3f;
+  }
+
+  .shred-record-panel-result {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shred-record-panel-table time {
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .shred-record-panel-empty {
+    display: flex;
+    width: 100%;
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    color: #99a1ad;
+    font-size: 13px;
+
+    img {
+      width: 184px;
+      height: 172px;
+      margin-bottom: 12px;
+    }
+  }
+}

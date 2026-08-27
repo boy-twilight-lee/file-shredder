@@ -5,6 +5,7 @@ export type PetBubbleMode =
   | 'hidden'
   | 'actions'
   | 'settings'
+  | 'records'
   | 'confirm'
   | 'progress'
   | 'result'
