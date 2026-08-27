@@ -400,5 +400,5 @@ async function handleAction(
 </script>
 
 <style lang="less" scoped>
-@import './style/index.less';
+@import './index.less';
 </style>

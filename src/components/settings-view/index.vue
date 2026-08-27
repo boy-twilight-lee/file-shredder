@@ -172,22 +172,19 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="less" scoped>
-:global(*) {
-  box-sizing: border-box;
-}
 :global(.settings-view-popconfirm) {
   min-width: 272px;
   padding: 18px;
   border-radius: 12px;
-}
 
-:global(.settings-view-popconfirm .arco-popconfirm-body) {
-  margin-bottom: 18px;
-}
+  .arco-popconfirm-body {
+    margin-bottom: 18px;
+  }
 
-:global(.settings-view-popconfirm .arco-popconfirm-footer > button) {
-  min-width: 72px;
-  margin-left: 10px;
+  .arco-popconfirm-footer > button {
+    min-width: 72px;
+    margin-left: 10px;
+  }
 }
 
 // Arco Message 默认覆盖整个透明窗口；设置打开时改为在气泡自身顶部居中。
@@ -254,33 +251,33 @@ onBeforeUnmount(() => {
   }
 
   // 气泡宽度有限，设置项改为适合单列阅读和操作的紧凑布局。
-  :deep(.general-settings-panel) {
+  &:deep(.general-settings-panel) {
     padding: 10px;
   }
 
-  :deep(.general-settings-panel .general-settings-panel-card) {
+  &:deep(.general-settings-panel .general-settings-panel-card) {
     padding: 12px;
   }
 
-  :deep(.general-settings-panel-template-list) {
+  &:deep(.general-settings-panel-template-list) {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
-  :deep(.general-settings-panel-pet-controls) {
+  &:deep(.general-settings-panel-pet-controls) {
     gap: 10px;
   }
 
-  :deep(.general-settings-panel-pet-size-slider) {
+  &:deep(.general-settings-panel-pet-size-slider) {
     flex: 1;
     width: auto;
     min-width: 0;
   }
 
-  :deep(.general-settings-panel-switch-row) {
+  &:deep(.general-settings-panel-switch-row) {
     padding: 9px;
   }
 
-  :deep(.general-settings-panel-switch-content span) {
+  &:deep(.general-settings-panel-switch-content span) {
     font-size: 11px;
     line-height: 1.4;
   }

@@ -13,6 +13,16 @@
     align-items: center;
     min-height: 32px;
     margin-bottom: 12px;
+
+    &:deep(.arco-btn) {
+      min-width: 92px;
+      height: 32px;
+      margin-left: 14px;
+      padding: 0 12px;
+      border-color: #e5e6eb;
+      border-radius: 6px;
+      font-size: 12px;
+    }
   }
 
   .shred-record-panel-search {
@@ -39,16 +49,6 @@
     }
   }
 
-  .shred-record-panel-toolbar :deep(.arco-btn) {
-    min-width: 92px;
-    height: 32px;
-    margin-left: 14px;
-    padding: 0 12px;
-    border-color: #e5e6eb;
-    border-radius: 6px;
-    font-size: 12px;
-  }
-
   .shred-record-panel-path {
     display: flex;
     align-items: center;
@@ -59,7 +59,7 @@
     text-overflow: ellipsis;
     white-space: nowrap;
 
-    > span {
+    & > span {
       display: block;
       overflow: hidden;
       text-overflow: ellipsis;
@@ -98,11 +98,13 @@
     white-space: nowrap;
   }
 
-  .shred-record-panel-table time {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
+  .shred-record-panel-table {
+    time {
+      display: block;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
   }
 
   .shred-record-panel-empty {
