@@ -148,22 +148,29 @@ function scheduleStartupMaintenance(): void {
   }, 1000);
 }
 
+async function initializeApplication(): Promise<void> {
+  currentSettings = await store.getSettings();
+  petWindowManager.create();
+  onWindowDrag();
+  screen.on('display-removed', petWindowManager.restorePosition);
+  screen.on('display-metrics-changed', petWindowManager.restorePosition);
+  queueLaunchPaths(parseLaunchPaths(process.argv));
+  if (shouldShowPetOnReady) {
+    shouldShowPetOnReady = false;
+    petWindowManager.show();
+  }
+  scheduleStartupMaintenance();
+}
+
 const singleInstance = app.requestSingleInstanceLock();
 if (!singleInstance) app.quit();
 else {
   app.on('second-instance', (_event, argv) => handleSecondInstance(argv));
-  app.whenReady().then(async () => {
-    currentSettings = await store.getSettings();
-    petWindowManager.create();
-    onWindowDrag();
-    screen.on('display-removed', petWindowManager.restorePosition);
-    screen.on('display-metrics-changed', petWindowManager.restorePosition);
-    queueLaunchPaths(parseLaunchPaths(process.argv));
-    if (shouldShowPetOnReady) {
-      shouldShowPetOnReady = false;
-      petWindowManager.show();
-    }
-    scheduleStartupMaintenance();
+  app.once('ready', () => {
+    initializeApplication().catch((error: unknown) => {
+      console.error('应用启动失败:', error);
+      app.quit();
+    });
   });
 }
 

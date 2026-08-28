@@ -1,22 +1,22 @@
 <template>
-  <main class="settings-view">
-    <header class="settings-view-header">
+  <main class="pet-bubble-settings">
+    <header class="pet-bubble-settings-header">
       <a-link
-        class="settings-view-back"
+        class="pet-bubble-settings-back"
         title="返回"
         aria-label="返回操作菜单"
-        @click="emit('close')"
+        @click="showBubble('actions')"
       >
         <icon-left />
       </a-link>
-      <h1 class="settings-view-title">常规设置</h1>
+      <h1 class="pet-bubble-settings-title">常规设置</h1>
     </header>
 
     <a-spin
       :loading="isLoading"
-      class="settings-view-content"
+      class="pet-bubble-settings-content"
     >
-      <section class="settings-view-body">
+      <section class="pet-bubble-settings-body">
         <general-settings-panel
           :settings="settings"
           :pet-image-templates="petImageTemplates"
@@ -37,15 +37,14 @@
 import Message from '@arco-design/web-vue/es/message';
 import { useDebounceFn } from '@vueuse/core';
 import type { AppSettings, PetImageTemplate, SettingBooleanKey } from '@/type';
-import { GeneralSettingsPanel } from './component';
 import {
   PET_SIZE_MAX,
   PET_SIZE_MIN,
   PET_SIZE_SAVE_DELAY_MS,
-} from './constants';
+} from '@/components/pet-view/constants';
+import { usePetViewContext } from '@/components/pet-view/hooks';
+import { GeneralSettingsPanel } from './component';
 import '@arco-design/web-vue/es/message/style/css.js';
-
-const emit = defineEmits<{ close: [] }>();
 
 const defaultSettings: AppSettings = {
   // 设置读取完成前也保持极速删除为默认选中状态。
@@ -69,6 +68,7 @@ const petImageTemplates = ref<PetImageTemplate[]>([]);
 const isLoading = ref(true);
 const isChoosingPetImage = ref(false);
 const disposers: Array<() => void> = [];
+const { showBubble } = usePetViewContext();
 
 // VueUse 统一管理防抖状态，并暴露 cancel 供组件卸载时取消尚未执行的保存。
 const savePetSize = useDebounceFn(async (value: number) => {
@@ -172,116 +172,5 @@ onBeforeUnmount(() => {
 </script>
 
 <style lang="less" scoped>
-:global(.settings-view-popconfirm) {
-  min-width: 272px;
-  padding: 18px;
-  border-radius: 12px;
-
-  .arco-popconfirm-body {
-    margin-bottom: 18px;
-  }
-
-  .arco-popconfirm-footer > button {
-    min-width: 72px;
-    margin-left: 10px;
-  }
-}
-
-// Arco Message 默认覆盖整个透明窗口；设置打开时改为在气泡自身顶部居中。
-:global(html[data-settings-message-aligned='true'] .arco-message-list-top) {
-  top: var(--settings-message-top);
-  left: var(--settings-message-left);
-  width: var(--settings-message-width);
-}
-
-.settings-view {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
-  overflow: hidden;
-  color: #0d1014;
-  background: #f5f7fa;
-
-  .settings-view-header {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
-    gap: 8px;
-    height: 44px;
-    padding: 8px 12px;
-    border-bottom: 1px solid #e7ebf0;
-    background: #fff;
-  }
-
-  .settings-view-back {
-    display: inline-flex;
-    flex: 0 0 auto;
-    align-items: center;
-    justify-content: center;
-    padding: 0;
-    color: #79828f;
-    font-size: 15px;
-    line-height: 1;
-    cursor: pointer;
-
-    &:hover {
-      color: #244fd6;
-    }
-  }
-
-  .settings-view-title {
-    flex: 1;
-    min-width: 0;
-    margin: 0;
-    font-size: 14px;
-    font-weight: 600;
-    line-height: 20px;
-  }
-
-  .settings-view-content {
-    display: block;
-    flex: 1;
-    min-height: 0;
-    overflow: hidden;
-  }
-  .settings-view-body {
-    height: 100%;
-    min-height: 0;
-    overflow: hidden;
-  }
-
-  // 气泡宽度有限，设置项改为适合单列阅读和操作的紧凑布局。
-  &:deep(.general-settings-panel) {
-    padding: 10px;
-
-    .general-settings-panel-card {
-      padding: 12px;
-    }
-
-    .general-settings-panel-template-list {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-
-    .general-settings-panel-pet-controls {
-      gap: 10px;
-    }
-
-    .general-settings-panel-pet-size-slider {
-      flex: 1;
-      width: auto;
-      min-width: 0;
-    }
-
-    .general-settings-panel-switch-row {
-      padding: 9px;
-    }
-
-    .general-settings-panel-switch-content {
-      span {
-        font-size: 11px;
-        line-height: 1.4;
-      }
-    }
-  }
-}
+@import './index.less';
 </style>

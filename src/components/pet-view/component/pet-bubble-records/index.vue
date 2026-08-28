@@ -1,20 +1,20 @@
 <template>
-  <main class="shred-record-view">
-    <header class="shred-record-view-header">
+  <main class="pet-bubble-records">
+    <header class="pet-bubble-records-header">
       <a-link
-        class="shred-record-view-back"
+        class="pet-bubble-records-back"
         title="返回"
         aria-label="返回操作菜单"
-        @click="emit('close')"
+        @click="showBubble('actions')"
       >
         <icon-left />
       </a-link>
-      <h1 class="shred-record-view-title">粉碎记录</h1>
+      <h1 class="pet-bubble-records-title">粉碎记录</h1>
     </header>
 
     <a-spin
       :loading="isLoading"
-      class="shred-record-view-content"
+      class="pet-bubble-records-content"
     >
       <shred-record-panel
         :logs="logs"
@@ -27,13 +27,14 @@
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';
 import type { ShredLog } from '@/type';
+import { usePetViewContext } from '@/components/pet-view/hooks';
 import { ShredRecordPanel } from './component';
 import '@arco-design/web-vue/es/message/style/css.js';
 
-const emit = defineEmits<{ close: [] }>();
 const logs = ref<ShredLog[]>([]);
 const isLoading = ref(true);
 const disposers: Array<() => void> = [];
+const { showBubble } = usePetViewContext();
 
 async function refreshLogs(): Promise<void> {
   logs.value = await window.shredderApi.getLogs();

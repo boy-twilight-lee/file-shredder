@@ -20,7 +20,7 @@
       </span>
       <a-popconfirm
         :content="`确定删除选中的 ${selectedLogIds.length} 条粉碎记录吗？`"
-        content-class="shred-record-view-popconfirm"
+        content-class="pet-bubble-records-popconfirm"
         type="error"
         :disabled="selectedLogIds.length === 0"
         :ok-button-props="MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS"
@@ -117,7 +117,7 @@ import {
   SHRED_RECORD_TABLE_SCROLL,
   SHRED_RECORD_TIME_FORMAT,
   SHRED_RECORD_VIRTUAL_LIST_PROPS,
-} from './constants';
+} from '@/components/pet-view/constants';
 
 const props = defineProps<{ logs: ShredLog[] }>();
 const emit = defineEmits<{

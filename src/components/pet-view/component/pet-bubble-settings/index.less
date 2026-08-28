@@ -1,0 +1,119 @@
+:global(.pet-bubble-settings-popconfirm) {
+  min-width: 272px;
+  padding: 18px;
+  border-radius: 12px;
+
+  .arco-popconfirm-body {
+    margin-bottom: 18px;
+  }
+
+  .arco-popconfirm-footer > button {
+    min-width: 72px;
+    margin-left: 10px;
+  }
+}
+
+// Arco Message 默认覆盖整个透明窗口；设置打开时改为在气泡自身顶部居中。
+:global(html[data-settings-message-aligned='true'] .arco-message-list-top) {
+  top: var(--settings-message-top);
+  left: var(--settings-message-left);
+  width: var(--settings-message-width);
+}
+
+.pet-bubble-settings {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+  color: #0d1014;
+  background: #f5f7fa;
+
+  .pet-bubble-settings-header {
+    display: flex;
+    flex: 0 0 auto;
+    align-items: center;
+    gap: 8px;
+    height: 44px;
+    padding: 8px 12px;
+    border-bottom: 1px solid #e7ebf0;
+    background: #fff;
+  }
+
+  .pet-bubble-settings-back {
+    display: inline-flex;
+    flex: 0 0 auto;
+    align-items: center;
+    justify-content: center;
+    padding: 0;
+    color: #79828f;
+    font-size: 15px;
+    line-height: 1;
+    cursor: pointer;
+
+    &:hover {
+      color: #244fd6;
+    }
+  }
+
+  .pet-bubble-settings-title {
+    flex: 1;
+    min-width: 0;
+    margin: 0;
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 20px;
+  }
+
+  .pet-bubble-settings-content {
+    display: block;
+    flex: 1;
+    min-height: 0;
+    overflow: hidden;
+
+    &:deep(.arco-spin-children) {
+      height: 100%;
+    }
+  }
+
+  .pet-bubble-settings-body {
+    display: flex;
+    flex: 1;
+    height: 100%;
+    min-height: 0;
+    overflow: hidden;
+  }
+
+  // 气泡宽度有限，设置项改为适合单列阅读和操作的紧凑布局。
+  &:deep(.general-settings-panel) {
+    padding: 10px;
+
+    .general-settings-panel-card {
+      padding: 12px;
+    }
+
+    .general-settings-panel-template-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .general-settings-panel-pet-controls {
+      gap: 10px;
+    }
+
+    .general-settings-panel-pet-size-slider {
+      flex: 1;
+      width: auto;
+      min-width: 0;
+    }
+
+    .general-settings-panel-switch-row {
+      padding: 9px;
+    }
+
+    .general-settings-panel-switch-content {
+      span {
+        font-size: 11px;
+        line-height: 1.4;
+      }
+    }
+  }
+}
