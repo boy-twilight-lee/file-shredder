@@ -1,16 +1,12 @@
 import {
-  IconDelete,
   IconMenu,
   IconNotification,
   IconPoweroff,
   IconPushpin,
-  IconSafe,
-  IconStorage,
-  IconThunderbolt,
 } from '@arco-design/web-vue/es/icon';
-import type { SettingsSwitchOption, ShredLevelIconMap } from '../type';
+import type { SystemSettingOption } from '../type';
 
-export const SWITCH_OPTIONS: SettingsSwitchOption[] = [
+export const SYSTEM_SETTING_OPTIONS: SystemSettingOption[] = [
   {
     key: 'alwaysOnTop',
     label: '桌宠始终置顶',
@@ -36,10 +32,3 @@ export const SWITCH_OPTIONS: SettingsSwitchOption[] = [
     icon: IconMenu,
   },
 ];
-
-export const SHRED_LEVEL_ICONS: ShredLevelIconMap = {
-  0: IconDelete,
-  3: IconThunderbolt,
-  7: IconSafe,
-  35: IconStorage,
-};

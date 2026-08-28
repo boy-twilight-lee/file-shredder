@@ -47,8 +47,27 @@
 
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
+import { RESULT_METRIC_OPTIONS } from './constants';
 
-const { summary, resultMetrics, closeBubble } = usePetViewContext();
+const { summary, closeBubble } = usePetViewContext();
+
+const formattedDuration = computed(() => {
+  const durationMs = summary.value?.durationMs ?? 0;
+  if (durationMs < 1000) return `${durationMs} ms`;
+  if (durationMs < 60000) return `${(durationMs / 1000).toFixed(1)} s`;
+  const minutes = Math.floor(durationMs / 60000);
+  const seconds = Math.round((durationMs % 60000) / 1000);
+  return `${minutes} min ${seconds} s`;
+});
+const resultMetrics = computed(() =>
+  RESULT_METRIC_OPTIONS.map((item) => ({
+    ...item,
+    value:
+      item.key === 'duration'
+        ? formattedDuration.value
+        : (summary.value?.[item.key] ?? 0),
+  })),
+);
 
 const resultTone = computed(() => {
   if (summary.value?.cancelled) return 'cancelled';

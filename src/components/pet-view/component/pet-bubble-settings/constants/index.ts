@@ -17,3 +17,5 @@ export const DEFAULT_APP_SETTINGS: AppSettings = {
   petPositionX: null,
   petPositionY: null,
 };
+
+export const PET_SIZE_SAVE_DELAY_MS = 300;

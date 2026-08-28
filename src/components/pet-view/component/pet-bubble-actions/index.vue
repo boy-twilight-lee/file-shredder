@@ -26,7 +26,7 @@
       >
         <span class="pet-bubble-actions-icon-wrap">
           <component
-            :is="actionIcons[item.key]"
+            :is="PET_ACTION_ICONS[item.key]"
             class="pet-bubble-actions-icon"
           />
         </span>
@@ -48,26 +48,10 @@
 </template>
 
 <script setup lang="ts">
-import {
-  IconFile,
-  IconFolder,
-  IconHeartFill,
-  IconHistory,
-  IconPoweroff,
-  IconRight,
-  IconSettings,
-} from '@arco-design/web-vue/es/icon';
 import appIconSource from '@/assets/app-icon.png';
-import { PET_ACTION_OPTIONS } from '@/components/pet-view/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
+import { PET_ACTION_ICONS, PET_ACTION_OPTIONS } from './constants';
 
-const actionIcons = {
-  file: IconFile,
-  directory: IconFolder,
-  settings: IconSettings,
-  records: IconHistory,
-  close: IconPoweroff,
-};
 const { chooseTargets, showBubble } = usePetViewContext();
 
 async function handleAction(

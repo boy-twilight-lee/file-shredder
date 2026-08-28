@@ -29,7 +29,6 @@ import {
   PetBubbleProgress,
   PetBubbleResult,
 } from '@/components/pet-view/component';
-
 // 设置与记录只在用户打开对应气泡时加载，避免桌宠首屏引入管理页面代码。
 const PetBubbleSettings = defineAsyncComponent(
   () => import('@/components/pet-view/component/pet-bubble-settings'),
@@ -46,7 +45,6 @@ const props = withDefaults(
   },
 );
 const { bubbleElement, bubbleMode, bubblePlacement } = usePetViewContext();
-
 const bubbleClasses = computed(() => [
   `pet-view-bubble-${bubblePlacement.value}`,
   `pet-view-bubble-${bubbleMode.value}`,

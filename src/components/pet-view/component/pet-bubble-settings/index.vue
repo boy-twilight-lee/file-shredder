@@ -17,17 +17,34 @@
       class="pet-bubble-settings-content"
     >
       <section class="pet-bubble-settings-body">
-        <general-settings-panel
-          :settings="settings"
-          :pet-image-templates="petImageTemplates"
-          :is-choosing-pet-image="isChoosingPetImage"
-          :on-before-change="updateBooleanSetting"
-          @choose-pet-image="choosePetImage"
-          @select-pet-image="selectPetImage"
-          @delete-pet-image="deletePetImage"
-          @update-pet-size="updatePetSize"
-          @update-passes="updatePasses"
-        />
+        <a-scrollbar
+          class="pet-bubble-settings-scrollbar-container"
+          outer-class="pet-bubble-settings-scrollbar"
+          outer-style="height: 100%"
+          disable-horizontal
+        >
+          <div class="pet-bubble-settings-list">
+            <pet-image-setting
+              :pet-image-templates="petImageTemplates"
+              :is-choosing-pet-image="isChoosingPetImage"
+              @choose-pet-image="choosePetImage"
+              @select-pet-image="selectPetImage"
+              @delete-pet-image="deletePetImage"
+            />
+            <pet-size-setting
+              :model-value="settings.petSize"
+              @update-pet-size="updatePetSize"
+            />
+            <shred-level-setting
+              :model-value="settings.passes"
+              @update-passes="updatePasses"
+            />
+            <system-setting
+              :settings="settings"
+              :on-before-change="updateBooleanSetting"
+            />
+          </div>
+        </a-scrollbar>
       </section>
     </a-spin>
   </main>
@@ -38,14 +55,14 @@ import Message from '@arco-design/web-vue/es/message';
 import '@arco-design/web-vue/es/message/style/css.js';
 import { useDebounceFn } from '@vueuse/core';
 import type { AppSettings, PetImageTemplate, SettingBooleanKey } from '@/type';
-import {
-  PET_SIZE_MAX,
-  PET_SIZE_MIN,
-  PET_SIZE_SAVE_DELAY_MS,
-} from '@/components/pet-view/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
-import { DEFAULT_APP_SETTINGS } from './constants';
-import { GeneralSettingsPanel } from './component';
+import { DEFAULT_APP_SETTINGS, PET_SIZE_SAVE_DELAY_MS } from './constants';
+import {
+  PetImageSetting,
+  PetSizeSetting,
+  ShredLevelSetting,
+  SystemSetting,
+} from './component';
 
 const settings = ref<AppSettings>({ ...DEFAULT_APP_SETTINGS });
 const petImageTemplates = ref<PetImageTemplate[]>([]);
@@ -96,15 +113,10 @@ async function updatePasses(value: AppSettings['passes']): Promise<void> {
   await saveSettingsPatch({ passes: value });
 }
 
-async function updatePetSize(value: number | undefined): Promise<void> {
-  if (typeof value !== 'number' || !Number.isFinite(value)) return;
-  const normalizedValue = Math.min(
-    PET_SIZE_MAX,
-    Math.max(PET_SIZE_MIN, Math.round(value)),
-  );
-  settings.value.petSize = normalizedValue;
+async function updatePetSize(value: number): Promise<void> {
+  settings.value.petSize = value;
   // 连续调整时只在数值停止变化后合并为一次磁盘写入。
-  await savePetSize(normalizedValue);
+  await savePetSize(value);
 }
 
 async function choosePetImage(): Promise<void> {

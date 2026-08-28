@@ -112,12 +112,14 @@ import emptyIllustration from '@/styles/icons/empty.svg';
 import {
   MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
   MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
+} from '@/components/pet-view/component/pet-bubble/constants';
+import {
   SHRED_RECORD_COLUMNS,
   SHRED_RECORD_ROW_SELECTION,
   SHRED_RECORD_TABLE_SCROLL,
   SHRED_RECORD_TIME_FORMAT,
   SHRED_RECORD_VIRTUAL_LIST_PROPS,
-} from '@/components/pet-view/constants';
+} from './constants';
 
 const props = defineProps<{ logs: ShredLog[] }>();
 const emit = defineEmits<{

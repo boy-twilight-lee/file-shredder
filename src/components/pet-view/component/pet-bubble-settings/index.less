@@ -76,14 +76,42 @@
       display: flex;
       flex: 1;
 
-      // 气泡宽度有限，通过组件变量切换为紧凑布局。
-      &:deep(.general-settings-panel) {
-        --general-settings-panel-padding: 10px;
-        --general-settings-panel-template-width: calc((100% - 8px) / 2);
-        --general-settings-panel-control-gap: 10px;
-        --general-settings-panel-switch-padding: 9px;
-        --general-settings-panel-switch-description-font-size: 11px;
-        --settings-card-padding: 12px;
+      .pet-bubble-settings-scrollbar {
+        height: 100%;
+        min-height: 0;
+        width: 100%;
+
+        &:deep(.pet-bubble-settings-scrollbar-container) {
+          overflow-x: hidden;
+          overflow-y: auto;
+          height: 100%;
+        }
+
+        &:deep(.arco-scrollbar-track-direction-vertical) {
+          position: absolute;
+          right: 0;
+          width: 14px;
+        }
+
+        &:deep(.arco-scrollbar-thumb-direction-vertical) {
+          .arco-scrollbar-thumb-bar {
+            width: 6px;
+            margin: 0 4px;
+            border-radius: 6px;
+          }
+        }
+
+        .pet-bubble-settings-list {
+          --settings-card-padding: 12px;
+          --pet-image-setting-item-width: calc((100% - 8px) / 2);
+          --pet-size-setting-control-gap: 10px;
+          --system-setting-row-padding: 9px;
+          --system-setting-description-font-size: 11px;
+          padding: 10px;
+          display: flex;
+          flex-direction: column;
+          gap: 12px;
+        }
       }
     }
   }

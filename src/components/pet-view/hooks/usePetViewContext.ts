@@ -10,7 +10,6 @@ import type {
   PetViewContext,
 } from '../type';
 import type { ShredProgress, ShredSummary, ShredTarget } from '@/type';
-import { PET_CLICK_DRAG_THRESHOLD, PROGRESS_TONE_OPTIONS } from '../constants';
 
 const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
   Symbol('pet-view-context');
@@ -60,8 +59,6 @@ function createPetViewContext(): PetViewContext {
   const bubbleElement = ref<HTMLElement | null>(
     PET_VIEW_DEFAULTS.bubbleElement,
   );
-  let characterPointerStart: { x: number; y: number } | null = null;
-  let hasDraggedCharacter = false;
   let bubbleBoundsFrame = 0;
   const disposers: Array<() => void> = [];
 
@@ -69,50 +66,6 @@ function createPetViewContext(): PetViewContext {
     '--pet-width': `${petSize.value}px`,
     '--pet-height': `${Math.round(petSize.value * petAspectRatio.value)}px`,
   }));
-
-  const progressTone = computed(
-    () =>
-      PROGRESS_TONE_OPTIONS.find(
-        (item) => progressPercent.value <= item.maximum,
-      ) ?? PROGRESS_TONE_OPTIONS[PROGRESS_TONE_OPTIONS.length - 1],
-  );
-
-  const formattedDuration = computed(() => {
-    const durationMs = summary.value?.durationMs ?? 0;
-    if (durationMs < 1000) return `${durationMs} ms`;
-    if (durationMs < 60000) return `${(durationMs / 1000).toFixed(1)} s`;
-    const minutes = Math.floor(durationMs / 60000);
-    const seconds = Math.round((durationMs % 60000) / 1000);
-    return `${minutes} min ${seconds} s`;
-  });
-
-  // 图标名对应本地 SVG 文件名，由 SvgIcon 统一渲染并保证离线可用。
-  const resultMetrics = computed(() => [
-    {
-      key: 'succeeded',
-      label: '已删文件',
-      value: summary.value?.succeeded ?? 0,
-      icon: 'result-check-filled',
-      backgroundIcon: 'result-file',
-      tone: 'success',
-    },
-    {
-      key: 'failed',
-      label: '删除失败',
-      value: summary.value?.failed ?? 0,
-      icon: 'result-close-filled',
-      backgroundIcon: 'result-warning',
-      tone: 'failure',
-    },
-    {
-      key: 'duration',
-      label: '处理时间',
-      value: formattedDuration.value,
-      icon: 'result-clock',
-      backgroundIcon: 'result-clock',
-      tone: 'duration',
-    },
-  ]);
 
   function calculateProgressPercent(value: ShredProgress): number {
     const currentFilePercent =
@@ -131,39 +84,6 @@ function createPetViewContext(): PetViewContext {
   function openActions(): void {
     if (bubbleMode.value === 'progress') return;
     showBubble('actions');
-  }
-
-  function handleCharacterMouseDown(event: MouseEvent): void {
-    characterPointerStart = { x: event.screenX, y: event.screenY };
-    hasDraggedCharacter = false;
-  }
-
-  function updateCharacterDragState(event: MouseEvent): void {
-    if (!characterPointerStart || hasDraggedCharacter) return;
-    const horizontalDistance = event.screenX - characterPointerStart.x;
-    const verticalDistance = event.screenY - characterPointerStart.y;
-    // 使用屏幕坐标判断窗口真实位移；拖窗过程中 client 坐标可能几乎不变。
-    if (
-      Math.hypot(horizontalDistance, verticalDistance) >
-      PET_CLICK_DRAG_THRESHOLD
-    )
-      hasDraggedCharacter = true;
-  }
-
-  function handleCharacterMouseMove(event: MouseEvent): void {
-    if ((event.buttons & 1) === 0) return;
-    updateCharacterDragState(event);
-  }
-
-  function handleCharacterMouseUp(event: MouseEvent): void {
-    if (!characterPointerStart) return;
-    updateCharacterDragState(event);
-    const shouldToggleActions = !hasDraggedCharacter;
-    characterPointerStart = null;
-    hasDraggedCharacter = false;
-    if (!shouldToggleActions) return;
-    if (bubbleMode.value === 'hidden') openActions();
-    else closeBubble();
   }
 
   function closeBubble(): void {
@@ -256,7 +176,7 @@ function createPetViewContext(): PetViewContext {
     // 点击人物由抬起事件统一切换气泡，避免捕获阶段先关闭后又重新打开。
     if (
       event.target instanceof Element &&
-      event.target.closest('.pet-view-character')
+      event.target.closest('.pet-character')
     )
       return;
     if (
@@ -410,7 +330,6 @@ function createPetViewContext(): PetViewContext {
   useEventListener(document, 'pointerdown', handleOutsidePointerDown, {
     capture: true,
   });
-  useEventListener(document, 'mousemove', handleCharacterMouseMove);
   useEventListener(window, 'blur', handleWindowBlur);
 
   onMounted(async () => {
@@ -475,9 +394,7 @@ function createPetViewContext(): PetViewContext {
     progress,
     progressPercent,
     displayedFileIndex,
-    progressTone,
     summary,
-    resultMetrics,
     errorMessage,
     isSubmitting,
     isCancelling,
@@ -489,8 +406,6 @@ function createPetViewContext(): PetViewContext {
     cancelShred,
     showBubble,
     openActions,
-    handleCharacterMouseDown,
-    handleCharacterMouseUp,
     handleDrop,
     handleDragEnter,
     handleDragLeave,

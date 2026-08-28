@@ -1,8 +1,5 @@
 <template>
-  <section
-    class="settings-card"
-    :class="`settings-card-${layout}`"
-  >
+  <section class="settings-card">
     <header
       v-if="title || description || $slots.header"
       class="settings-card-header"
@@ -33,12 +30,10 @@ withDefaults(
   defineProps<{
     title?: string;
     description?: string;
-    layout?: 'horizontal' | 'vertical';
   }>(),
   {
     title: '',
     description: '',
-    layout: 'vertical',
   },
 );
 </script>

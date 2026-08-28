@@ -1,0 +1,54 @@
+.system-setting {
+  .system-setting-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+
+    .system-setting-row {
+      padding: var(--system-setting-row-padding, 8px 10px);
+      background: #f8fafc;
+      border: 1px solid #edf1f5;
+      border-radius: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+
+      .system-setting-icon {
+        height: 32px;
+        width: 32px;
+        margin-top: 0;
+        background: #eef3ff;
+        border-radius: 9px;
+        font-size: 16px;
+        color: #3564ff;
+        display: inline-flex;
+        flex-shrink: 0;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .system-setting-content {
+        min-width: 0;
+        flex: 1;
+
+        & > strong {
+          font-size: 12px;
+          font-weight: 500;
+          display: block;
+        }
+
+        & > span {
+          overflow: hidden;
+          margin-top: 3px;
+          font-size: var(--system-setting-description-font-size, 12px);
+          line-height: 1.4;
+          text-overflow: ellipsis;
+          white-space: nowrap;
+          color: #99a1ad;
+          display: block;
+        }
+      }
+    }
+  }
+}

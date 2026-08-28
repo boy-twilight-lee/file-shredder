@@ -7,7 +7,7 @@ window.addEventListener('DOMContentLoaded', () => {
   // 指定整个人物容器为热区，库使用 requestAnimationFrame 平滑驱动主进程窗口移动。
   bindDragEvent((channel, ...args) => ipcRenderer.send(channel, ...args), {
     dragMode: ElectronDragWindow.DragMode.Appoint,
-    appointClassNames: ['pet-view-character'],
+    appointClassNames: ['pet-character'],
   });
   let pendingPointer: { x: number; y: number } | null = null;
   let pointerFrame = 0;

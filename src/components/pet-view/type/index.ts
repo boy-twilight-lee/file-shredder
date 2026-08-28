@@ -13,20 +13,6 @@ export type PetBubbleMode =
   | 'drop';
 export type PetBubblePlacement = 'left' | 'right';
 
-export interface PetProgressTone {
-  maximum: number;
-  tone: string;
-}
-
-export interface PetResultMetric {
-  key: string;
-  label: string;
-  value: string | number;
-  icon: string;
-  backgroundIcon: string;
-  tone: string;
-}
-
 export interface PetViewContext {
   petState: Ref<PetState>;
   petAppearanceStyle: ComputedRef<Record<string, string>>;
@@ -38,9 +24,7 @@ export interface PetViewContext {
   progress: Ref<ShredProgress | null>;
   progressPercent: Ref<number>;
   displayedFileIndex: Ref<number>;
-  progressTone: ComputedRef<PetProgressTone>;
   summary: Ref<ShredSummary | null>;
-  resultMetrics: ComputedRef<PetResultMetric[]>;
   errorMessage: Ref<string>;
   isSubmitting: Ref<boolean>;
   isCancelling: Ref<boolean>;
@@ -52,8 +36,6 @@ export interface PetViewContext {
   cancelShred: () => Promise<void>;
   showBubble: (mode: PetBubbleMode) => void;
   openActions: () => void;
-  handleCharacterMouseDown: (event: MouseEvent) => void;
-  handleCharacterMouseUp: (event: MouseEvent) => void;
   handleDrop: (event: DragEvent) => Promise<void>;
   handleDragEnter: () => void;
   handleDragLeave: () => void;

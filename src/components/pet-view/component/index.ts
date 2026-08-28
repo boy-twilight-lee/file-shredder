@@ -1,3 +1,4 @@
+export { PetCharacter } from './pet-character';
 export { default as PetBubble } from './pet-bubble';
 export { default as PetBubbleActions } from './pet-bubble-actions';
 export { default as PetBubbleConfirm } from './pet-bubble-confirm';

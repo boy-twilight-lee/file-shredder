@@ -1,0 +1,146 @@
+.pet-image-setting {
+  .pet-image-setting-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+
+    .pet-image-setting-item {
+      position: relative;
+      cursor: pointer;
+      height: 136px;
+      min-width: 0;
+      width: var(--pet-image-setting-item-width, calc((100% - 24px) / 4));
+      padding: 8px;
+      background: #f8fafc;
+      border: 1px solid #e7ebf0;
+      border-radius: 12px;
+      font: inherit;
+      color: #474f59;
+      display: flex;
+      flex: 0 0 var(--pet-image-setting-item-width, calc((100% - 24px) / 4));
+      flex-direction: column;
+      align-items: center;
+      gap: 7px;
+      transition:
+        border-color 160ms ease,
+        background-color 160ms ease,
+        box-shadow 160ms ease;
+
+      &:hover {
+        background: #f4f7ff;
+        border-color: #bed2ff;
+      }
+
+      &:disabled {
+        cursor: wait;
+        opacity: 0.65;
+      }
+
+      &.pet-image-setting-item-active {
+        background: #f2f5ff;
+        border-color: #3564ff;
+        box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.1);
+      }
+
+      &.pet-image-setting-item-upload {
+        background: #fff;
+        border-style: dashed;
+        color: #3564ff;
+        justify-content: center;
+
+        & > svg {
+          font-size: 24px;
+        }
+
+        & > span {
+          font-size: 12px;
+        }
+
+        & > small {
+          font-size: 12px;
+          white-space: nowrap;
+          color: #99a1ad;
+        }
+      }
+
+      .pet-image-setting-preview {
+        overflow: hidden;
+        height: 96px;
+        width: 100%;
+        background:
+          linear-gradient(
+              45deg,
+              #edf0f4 25%,
+              transparent 25%,
+              transparent 75%,
+              #edf0f4 75%
+            )
+            0 0 / 12px 12px,
+          linear-gradient(
+              45deg,
+              #edf0f4 25%,
+              transparent 25%,
+              transparent 75%,
+              #edf0f4 75%
+            )
+            6px 6px / 12px 12px,
+          #fff;
+        border-radius: 9px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        & > img {
+          height: 100%;
+          width: 100%;
+          object-fit: contain;
+        }
+      }
+
+      .pet-image-setting-name {
+        overflow: hidden;
+        width: 100%;
+        font-size: 12px;
+        text-align: center;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .pet-image-setting-selected {
+        position: absolute;
+        top: 5px;
+        left: 5px;
+        height: 16px;
+        width: 16px;
+        background: #3564ff;
+        border-radius: 50%;
+        box-shadow: 0 2px 8px rgba(53, 100, 255, 0.3);
+        font-size: 10px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .pet-image-setting-delete {
+        position: absolute;
+        top: 5px;
+        right: 5px;
+        cursor: pointer;
+        height: 22px;
+        width: 22px;
+        background: rgba(255, 255, 255, 0.9);
+        border-radius: 6px;
+        color: #86909c;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+
+        &:hover {
+          background: #fff;
+          color: #f53f3f;
+        }
+      }
+    }
+  }
+}
