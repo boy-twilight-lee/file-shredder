@@ -21,6 +21,7 @@ declare module 'vue' {
     ASpin: typeof import('@arco-design/web-vue')['Spin']
     ASwitch: typeof import('@arco-design/web-vue')['Switch']
     ATable: typeof import('@arco-design/web-vue')['Table']
+    ATooltip: typeof import('@arco-design/web-vue')['Tooltip']
     IconCheck: typeof import('@arco-design/web-vue/es/icon')['IconCheck']
     IconCheckCircle: typeof import('@arco-design/web-vue/es/icon')['IconCheckCircle']
     IconCloseCircle: typeof import('@arco-design/web-vue/es/icon')['IconCloseCircle']

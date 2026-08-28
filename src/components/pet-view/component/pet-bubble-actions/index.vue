@@ -10,6 +10,24 @@
         <strong>文件粉碎精灵</strong>
         <small>安全、彻底地清理文件</small>
       </span>
+      <span class="pet-bubble-actions-header-tools">
+        <a-tooltip
+          v-for="item in PET_HEADER_ACTION_OPTIONS"
+          :key="item.key"
+          :content="item.title"
+          position="top"
+        >
+          <button
+            class="pet-bubble-actions-header-button"
+            type="button"
+            :title="item.title"
+            :aria-label="item.title"
+            @click="handleAction(item.key)"
+          >
+            <component :is="item.icon" />
+          </button>
+        </a-tooltip>
+      </span>
     </header>
     <div
       class="pet-bubble-actions-list"
@@ -48,17 +66,38 @@
 </template>
 
 <script setup lang="ts">
+import Message from '@arco-design/web-vue/es/message';
+import '@arco-design/web-vue/es/message/style/css.js';
 import appIconSource from '@/assets/app-icon.png';
 import { usePetViewContext } from '@/components/pet-view/hooks';
-import { PET_ACTION_ICONS, PET_ACTION_OPTIONS } from './constants';
+import {
+  PET_ACTION_ICONS,
+  PET_ACTION_OPTIONS,
+  PET_HEADER_ACTION_OPTIONS,
+} from './constants';
 
-const { chooseTargets, showBubble } = usePetViewContext().inject();
+const { chooseTargets, closeBubble, showBubble } = usePetViewContext().inject();
 
 async function handleAction(
-  key: (typeof PET_ACTION_OPTIONS)[number]['key'],
+  key:
+    | (typeof PET_ACTION_OPTIONS)[number]['key']
+    | (typeof PET_HEADER_ACTION_OPTIONS)[number]['key'],
 ): Promise<void> {
   if (key === 'settings' || key === 'records') {
     showBubble(key);
+    return;
+  }
+  if (key === 'lock') {
+    try {
+      const isLocked = await window.shredderApi.lockScreen();
+      if (!isLocked) {
+        Message.error('当前系统不支持屏幕锁定');
+        return;
+      }
+      closeBubble();
+    } catch (error) {
+      Message.error(error instanceof Error ? error.message : '屏幕锁定失败');
+    }
     return;
   }
   if (key === 'close') {

@@ -52,6 +52,7 @@
     }
 
     .pet-bubble-actions-heading {
+      overflow: hidden;
       min-width: 0;
       display: flex;
       flex: 1;
@@ -69,6 +70,47 @@
         font-size: 12px;
         line-height: 17px;
         color: #7d8794;
+      }
+    }
+
+    .pet-bubble-actions-header-tools {
+      flex-shrink: 0;
+      display: flex;
+      gap: 8px;
+
+      .pet-bubble-actions-header-button {
+        cursor: pointer;
+        height: 34px;
+        width: 34px;
+        padding: 0;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(121, 130, 143, 0.16);
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(30, 55, 90, 0.08);
+        font-size: 18px;
+        color: #68727f;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.18s ease,
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          color 0.18s ease,
+          transform 0.18s ease;
+
+        &:hover {
+          background: #f1f6fd;
+          border-color: rgba(36, 117, 220, 0.3);
+          box-shadow: 0 5px 14px rgba(55, 108, 184, 0.12);
+          color: #2475dc;
+          transform: translateY(-1px);
+        }
+
+        &:focus-visible {
+          outline: 2px solid rgba(36, 117, 220, 0.28);
+          outline-offset: 2px;
+        }
       }
     }
   }
@@ -115,10 +157,6 @@
 
       &.pet-bubble-actions-item-purple {
         .pet-bubble-actions-tone(#7a5af8);
-      }
-
-      &.pet-bubble-actions-item-orange {
-        .pet-bubble-actions-tone(#f59e0b);
       }
 
       &.pet-bubble-actions-item-red {

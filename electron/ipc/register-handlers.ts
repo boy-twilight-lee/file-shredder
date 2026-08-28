@@ -1,14 +1,18 @@
 import { app, dialog, ipcMain } from 'electron';
 import { clamp } from '@/utils';
 import { applyLoginSetting, getExecutablePath } from '../app';
-import { isContextMenuInstalled, removeContextMenu } from '../integrations';
-import type { PetImageService, PetWindowManager } from '../pet';
+import {
+  isContextMenuInstalled,
+  lockScreen,
+  removeContextMenu,
+} from '../integrations';
+import { PetImageService, PetWindowManager } from '../pet';
 import {
   getShredTargetMetadata,
   normalizeTargets,
-  type ShredSession,
+  ShredSession,
 } from '../shred';
-import type { AppSettings, AppStore } from '../storage';
+import { AppSettings, AppStore } from '../storage';
 
 interface IpcHandlerDependencies {
   store: AppStore;
@@ -128,6 +132,7 @@ export function registerIpcHandlers(
       throw new Error('无效的粉碎记录参数');
     return dependencies.store.deleteLogs([...new Set(ids)]);
   });
+  ipcMain.handle('system:lock-screen', lockScreen);
   ipcMain.handle('app:exit', () => {
     dependencies.setQuitting();
     setImmediate(() => app.quit());

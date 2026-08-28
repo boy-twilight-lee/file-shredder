@@ -2,9 +2,23 @@ import {
   IconFile,
   IconFolder,
   IconHistory,
+  IconLock,
   IconPoweroff,
   IconSettings,
 } from '@arco-design/web-vue/es/icon';
+
+export const PET_HEADER_ACTION_OPTIONS = [
+  {
+    key: 'records',
+    title: '粉碎记录',
+    icon: IconHistory,
+  },
+  {
+    key: 'settings',
+    title: '设置',
+    icon: IconSettings,
+  },
+] as const;
 
 export const PET_ACTION_OPTIONS = [
   {
@@ -22,18 +36,11 @@ export const PET_ACTION_OPTIONS = [
     tone: 'green',
   },
   {
-    key: 'settings',
-    title: '设置',
-    description: '调整桌宠、清理强度和系统选项',
-    badge: '个性化',
+    key: 'lock',
+    title: '锁定屏幕',
+    description: '立即锁定当前系统会话',
+    badge: '快捷安全',
     tone: 'purple',
-  },
-  {
-    key: 'records',
-    title: '粉碎记录',
-    description: '查看文件与文件夹的历史清理结果',
-    badge: '历史记录',
-    tone: 'orange',
   },
   {
     key: 'close',
@@ -47,7 +54,6 @@ export const PET_ACTION_OPTIONS = [
 export const PET_ACTION_ICONS = {
   file: IconFile,
   directory: IconFolder,
-  settings: IconSettings,
-  records: IconHistory,
+  lock: IconLock,
   close: IconPoweroff,
 };

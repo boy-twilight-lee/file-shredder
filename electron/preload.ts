@@ -1,7 +1,7 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import { bindDragEvent } from 'electron-drag-window/renderer';
 import { ElectronDragWindow } from 'electron-drag-window/type';
-import type { ShredTarget } from '../src/type';
+import { ShredTarget } from '../src/type';
 
 window.addEventListener('DOMContentLoaded', () => {
   // 指定整个人物容器为热区，库使用 requestAnimationFrame 平滑驱动主进程窗口移动。
@@ -49,6 +49,7 @@ contextBridge.exposeInMainWorld('shredderApi', {
   deletePetImage: (id: string) => ipcRenderer.invoke('pet-image:delete', id),
   getLogs: () => ipcRenderer.invoke('logs:get'),
   deleteLogs: (ids: string[]) => ipcRenderer.invoke('logs:delete', ids),
+  lockScreen: () => ipcRenderer.invoke('system:lock-screen'),
   exitApp: () => ipcRenderer.invoke('app:exit'),
   cleanupAndExit: () => ipcRenderer.invoke('app:cleanup-exit'),
   setPetExpanded: (expanded: boolean) =>
