@@ -24,7 +24,10 @@
             :aria-label="item.title"
             @click="handleAction(item.key)"
           >
-            <component :is="item.icon" />
+            <svg-icon
+              class="pet-bubble-actions-header-icon"
+              :name="item.icon"
+            />
           </button>
         </a-tooltip>
       </span>
@@ -43,8 +46,8 @@
         @click="handleAction(item.key)"
       >
         <span class="pet-bubble-actions-icon-wrap">
-          <component
-            :is="PET_ACTION_ICONS[item.key]"
+          <svg-icon
+            :name="item.icon"
             class="pet-bubble-actions-icon"
           />
         </span>
@@ -70,11 +73,7 @@ import Message from '@arco-design/web-vue/es/message';
 import '@arco-design/web-vue/es/message/style/css.js';
 import appIconSource from '@/assets/app-icon.png';
 import { usePetViewContext } from '@/components/pet-view/hooks';
-import {
-  PET_ACTION_ICONS,
-  PET_ACTION_OPTIONS,
-  PET_HEADER_ACTION_OPTIONS,
-} from './constants';
+import { PET_ACTION_OPTIONS, PET_HEADER_ACTION_OPTIONS } from './constants';
 
 const { chooseTargets, closeBubble, showBubble } = usePetViewContext().inject();
 
