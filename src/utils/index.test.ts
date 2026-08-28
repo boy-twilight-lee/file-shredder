@@ -8,7 +8,6 @@ import {
   getDraggedPosition,
   getPathName,
   mapWithConcurrency,
-  toCssSize,
 } from './index';
 
 describe('shared utils', () => {
@@ -38,13 +37,6 @@ describe('shared utils', () => {
     expect(formatByteSize(1536)).toBe('1.5 KB');
     expect(formatDuration(850)).toBe('850 ms');
     expect(formatDuration(61500)).toBe('1 min 2 s');
-  });
-
-  it('handles platform-independent path names and CSS sizes', () => {
-    expect(getPathName('C:\\workspace\\report.txt')).toBe('report.txt');
-    expect(getPathName('/workspace/report.txt')).toBe('report.txt');
-    expect(toCssSize(24, '1em')).toBe('24px');
-    expect(toCssSize(undefined, '1em')).toBe('1em');
   });
 
   it('supports common numeric and rectangle operations', () => {

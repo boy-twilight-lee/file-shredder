@@ -3,7 +3,7 @@
     <header class="pet-bubble-result-title">
       <span class="pet-bubble-result-title-content">
         <strong>{{ resultTitle }}</strong>
-        <small>本次任务结果已汇总</small>
+        <small>{{ resultSubtitle }}</small>
       </span>
     </header>
     <div class="pet-bubble-result-metrics">
@@ -50,8 +50,9 @@ import { usePetViewContext } from '@/components/pet-view/hooks';
 import { formatDuration } from '@/utils';
 import { RESULT_METRIC_OPTIONS } from './constants';
 
-const { summary, closeBubble } = usePetViewContext().inject();
+const { summary, errorMessage, closeBubble } = usePetViewContext().inject();
 
+const hasError = computed(() => Boolean(errorMessage.value));
 const formattedDuration = computed(() =>
   formatDuration(summary.value?.durationMs ?? 0),
 );
@@ -66,14 +67,20 @@ const resultMetrics = computed(() =>
 );
 
 const resultTone = computed(() => {
+  if (hasError.value) return 'failure';
   if (summary.value?.cancelled) return 'cancelled';
   return summary.value?.failed ? 'failure' : 'success';
 });
 const resultTitle = computed(() => {
+  if (hasError.value) return '删除失败';
   if (summary.value?.cancelled) return '删除已取消';
   return summary.value?.failed ? '部分元素删除失败' : '删除完成';
 });
+const resultSubtitle = computed(() =>
+  hasError.value ? '本次任务未能完成' : '本次任务结果已汇总',
+);
 const resultTip = computed(() => {
+  if (hasError.value) return errorMessage.value;
   if (summary.value?.cancelled) return '任务已停止，当前文件可能已经部分覆写。';
   return summary.value?.failed
     ? '失败文件已保留，请检查占用状态后重新尝试。'

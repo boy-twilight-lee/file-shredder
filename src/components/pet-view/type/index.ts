@@ -1,4 +1,4 @@
-import type { ShredProgress, ShredSummary, ShredTarget } from '@/type';
+import { ShredProgress, ShredSummary, ShredTarget } from '@/type';
 
 export type PetState = 'idle' | 'working' | 'success' | 'failure';
 export type PetBubbleMode =
@@ -8,9 +8,7 @@ export type PetBubbleMode =
   | 'records'
   | 'confirm'
   | 'progress'
-  | 'result'
-  | 'error'
-  | 'drop';
+  | 'result';
 export type PetBubblePlacement = 'left' | 'right';
 
 export interface PetViewContext {
@@ -36,7 +34,5 @@ export interface PetViewContext {
   showBubble: (mode: PetBubbleMode) => void;
   openActions: () => void;
   handleDrop: (event: DragEvent) => Promise<void>;
-  handleDragEnter: () => void;
-  handleDragLeave: () => void;
   handlePetImageLoad: (event: Event) => void;
 }

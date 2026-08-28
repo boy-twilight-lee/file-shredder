@@ -2,8 +2,6 @@ export { PetCharacter } from './pet-character';
 export { default as PetBubble } from './pet-bubble';
 export { default as PetBubbleActions } from './pet-bubble-actions';
 export { default as PetBubbleConfirm } from './pet-bubble-confirm';
-export { default as PetBubbleDrop } from './pet-bubble-drop';
-export { default as PetBubbleError } from './pet-bubble-error';
 export { default as PetBubbleProgress } from './pet-bubble-progress';
 export { default as PetBubbleRecords } from './pet-bubble-records';
 export { default as PetBubbleResult } from './pet-bubble-result';

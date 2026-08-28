@@ -12,9 +12,7 @@
       <pet-bubble-records v-else-if="bubbleMode === 'records'" />
       <pet-bubble-confirm v-else-if="bubbleMode === 'confirm'" />
       <pet-bubble-progress v-else-if="bubbleMode === 'progress'" />
-      <pet-bubble-result v-else-if="bubbleMode === 'result'" />
-      <pet-bubble-drop v-else-if="bubbleMode === 'drop'" />
-      <pet-bubble-error v-else />
+      <pet-bubble-result v-else />
     </aside>
   </transition>
 </template>
@@ -24,24 +22,17 @@ import { usePetViewContext } from '@/components/pet-view/hooks';
 import {
   PetBubbleActions,
   PetBubbleConfirm,
-  PetBubbleDrop,
-  PetBubbleError,
   PetBubbleProgress,
   PetBubbleResult,
+  PetBubbleSettings,
+  PetBubbleRecords,
 } from '@/components/pet-view/component';
-// 设置与记录只在用户打开对应气泡时加载，避免桌宠首屏引入管理页面代码。
-const PetBubbleSettings = defineAsyncComponent(
-  () => import('@/components/pet-view/component/pet-bubble-settings'),
-);
-const PetBubbleRecords = defineAsyncComponent(
-  () => import('@/components/pet-view/component/pet-bubble-records'),
-);
 const props = withDefaults(
   defineProps<{
     gap?: number;
   }>(),
   {
-    gap: 14,
+    gap: 8,
   },
 );
 const { bubbleElement, bubbleMode, bubblePlacement } =
@@ -51,9 +42,7 @@ const bubbleClasses = computed(() => [
   `pet-view-bubble-${bubbleMode.value}`,
 ]);
 const bubbleStyle = computed(() => ({
-  '--pet-bubble-gap': `${
-    Number.isFinite(props.gap) ? Math.max(0, props.gap) : 14
-  }px`,
+  '--pet-bubble-gap': `${props.gap}px`,
 }));
 </script>
 

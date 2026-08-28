@@ -3,13 +3,13 @@ import {
   useMutationObserver,
   useResizeObserver,
 } from '@vueuse/core';
-import type {
+import {
   PetBubbleMode,
   PetBubblePlacement,
   PetState,
   PetViewContext,
 } from '../type';
-import type { ShredProgress, ShredSummary, ShredTarget } from '@/type';
+import { ShredProgress, ShredSummary, ShredTarget } from '@/type';
 
 const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
   Symbol('pet-view-context');
@@ -28,7 +28,6 @@ const PET_VIEW_DEFAULTS = {
   errorMessage: '',
   isSubmitting: false,
   isCancelling: false,
-  dragDepth: 0,
   petImageSource: '',
   petSize: 200,
   petAspectRatio: 840 / 594,
@@ -56,7 +55,6 @@ export function usePetViewContext() {
       const errorMessage = ref<string>(PET_VIEW_DEFAULTS.errorMessage);
       const isSubmitting = ref<boolean>(PET_VIEW_DEFAULTS.isSubmitting);
       const isCancelling = ref<boolean>(PET_VIEW_DEFAULTS.isCancelling);
-      const dragDepth = ref<number>(PET_VIEW_DEFAULTS.dragDepth);
       const petImageSource = ref<string>(PET_VIEW_DEFAULTS.petImageSource);
       const petSize = ref<number>(PET_VIEW_DEFAULTS.petSize);
       const petAspectRatio = ref<number>(PET_VIEW_DEFAULTS.petAspectRatio);
@@ -207,20 +205,40 @@ export function usePetViewContext() {
         closeBubble();
       }
 
+      function showErrorResult(message: string, failedCount: number): void {
+        errorMessage.value = message;
+        summary.value = {
+          succeeded: 0,
+          failed: Math.max(1, failedCount),
+          durationMs: 0,
+          cancelled: false,
+        };
+        showBubble('result');
+      }
+
       async function prepareTargets(paths: string[]): Promise<void> {
-        const [validTargets, settings] = await Promise.all([
-          window.shredderApi.prepareShred(paths),
-          window.shredderApi.getSettings(),
-        ]);
-        if (validTargets.length === 0) {
-          errorMessage.value =
-            '没有找到可粉碎的文件或文件夹，请检查路径后重试。';
-          showBubble('error');
-          return;
+        try {
+          const [validTargets, settings] = await Promise.all([
+            window.shredderApi.prepareShred(paths),
+            window.shredderApi.getSettings(),
+          ]);
+          if (validTargets.length === 0) {
+            showErrorResult(
+              '没有找到可粉碎的文件或文件夹，请检查路径后重试。',
+              paths.length,
+            );
+            return;
+          }
+          errorMessage.value = '';
+          selectedTargets.value = validTargets;
+          presetPasses.value = settings.passes;
+          showBubble('confirm');
+        } catch (error) {
+          showErrorResult(
+            error instanceof Error ? error.message : '粉碎目标读取失败',
+            paths.length,
+          );
         }
-        selectedTargets.value = validTargets;
-        presetPasses.value = settings.passes;
-        showBubble('confirm');
       }
 
       async function chooseTargets(kind: 'file' | 'directory'): Promise<void> {
@@ -243,6 +261,7 @@ export function usePetViewContext() {
         progress.value = null;
         progressPercent.value = PET_VIEW_DEFAULTS.progressPercent;
         displayedFileIndex.value = PET_VIEW_DEFAULTS.displayedFileIndex;
+        errorMessage.value = '';
         showBubble('progress');
         try {
           // Vue 会把 ref 中的数组转为 Proxy；进入 contextBridge 前必须展开为 Electron 可克隆的普通数组。
@@ -251,14 +270,17 @@ export function usePetViewContext() {
             targets,
             presetPasses.value,
           );
-          if (results.length === 0) {
-            errorMessage.value = '没有可粉碎的目标，或已有粉碎任务正在执行。';
-            showBubble('error');
+          if (results.length === 0 && bubbleMode.value === 'progress') {
+            showErrorResult(
+              '没有可粉碎的目标，或已有粉碎任务正在执行。',
+              selectedTargets.value.length,
+            );
           }
         } catch (error) {
-          errorMessage.value =
-            error instanceof Error ? error.message : '粉碎任务执行失败';
-          showBubble('error');
+          showErrorResult(
+            error instanceof Error ? error.message : '粉碎任务执行失败',
+            selectedTargets.value.length,
+          );
         } finally {
           isSubmitting.value = false;
         }
@@ -277,28 +299,10 @@ export function usePetViewContext() {
       }
 
       async function handleDrop(event: DragEvent): Promise<void> {
-        dragDepth.value = PET_VIEW_DEFAULTS.dragDepth;
         const paths = Array.from(event.dataTransfer?.files ?? [])
           .map((file) => window.shredderApi.getPathForFile(file))
           .filter(Boolean);
         if (paths.length > 0) await prepareTargets(paths);
-      }
-
-      function handleDragEnter(): void {
-        dragDepth.value += 1;
-        showBubble('drop');
-      }
-
-      function handleDragLeave(): void {
-        dragDepth.value = Math.max(
-          PET_VIEW_DEFAULTS.dragDepth,
-          dragDepth.value - 1,
-        );
-        if (
-          dragDepth.value === PET_VIEW_DEFAULTS.dragDepth &&
-          bubbleMode.value === 'drop'
-        )
-          closeBubble();
       }
 
       function handlePetImageLoad(event: Event): void {
@@ -347,6 +351,7 @@ export function usePetViewContext() {
             petState.value = state;
           }),
           window.shredderApi.onPetConfirm((targets, passes) => {
+            errorMessage.value = '';
             selectedTargets.value = targets;
             presetPasses.value = passes;
             showBubble('confirm');
@@ -369,6 +374,7 @@ export function usePetViewContext() {
           }),
           window.shredderApi.onPetComplete((value) => {
             isCancelling.value = false;
+            errorMessage.value = '';
             summary.value = value;
             showBubble('result');
           }),
@@ -388,7 +394,7 @@ export function usePetViewContext() {
         disposers.forEach((dispose) => dispose());
       });
 
-      const context: PetViewContext = {
+      const context = {
         petState,
         petAppearanceStyle,
         petImageSource,
@@ -411,15 +417,13 @@ export function usePetViewContext() {
         showBubble,
         openActions,
         handleDrop,
-        handleDragEnter,
-        handleDragLeave,
         handlePetImageLoad,
       };
       provide(PET_VIEW_CONTEXT_KEY, context);
       return context;
     },
     inject(): PetViewContext {
-      const fallback: PetViewContext = {
+      return inject(PET_VIEW_CONTEXT_KEY, {
         petState: ref('idle'),
         petAppearanceStyle: computed(() => ({})),
         petImageSource: ref(''),
@@ -442,11 +446,8 @@ export function usePetViewContext() {
         showBubble: () => {},
         openActions: () => {},
         handleDrop: async () => {},
-        handleDragEnter: () => {},
-        handleDragLeave: () => {},
         handlePetImageLoad: () => {},
-      };
-      return inject(PET_VIEW_CONTEXT_KEY, fallback);
+      });
     },
   };
 }

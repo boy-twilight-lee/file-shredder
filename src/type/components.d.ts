@@ -35,8 +35,6 @@ declare module 'vue' {
     PetBubble: typeof import('./../components/pet-view/component/pet-bubble/index.vue')['default']
     PetBubbleActions: typeof import('./../components/pet-view/component/pet-bubble-actions/index.vue')['default']
     PetBubbleConfirm: typeof import('./../components/pet-view/component/pet-bubble-confirm/index.vue')['default']
-    PetBubbleDrop: typeof import('./../components/pet-view/component/pet-bubble-drop/index.vue')['default']
-    PetBubbleError: typeof import('./../components/pet-view/component/pet-bubble-error/index.vue')['default']
     PetBubbleProgress: typeof import('./../components/pet-view/component/pet-bubble-progress/index.vue')['default']
     PetBubbleRecords: typeof import('./../components/pet-view/component/pet-bubble-records/index.vue')['default']
     PetBubbleResult: typeof import('./../components/pet-view/component/pet-bubble-result/index.vue')['default']
