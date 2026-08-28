@@ -1,4 +1,5 @@
 import { app, dialog, ipcMain } from 'electron';
+import { clamp } from '@/utils';
 import { applyLoginSetting, getExecutablePath } from '../app';
 import { isContextMenuInstalled, removeContextMenu } from '../integrations';
 import type { PetImageService, PetWindowManager } from '../pet';
@@ -82,9 +83,10 @@ export function registerIpcHandlers(
       delete safePatch.petImageTemplateId;
       delete safePatch.uploadedPetImages;
       if (typeof safePatch.petSize === 'number')
-        safePatch.petSize = Math.min(
+        safePatch.petSize = clamp(
+          Math.round(safePatch.petSize),
+          PET_SIZE_MIN,
           PET_SIZE_MAX,
-          Math.max(PET_SIZE_MIN, Math.round(safePatch.petSize)),
         );
       if (
         typeof safePatch.contextMenuInstalled === 'boolean' &&

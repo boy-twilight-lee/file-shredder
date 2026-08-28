@@ -52,7 +52,7 @@ import appIconSource from '@/assets/app-icon.png';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { PET_ACTION_ICONS, PET_ACTION_OPTIONS } from './constants';
 
-const { chooseTargets, showBubble } = usePetViewContext();
+const { chooseTargets, showBubble } = usePetViewContext().inject();
 
 async function handleAction(
   key: (typeof PET_ACTION_OPTIONS)[number]['key'],

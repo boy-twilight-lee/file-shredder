@@ -1,7 +1,4 @@
-import { execFile } from 'node:child_process';
-import { promisify } from 'node:util';
-
-const execFileAsync = promisify(execFile);
+import { executeCommand } from '../utils';
 const REGISTRY_ROOT = 'HKCU\\Software\\Classes';
 const MENU_PATHS = [
   `${REGISTRY_ROOT}\\*\\shell\\FileShredder`,
@@ -12,44 +9,9 @@ const LEGACY_MENU_PATHS = [
   `${REGISTRY_ROOT}\\Directory\\shell\\PetFileShredder`,
 ];
 
-interface CommandResult {
-  success: boolean;
-  returnCode: number;
-  output: string;
-  errors: string;
-}
-
 function getRegExecutable(): string {
   const systemRoot = process.env.SystemRoot ?? 'C:\\Windows';
   return `${systemRoot}\\System32\\reg.exe`;
-}
-
-async function runReg(args: string[]): Promise<CommandResult> {
-  try {
-    const result = await execFileAsync(getRegExecutable(), args, {
-      encoding: 'utf8',
-      windowsHide: true,
-    });
-    return {
-      success: true,
-      returnCode: 0,
-      output: result.stdout,
-      errors: result.stderr,
-    };
-  } catch (error) {
-    const commandError = error as NodeJS.ErrnoException & {
-      code?: number | string;
-      stdout?: string;
-      stderr?: string;
-    };
-    return {
-      success: false,
-      returnCode:
-        typeof commandError.code === 'number' ? commandError.code : -1,
-      output: commandError.stdout ?? '',
-      errors: commandError.stderr ?? commandError.message,
-    };
-  }
 }
 
 async function addValue(
@@ -58,7 +20,7 @@ async function addValue(
   value: string,
 ): Promise<boolean> {
   const valueArgs = name === null ? ['/ve'] : ['/v', name];
-  const result = await runReg([
+  const result = await executeCommand(getRegExecutable(), [
     'add',
     keyPath,
     ...valueArgs,
@@ -78,7 +40,7 @@ async function hasRegisteredMenu(
   const expectedCommand = `"${executablePath}" --shred "%1"`;
   for (const keyPath of menuPaths) {
     // 使用 reg.exe 的精确数据匹配，避免解析受 Windows 控制台代码页影响的中文输出。
-    const result = await runReg([
+    const result = await executeCommand(getRegExecutable(), [
       'query',
       `${keyPath}\\command`,
       '/ve',
@@ -93,10 +55,17 @@ async function hasRegisteredMenu(
 
 async function removeMenuPaths(menuPaths: string[]): Promise<boolean> {
   for (const keyPath of menuPaths) {
-    const result = await runReg(['delete', keyPath, '/f']);
+    const result = await executeCommand(getRegExecutable(), [
+      'delete',
+      keyPath,
+      '/f',
+    ]);
     // reg.exe 退出码 1 也可能只是键已不存在；查询确认即可保持幂等。
     if (!result.success) {
-      const queryResult = await runReg(['query', keyPath]);
+      const queryResult = await executeCommand(getRegExecutable(), [
+        'query',
+        keyPath,
+      ]);
       if (queryResult.success) return false;
     }
   }
@@ -137,7 +106,10 @@ export async function updateContextMenuIcon(iconPath: string): Promise<void> {
   if (process.platform !== 'win32') return;
   for (const keyPath of [...MENU_PATHS, ...LEGACY_MENU_PATHS]) {
     // 仅刷新已经存在的菜单项，避免图标更新意外创建不完整的右键菜单。
-    const queryResult = await runReg(['query', keyPath]);
+    const queryResult = await executeCommand(getRegExecutable(), [
+      'query',
+      keyPath,
+    ]);
     if (queryResult.success) await addValue(keyPath, 'Icon', iconPath);
   }
 }

@@ -34,7 +34,7 @@ import { ShredRecordPanel } from './component';
 const logs = ref<ShredLog[]>([]);
 const isLoading = ref(true);
 const disposers: Array<() => void> = [];
-const { showBubble } = usePetViewContext();
+const { showBubble } = usePetViewContext().inject();
 
 async function refreshLogs(): Promise<void> {
   logs.value = await window.shredderApi.getLogs();

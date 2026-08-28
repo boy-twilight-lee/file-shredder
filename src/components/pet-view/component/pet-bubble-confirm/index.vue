@@ -34,10 +34,10 @@
               class="pet-bubble-confirm-target-path"
               :title="target.path"
             >
-              {{ getTargetName(target.path) }}
+              {{ getPathName(target.path) }}
             </strong>
             <small>{{
-              target.size === null ? '未知' : formatFileSize(target.size)
+              target.size === null ? '未知' : formatByteSize(target.size)
             }}</small>
           </span>
           <a-button
@@ -85,24 +85,15 @@ import {
   IconFolder,
 } from '@arco-design/web-vue/es/icon';
 import { usePetViewContext } from '@/components/pet-view/hooks';
+import { formatByteSize, getPathName } from '@/utils';
 
 const {
   selectedTargets,
   isSubmitting,
   removeTarget,
-  getTargetName,
   closeBubble,
   confirmShred,
-} = usePetViewContext();
-
-function formatFileSize(size: number): string {
-  // 仅格式化主进程已返回的字节数，避免渲染列表时再次访问文件系统。
-  if (size < 1024) return `${size} B`;
-  if (size < 1024 * 1024) return `${(size / 1024).toFixed(1)} KB`;
-  if (size < 1024 * 1024 * 1024)
-    return `${(size / (1024 * 1024)).toFixed(1)} MB`;
-  return `${(size / (1024 * 1024 * 1024)).toFixed(1)} GB`;
-}
+} = usePetViewContext().inject();
 </script>
 
 <style lang="less" scoped>

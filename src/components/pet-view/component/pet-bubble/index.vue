@@ -44,7 +44,8 @@ const props = withDefaults(
     gap: 14,
   },
 );
-const { bubbleElement, bubbleMode, bubblePlacement } = usePetViewContext();
+const { bubbleElement, bubbleMode, bubblePlacement } =
+  usePetViewContext().inject();
 const bubbleClasses = computed(() => [
   `pet-view-bubble-${bubblePlacement.value}`,
   `pet-view-bubble-${bubbleMode.value}`,

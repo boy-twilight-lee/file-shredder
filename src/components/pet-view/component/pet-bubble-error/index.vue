@@ -16,7 +16,7 @@
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
 
-const { errorMessage, showBubble } = usePetViewContext();
+const { errorMessage, showBubble } = usePetViewContext().inject();
 </script>
 
 <style lang="less" scoped>

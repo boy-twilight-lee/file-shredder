@@ -31,7 +31,7 @@ const {
   openActions,
   closeBubble,
   handlePetImageLoad,
-} = usePetViewContext();
+} = usePetViewContext().inject();
 let pointerStart: { x: number; y: number } | null = null;
 let hasDragged = false;
 

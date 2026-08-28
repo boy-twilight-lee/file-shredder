@@ -1,7 +1,8 @@
-import { mkdir, readFile, rm, writeFile } from 'node:fs/promises';
-import { dirname, join } from 'node:path';
+import { rm } from 'node:fs/promises';
+import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { App } from 'electron';
+import { readJsonFile, writeJsonFile } from '../utils';
 
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
@@ -72,26 +73,8 @@ export class AppStore {
     this.petImagesDirectory = join(dataDirectory, 'pet-templates');
   }
 
-  private async readJson<T>(path: string, fallback: T): Promise<T> {
-    try {
-      return JSON.parse(await readFile(path, 'utf8')) as T;
-    } catch (error) {
-      if (
-        (error as NodeJS.ErrnoException).code === 'ENOENT' ||
-        error instanceof SyntaxError
-      )
-        return fallback;
-      throw error;
-    }
-  }
-
-  private async writeJson(path: string, value: unknown): Promise<void> {
-    await mkdir(dirname(path), { recursive: true });
-    await writeFile(path, JSON.stringify(value, null, 2), 'utf8');
-  }
-
   async getSettings(): Promise<AppSettings> {
-    const storedSettings = await this.readJson<
+    const storedSettings = await readJsonFile<
       Partial<AppSettings> & { shortcut?: string; snapToEdge?: boolean }
     >(this.settingsPath, {});
     // 清除旧版本遗留且界面已不再提供的配置，后续保存时不会再写回。
@@ -102,12 +85,12 @@ export class AppStore {
 
   async updateSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
     const settings = { ...(await this.getSettings()), ...patch };
-    await this.writeJson(this.settingsPath, settings);
+    await writeJsonFile(this.settingsPath, settings);
     return settings;
   }
 
   async getLogs(): Promise<ShredLog[]> {
-    return this.readJson<ShredLog[]>(this.logsPath, []);
+    return readJsonFile<ShredLog[]>(this.logsPath, []);
   }
 
   async appendLogs(
@@ -120,14 +103,14 @@ export class AppStore {
     const appendedLogs = entries
       .slice(0, availableEntryCount)
       .map((entry) => ({ ...entry, id: randomUUID(), timestamp }));
-    await this.writeJson(
+    await writeJsonFile(
       this.logsPath,
       [...appendedLogs, ...logs].slice(0, MAX_LOG_COUNT),
     );
   }
 
   async clearLogs(): Promise<void> {
-    await this.writeJson(this.logsPath, []);
+    await writeJsonFile(this.logsPath, []);
   }
 
   async deleteLogs(ids: string[]): Promise<ShredLog[]> {
@@ -136,7 +119,7 @@ export class AppStore {
     const logs = (await this.getLogs()).filter(
       (log) => !deletedIds.has(log.id),
     );
-    await this.writeJson(this.logsPath, logs);
+    await writeJsonFile(this.logsPath, logs);
     return logs;
   }
 

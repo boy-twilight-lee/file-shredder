@@ -11,6 +11,7 @@ import {
 } from 'node:fs/promises';
 import { dirname, join, parse, resolve, sep } from 'node:path';
 import { randomBytes, randomFill } from 'node:crypto';
+import { mapWithConcurrency } from '@/utils';
 
 export interface ShredProgress {
   path: string;
@@ -77,25 +78,6 @@ function fillRandomBuffer(buffer: Buffer, length: number): Promise<void> {
       else resolveFill();
     });
   });
-}
-
-async function mapWithConcurrency<T, R>(
-  items: T[],
-  concurrency: number,
-  worker: (item: T) => Promise<R>,
-): Promise<R[]> {
-  const results = new Array<R>(items.length);
-  let nextIndex = 0;
-  async function runWorker(): Promise<void> {
-    while (nextIndex < items.length) {
-      const currentIndex = nextIndex;
-      nextIndex += 1;
-      results[currentIndex] = await worker(items[currentIndex]);
-    }
-  }
-  const workerCount = Math.min(concurrency, items.length);
-  await Promise.all(Array.from({ length: workerCount }, () => runWorker()));
-  return results;
 }
 
 function assertSafeTarget(targetPath: string): string {

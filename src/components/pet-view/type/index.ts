@@ -30,7 +30,6 @@ export interface PetViewContext {
   isCancelling: Ref<boolean>;
   chooseTargets: (kind: 'file' | 'directory') => Promise<void>;
   removeTarget: (path: string) => void;
-  getTargetName: (path: string) => string;
   closeBubble: () => void;
   confirmShred: () => Promise<void>;
   cancelShred: () => Promise<void>;

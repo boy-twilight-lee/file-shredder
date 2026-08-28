@@ -61,6 +61,7 @@
 
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
+import { getPathName } from '@/utils';
 import { PROGRESS_TONE_OPTIONS } from './constants';
 
 const {
@@ -68,9 +69,8 @@ const {
   progressPercent,
   displayedFileIndex,
   isCancelling,
-  getTargetName,
   cancelShred,
-} = usePetViewContext();
+} = usePetViewContext().inject();
 
 const progressTone = computed(
   () =>
@@ -79,7 +79,7 @@ const progressTone = computed(
     ) ?? PROGRESS_TONE_OPTIONS[PROGRESS_TONE_OPTIONS.length - 1],
 );
 const currentFileName = computed(() =>
-  progress.value?.path ? getTargetName(progress.value.path) : '正在准备目标',
+  progress.value?.path ? getPathName(progress.value.path) : '正在准备目标',
 );
 </script>
 

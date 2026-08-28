@@ -1,1 +1,1 @@
-export { providePetViewContext, usePetViewContext } from './usePetViewContext';
+export { usePetViewContext } from './usePetViewContext';

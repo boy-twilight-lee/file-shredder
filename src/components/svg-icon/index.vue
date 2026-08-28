@@ -12,6 +12,8 @@
 </template>
 
 <script setup lang="ts">
+import { toCssSize } from '@/utils';
+
 defineOptions({
   name: 'SvgIcon',
 });
@@ -32,17 +34,11 @@ const props = withDefaults(
 
 const symbolId = computed(() => `#${props.prefix}-${props.name}`);
 
-function resolveSize(value: number | string | undefined): string {
-  // 数值尺寸统一转换为像素，字符串尺寸保留 em、rem、百分比等自定义单位。
-  if (value === undefined) return '1em';
-  return typeof value === 'number' ? `${value}px` : value;
-}
-
 const width = computed(() =>
-  resolveSize(Array.isArray(props.size) ? props.size[0] : props.size),
+  toCssSize(Array.isArray(props.size) ? props.size[0] : props.size, '1em'),
 );
 const height = computed(() =>
-  resolveSize(Array.isArray(props.size) ? props.size[1] : props.size),
+  toCssSize(Array.isArray(props.size) ? props.size[1] : props.size, '1em'),
 );
 </script>
 

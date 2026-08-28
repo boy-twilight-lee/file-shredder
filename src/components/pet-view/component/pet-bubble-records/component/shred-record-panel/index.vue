@@ -89,7 +89,9 @@
         </span>
       </template>
       <template #time-cell="{ record }">
-        <time>{{ formatLogTime(record.timestamp) }}</time>
+        <time>{{
+          formatDateTime(record.timestamp, SHRED_RECORD_TIME_FORMAT)
+        }}</time>
       </template>
       <template #empty>
         <div class="shred-record-panel-empty">
@@ -105,10 +107,10 @@
 </template>
 
 <script setup lang="ts">
-import dayjs from 'dayjs';
 import { IconFile, IconFolder } from '@arco-design/web-vue/es/icon';
 import type { ShredLog } from '@/type';
 import emptyIllustration from '@/styles/icons/empty.svg';
+import { formatDateTime } from '@/utils';
 import {
   MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
   MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
@@ -142,10 +144,6 @@ const emptyStateTitle = computed(() =>
 function deleteSelectedLogs(): void {
   // 复制当前选择，避免确认浮层关闭期间的响应式变化影响本次删除目标。
   emit('delete-logs', [...selectedLogIds.value]);
-}
-
-function formatLogTime(timestamp: string): string {
-  return dayjs(timestamp).format(SHRED_RECORD_TIME_FORMAT);
 }
 
 function getLogMessage(log: ShredLog): string {

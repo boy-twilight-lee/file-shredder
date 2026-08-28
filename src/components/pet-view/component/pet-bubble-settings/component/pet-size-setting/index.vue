@@ -29,6 +29,7 @@
 </template>
 
 <script setup lang="ts">
+import { clamp } from '@/utils';
 import { PET_SIZE_MAX, PET_SIZE_MIN, PET_SIZE_STEP } from './constants';
 import { SettingsCard } from '../settings-card';
 
@@ -37,10 +38,7 @@ const emit = defineEmits<{ 'update-pet-size': [value: number] }>();
 
 function updatePetSize(value: number | undefined): void {
   if (typeof value !== 'number' || !Number.isFinite(value)) return;
-  const normalizedValue = Math.min(
-    PET_SIZE_MAX,
-    Math.max(PET_SIZE_MIN, Math.round(value)),
-  );
+  const normalizedValue = clamp(Math.round(value), PET_SIZE_MIN, PET_SIZE_MAX);
   emit('update-pet-size', normalizedValue);
 }
 

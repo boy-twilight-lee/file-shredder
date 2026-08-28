@@ -69,7 +69,7 @@ const petImageTemplates = ref<PetImageTemplate[]>([]);
 const isLoading = ref(true);
 const isChoosingPetImage = ref(false);
 const disposers: Array<() => void> = [];
-const { showBubble } = usePetViewContext();
+const { showBubble } = usePetViewContext().inject();
 
 // VueUse 统一管理防抖状态，并暴露 cancel 供组件卸载时取消尚未执行的保存。
 const savePetSize = useDebounceFn(async (value: number) => {

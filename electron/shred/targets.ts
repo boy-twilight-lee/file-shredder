@@ -1,7 +1,9 @@
 import { lstat, stat } from 'node:fs/promises';
-import { isAbsolute, relative, resolve } from 'node:path';
+import { resolve } from 'node:path';
 import type { ShredResult } from './shredder';
 import type { ShredLog } from '../storage';
+import { isPathWithinDirectory } from '../utils';
+import { mapWithConcurrency } from '@/utils';
 
 export interface ShredTargetMetadata {
   path: string;
@@ -55,17 +57,6 @@ export async function getShredTargetMetadata(
   );
 }
 
-function isPathWithinDirectory(
-  directoryPath: string,
-  targetPath: string,
-): boolean {
-  const relativePath = relative(directoryPath, targetPath);
-  return (
-    relativePath === '' ||
-    (!relativePath.startsWith('..') && !isAbsolute(relativePath))
-  );
-}
-
 export function createShredLogs(
   targets: ShredTargetMetadata[],
   results: ShredResult[],
@@ -107,26 +98,18 @@ export function createShredLogs(
 
 export async function normalizeTargets(paths: string[]): Promise<string[]> {
   const uniquePaths = [...new Set(paths.map((item) => resolve(item)))];
-  const validPaths = new Array<string | undefined>(uniquePaths.length);
-  let nextIndex = 0;
-
-  async function validateNextPath(): Promise<void> {
-    while (nextIndex < uniquePaths.length) {
-      const currentIndex = nextIndex;
-      nextIndex += 1;
-      try {
-        await stat(uniquePaths[currentIndex]);
-        validPaths[currentIndex] = uniquePaths[currentIndex];
-      } catch {
-        validPaths[currentIndex] = undefined;
-      }
-    }
-  }
-
   // 限制并发文件系统访问，避免一次选中大量目标时阻塞主进程。
-  const workerCount = Math.min(PATH_VALIDATION_CONCURRENCY, uniquePaths.length);
-  await Promise.all(
-    Array.from({ length: workerCount }, () => validateNextPath()),
+  const validPaths = await mapWithConcurrency(
+    uniquePaths,
+    PATH_VALIDATION_CONCURRENCY,
+    async (path) => {
+      try {
+        await stat(path);
+        return path;
+      } catch {
+        return undefined;
+      }
+    },
   );
   return validPaths.filter((path): path is string => Boolean(path));
 }

@@ -1,6 +1,7 @@
 import { app, BrowserWindow, ipcMain, nativeImage, screen } from 'electron';
 import { join } from 'node:path';
 import type { AppSettings } from '../storage';
+import { clamp, containsPoint, expandRectangle } from '@/utils';
 
 interface PetWindowManagerDependencies {
   runtimeDirectory: string;
@@ -107,9 +108,10 @@ export function createPetWindowManager(
   }
 
   function getCharacterSize(): Electron.Size {
-    const width = Math.min(
+    const width = clamp(
+      Math.round(dependencies.getSettings().petSize),
+      PET_SIZE_MIN,
       PET_SIZE_MAX,
-      Math.max(PET_SIZE_MIN, Math.round(dependencies.getSettings().petSize)),
     );
     const imagePath = dependencies.getActiveImagePath();
     if (
@@ -181,14 +183,8 @@ export function createPetWindowManager(
       workArea.y + (workArea.height - characterSize.height) / 2,
     );
     if (hasSavedPosition) {
-      const relativeX = Math.min(
-        1,
-        Math.max(0, settings.petPositionX as number),
-      );
-      const relativeY = Math.min(
-        1,
-        Math.max(0, settings.petPositionY as number),
-      );
+      const relativeX = clamp(settings.petPositionX as number, 0, 1);
+      const relativeY = clamp(settings.petPositionY as number, 0, 1);
       characterX = Math.round(
         workArea.x + relativeX * workArea.width - characterSize.width / 2,
       );
@@ -197,13 +193,15 @@ export function createPetWindowManager(
       );
     }
     // 只限制可见人物，允许用于气泡布局的透明画布自然延伸到工作区外。
-    characterX = Math.min(
+    characterX = clamp(
+      characterX,
+      workArea.x,
       workArea.x + Math.max(0, workArea.width - characterSize.width),
-      Math.max(workArea.x, characterX),
     );
-    characterY = Math.min(
+    characterY = clamp(
+      characterY,
+      workArea.y,
       workArea.y + Math.max(0, workArea.height - characterSize.height),
-      Math.max(workArea.y, characterY),
     );
     return {
       x: characterX - Math.round((windowSize.width - characterSize.width) / 2),
@@ -227,13 +225,15 @@ export function createPetWindowManager(
     const centerY = bounds.y + bounds.height / 2;
     await dependencies.updateSettings({
       petDisplayId: display.id,
-      petPositionX: Math.min(
+      petPositionX: clamp(
+        (centerX - display.workArea.x) / display.workArea.width,
+        0,
         1,
-        Math.max(0, (centerX - display.workArea.x) / display.workArea.width),
       ),
-      petPositionY: Math.min(
+      petPositionY: clamp(
+        (centerY - display.workArea.y) / display.workArea.height,
+        0,
         1,
-        Math.max(0, (centerY - display.workArea.y) / display.workArea.height),
       ),
     });
   }
@@ -268,30 +268,6 @@ export function createPetWindowManager(
     return bubbles[bubblePlacement];
   }
 
-  function containsPoint(
-    bounds: Electron.Rectangle,
-    point: Electron.Point,
-  ): boolean {
-    return (
-      point.x >= bounds.x &&
-      point.x <= bounds.x + bounds.width &&
-      point.y >= bounds.y &&
-      point.y <= bounds.y + bounds.height
-    );
-  }
-
-  function expandBounds(
-    bounds: Electron.Rectangle,
-    padding: number,
-  ): Electron.Rectangle {
-    return {
-      x: bounds.x - padding,
-      y: bounds.y - padding,
-      width: bounds.width + padding * 2,
-      height: bounds.height + padding * 2,
-    };
-  }
-
   function updateMouseThrough(pointer?: Electron.Point): void {
     if (
       !petWindow ||
@@ -311,9 +287,15 @@ export function createPetWindowManager(
     }
     const interactiveBubbleBounds = bubbleBounds ?? getLocalBubbleBounds();
     const isInteractive =
-      containsPoint(expandBounds(getLocalCharacterBounds(), 10), localCursor) ||
+      containsPoint(
+        expandRectangle(getLocalCharacterBounds(), 10),
+        localCursor,
+      ) ||
       (isExpanded &&
-        containsPoint(expandBounds(interactiveBubbleBounds, 6), localCursor));
+        containsPoint(
+          expandRectangle(interactiveBubbleBounds, 6),
+          localCursor,
+        ));
     if (isMouseThrough === !isInteractive) return;
     isMouseThrough = !isInteractive;
     // 透明区域点击穿透，forward 保留鼠标移动以便重新进入人物时恢复交互。
