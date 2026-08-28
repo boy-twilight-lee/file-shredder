@@ -1103,3 +1103,10 @@ html {
     }
   }
 }
+// 桌宠大气泡打开时，让挂载在 body 下的 Message 按气泡边界居中。
+html[data-settings-message-aligned='true'] .arco-message-list-top {
+  position: fixed;
+  top: var(--settings-message-top);
+  left: var(--settings-message-left);
+  width: var(--settings-message-width);
+}

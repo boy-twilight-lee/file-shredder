@@ -7,8 +7,7 @@
     @dragover.prevent
     @drop.prevent="handleDrop"
   >
-    <pet-bubble :gap="bubbleGap" />
-
+    <pet-bubble :gap="8" />
     <div
       class="pet-view-character"
       :class="`pet-view-character-${visualPetState}`"
@@ -32,15 +31,6 @@
 <script setup lang="ts">
 import { providePetViewContext } from './hooks';
 import { PetBubble } from './component';
-
-withDefaults(
-  defineProps<{
-    bubbleGap?: number;
-  }>(),
-  {
-    bubbleGap: 14,
-  },
-);
 
 // 组件只消费 context，默认值、状态、派生数据和生命周期统一由 context 管理。
 const {

@@ -1,19 +1,19 @@
 .pet-bubble-drop {
+  color: #1d252f;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 7px;
-  color: #1d252f;
 
-  strong {
+  & > strong {
     font-size: 13px;
     font-weight: 600;
     line-height: 1.4;
   }
 
   .pet-bubble-drop-icon {
-    flex: 0 0 auto;
-    width: 30px;
     height: 30px;
+    width: 30px;
+    flex-shrink: 0;
   }
 }

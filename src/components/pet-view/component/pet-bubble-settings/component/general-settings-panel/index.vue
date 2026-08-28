@@ -7,6 +7,7 @@
   >
     <div class="general-settings-panel">
       <settings-card
+        class="general-settings-panel-card"
         title="桌宠形象"
         description="   支持常用图片格式，单张不超过 50 MB。"
       >
@@ -67,6 +68,7 @@
       </settings-card>
 
       <settings-card
+        class="general-settings-panel-card"
         title="桌宠大小"
         description="调整桌宠显示大小。"
       >
@@ -94,6 +96,7 @@
       </settings-card>
 
       <settings-card
+        class="general-settings-panel-card"
         title="选择文件清理强度"
         description="覆写次数越多越安全，处理时间也越长。"
       >
@@ -135,6 +138,7 @@
       </settings-card>
 
       <settings-card
+        class="general-settings-panel-card"
         title="系统设置"
         description="管理置顶、开机启动和右键菜单。"
       >
@@ -163,16 +167,10 @@
 </template>
 
 <script setup lang="ts">
-import {
-  IconDelete,
-  IconMenu,
-  IconNotification,
-  IconPoweroff,
-  IconPushpin,
-  IconSafe,
-  IconStorage,
-  IconThunderbolt,
-} from '@arco-design/web-vue/es/icon';
+import type {
+  GeneralSettingsPanelEmits,
+  GeneralSettingsPanelProps,
+} from './type';
 import {
   MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
   MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
@@ -181,13 +179,8 @@ import {
   PET_SIZE_STEP,
   SHRED_LEVEL_OPTIONS,
 } from '@/components/pet-view/constants';
+import { SHRED_LEVEL_ICONS, SWITCH_OPTIONS } from './constants';
 import { SettingsCard } from '../settings-card';
-import type {
-  GeneralSettingsPanelEmits,
-  GeneralSettingsPanelProps,
-  SettingsSwitchOption,
-  ShredLevelIconMap,
-} from './type';
 
 defineProps<GeneralSettingsPanelProps>();
 const emit = defineEmits<GeneralSettingsPanelEmits>();
@@ -197,38 +190,8 @@ function updatePetSizeFromSlider(value: number | [number, number]): void {
   if (typeof value === 'number') emit('update-pet-size', value);
 }
 
-const switchOptions: SettingsSwitchOption[] = [
-  {
-    key: 'alwaysOnTop',
-    label: '桌宠始终置顶',
-    description: '保持桌宠显示在其他窗口上方',
-    icon: IconPushpin,
-  },
-  {
-    key: 'launchAtLogin',
-    label: '开机自动启动',
-    description: '登录 Windows 后自动运行',
-    icon: IconPoweroff,
-  },
-  {
-    key: 'systemNotifications',
-    label: '开启系统通知',
-    description: '清理完成后发送结果通知',
-    icon: IconNotification,
-  },
-  {
-    key: 'contextMenuInstalled',
-    label: '资源管理器右键菜单',
-    description: '添加文件和文件夹右键菜单',
-    icon: IconMenu,
-  },
-];
-const shredLevelIcons: ShredLevelIconMap = {
-  0: IconDelete,
-  3: IconThunderbolt,
-  7: IconSafe,
-  35: IconStorage,
-};
+const switchOptions = SWITCH_OPTIONS;
+const shredLevelIcons = SHRED_LEVEL_ICONS;
 </script>
 
 <style lang="less" scoped>

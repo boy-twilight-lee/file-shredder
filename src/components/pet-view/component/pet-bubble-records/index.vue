@@ -26,10 +26,10 @@
 
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';
+import '@arco-design/web-vue/es/message/style/css.js';
 import type { ShredLog } from '@/type';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { ShredRecordPanel } from './component';
-import '@arco-design/web-vue/es/message/style/css.js';
 
 const logs = ref<ShredLog[]>([]);
 const isLoading = ref(true);

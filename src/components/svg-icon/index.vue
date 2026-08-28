@@ -48,12 +48,12 @@ const height = computed(() =>
 
 <style lang="less" scoped>
 .svg-icon {
-  display: inline-block;
-  flex: 0 0 auto;
-  width: v-bind(width);
-  height: v-bind(height);
   overflow: hidden;
+  height: v-bind(height);
+  width: v-bind(width);
   color: v-bind('props.color');
   vertical-align: -0.125em;
+  display: inline-block;
+  flex-shrink: 0;
 }
 </style>

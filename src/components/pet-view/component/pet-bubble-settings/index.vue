@@ -35,6 +35,7 @@
 
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';
+import '@arco-design/web-vue/es/message/style/css.js';
 import { useDebounceFn } from '@vueuse/core';
 import type { AppSettings, PetImageTemplate, SettingBooleanKey } from '@/type';
 import {
@@ -43,27 +44,10 @@ import {
   PET_SIZE_SAVE_DELAY_MS,
 } from '@/components/pet-view/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
+import { DEFAULT_APP_SETTINGS } from './constants';
 import { GeneralSettingsPanel } from './component';
-import '@arco-design/web-vue/es/message/style/css.js';
 
-const defaultSettings: AppSettings = {
-  // 设置读取完成前也保持极速删除为默认选中状态。
-  passes: 0,
-  confirmBeforeShred: true,
-  alwaysOnTop: true,
-  launchAtLogin: false,
-  systemNotifications: true,
-  contextMenuInstalled: false,
-  contextMenuAutoInstall: false,
-  customPetImagePath: '',
-  petImageTemplateId: 'built-in-ao-yin',
-  uploadedPetImages: [],
-  petSize: 200,
-  petDisplayId: null,
-  petPositionX: null,
-  petPositionY: null,
-};
-const settings = ref<AppSettings>({ ...defaultSettings });
+const settings = ref<AppSettings>({ ...DEFAULT_APP_SETTINGS });
 const petImageTemplates = ref<PetImageTemplate[]>([]);
 const isLoading = ref(true);
 const isChoosingPetImage = ref(false);
@@ -112,7 +96,7 @@ async function updatePasses(value: AppSettings['passes']): Promise<void> {
   await saveSettingsPatch({ passes: value });
 }
 
-function updatePetSize(value: number | undefined): void {
+async function updatePetSize(value: number | undefined): Promise<void> {
   if (typeof value !== 'number' || !Number.isFinite(value)) return;
   const normalizedValue = Math.min(
     PET_SIZE_MAX,
@@ -120,7 +104,7 @@ function updatePetSize(value: number | undefined): void {
   );
   settings.value.petSize = normalizedValue;
   // 连续调整时只在数值停止变化后合并为一次磁盘写入。
-  savePetSize(normalizedValue);
+  await savePetSize(normalizedValue);
 }
 
 async function choosePetImage(): Promise<void> {

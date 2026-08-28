@@ -1,22 +1,46 @@
 .shred-record-panel {
+  overflow: hidden;
+  height: 100%;
+  width: 100%;
+  padding: 12px 16px 16px;
+  background: #fff;
   display: flex;
   flex-direction: column;
-  width: 100%;
-  height: 100%;
-  padding: 12px 16px 16px;
-  overflow: hidden;
-  background: #fff;
 
   .shred-record-panel-toolbar {
-    display: flex;
-    flex: 0 0 auto;
-    align-items: center;
     min-height: 32px;
     margin-bottom: 12px;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+
+    .shred-record-panel-search {
+      width: 248px;
+    }
+
+    .shred-record-panel-summary {
+      margin-left: auto;
+      font-size: 12px;
+      white-space: nowrap;
+      color: #86909c;
+
+      .shred-record-panel-summary-total,
+      .shred-record-panel-summary-selected {
+        font-weight: 500;
+      }
+
+      .shred-record-panel-summary-total {
+        color: #f59e0b;
+      }
+
+      .shred-record-panel-summary-selected {
+        color: #165dff;
+      }
+    }
 
     &:deep(.arco-btn) {
-      min-width: 92px;
       height: 32px;
+      min-width: 92px;
       margin-left: 14px;
       padding: 0 12px;
       border-color: #e5e6eb;
@@ -25,105 +49,85 @@
     }
   }
 
-  .shred-record-panel-search {
-    width: 248px;
-  }
-
-  .shred-record-panel-summary {
-    margin-left: auto;
-    color: #86909c;
-    font-size: 12px;
-    white-space: nowrap;
-
-    .shred-record-panel-summary-total,
-    .shred-record-panel-summary-selected {
-      font-weight: 500;
-    }
-
-    .shred-record-panel-summary-total {
-      color: #f59e0b;
-    }
-
-    .shred-record-panel-summary-selected {
-      color: #165dff;
-    }
-  }
-
-  .shred-record-panel-path {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    min-width: 0;
-    overflow: hidden;
-    color: #1d2129;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    & > span {
-      display: block;
-      overflow: hidden;
-      text-overflow: ellipsis;
-      white-space: nowrap;
-    }
-  }
-
-  .shred-record-panel-path-icon {
-    flex: 0 0 auto;
-    color: inherit;
-    font-size: 16px;
-    line-height: 1;
-  }
-
-  .shred-record-panel-status {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-weight: 500;
-    white-space: nowrap;
-
-    &.shred-record-panel-status-success {
-      color: #00a870;
-    }
-
-    &.shred-record-panel-status-failure {
-      color: #f53f3f;
-    }
-  }
-
-  .shred-record-panel-result {
-    display: block;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-
-    &.shred-record-panel-result-failure {
-      color: #f53f3f;
-    }
-  }
-
   .shred-record-panel-table {
-    time {
-      display: block;
+    overflow: hidden;
+    min-height: 0;
+    flex: 1;
+
+    .shred-record-panel-path {
+      overflow: hidden;
+      min-width: 0;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #1d2129;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      .shred-record-panel-path-icon {
+        font-size: 16px;
+        line-height: 1;
+        color: inherit;
+        flex-shrink: 0;
+      }
+
+      & > span {
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        display: block;
+      }
+    }
+
+    .shred-record-panel-status {
+      font-weight: 500;
+      white-space: nowrap;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+
+      &.shred-record-panel-status-success {
+        color: #00a870;
+      }
+
+      &.shred-record-panel-status-failure {
+        color: #f53f3f;
+      }
+    }
+
+    .shred-record-panel-result {
       overflow: hidden;
       text-overflow: ellipsis;
       white-space: nowrap;
+      display: block;
+
+      &.shred-record-panel-result-failure {
+        color: #f53f3f;
+      }
     }
-  }
 
-  .shred-record-panel-empty {
-    display: flex;
-    width: 100%;
-    height: 100%;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    color: #99a1ad;
-    font-size: 13px;
+    time {
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      display: block;
+    }
 
-    img {
-      width: 184px;
-      height: 172px;
-      margin-bottom: 12px;
+    .shred-record-panel-empty {
+      height: 100%;
+      width: 100%;
+      font-size: 13px;
+      color: #99a1ad;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+
+      & > img {
+        height: 172px;
+        width: 184px;
+        margin-bottom: 12px;
+      }
     }
   }
 }

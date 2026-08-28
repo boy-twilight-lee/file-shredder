@@ -20,6 +20,7 @@
 </template>
 
 <script setup lang="ts">
+import { usePetViewContext } from '@/components/pet-view/hooks';
 import {
   PetBubbleActions,
   PetBubbleConfirm,
@@ -28,7 +29,6 @@ import {
   PetBubbleProgress,
   PetBubbleResult,
 } from '@/components/pet-view/component';
-import { usePetViewContext } from '@/components/pet-view/hooks';
 
 // 设置与记录只在用户打开对应气泡时加载，避免桌宠首屏引入管理页面代码。
 const PetBubbleSettings = defineAsyncComponent(
