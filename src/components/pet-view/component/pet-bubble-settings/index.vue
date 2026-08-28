@@ -7,7 +7,10 @@
         aria-label="返回操作菜单"
         @click="showBubble('actions')"
       >
-        <icon-left />
+        <svg-icon
+          name="icon-back"
+          size="16"
+        />
       </a-link>
       <h1 class="pet-bubble-settings-title">常规设置</h1>
     </header>

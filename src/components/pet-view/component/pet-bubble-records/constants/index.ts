@@ -1,12 +1,12 @@
-import type { TableColumnData, TableRowSelection } from '@arco-design/web-vue';
-import type { VirtualListProps } from '@arco-design/web-vue/es/_components/virtual-list-v2/interface';
+import { TableColumnData, TableRowSelection } from '@arco-design/web-vue';
+import { VirtualListProps } from '@arco-design/web-vue/es/_components/virtual-list-v2/interface';
 
 export const SHRED_RECORD_COLUMNS: TableColumnData[] = [
   {
     title: '文件路径',
     dataIndex: 'path',
     slotName: 'path-cell',
-    width: 250,
+    width: 356,
     ellipsis: true,
     tooltip: true,
   },
@@ -20,7 +20,7 @@ export const SHRED_RECORD_COLUMNS: TableColumnData[] = [
     title: '处理结果',
     dataIndex: 'message',
     slotName: 'result-cell',
-    width: 250,
+    width: 200,
     ellipsis: true,
     tooltip: true,
   },
@@ -28,7 +28,7 @@ export const SHRED_RECORD_COLUMNS: TableColumnData[] = [
     title: '粉碎时间',
     dataIndex: 'timestamp',
     slotName: 'time-cell',
-    width: 160,
+    width: 150,
     ellipsis: true,
     tooltip: true,
   },
@@ -42,7 +42,7 @@ export const SHRED_RECORD_ROW_SELECTION: TableRowSelection = {
 };
 
 // 横向尺寸等于选择列和所有数据列之和，空间不足时由 Arco 提供横向滚动。
-export const SHRED_RECORD_TABLE_SCROLL = { x: 804, y: 406 };
+export const SHRED_RECORD_TABLE_SCROLL = { x: 850, y: 406 };
 export const SHRED_RECORD_TIME_FORMAT = 'YYYY-MM-DD HH:mm';
 
 export const SHRED_RECORD_VIRTUAL_LIST_PROPS: VirtualListProps = {

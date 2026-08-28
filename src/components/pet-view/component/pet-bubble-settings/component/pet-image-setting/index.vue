@@ -2,7 +2,7 @@
   <settings-card
     class="pet-image-setting"
     title="桌宠形象"
-    description="支持常用图片格式，单张不超过 50 MB。"
+    description="支持 PNG、JPG、SVG、WebP、GIF，单张不超过 50 MB。"
   >
     <div class="pet-image-setting-list">
       <button
@@ -58,7 +58,6 @@
       >
         <icon-plus />
         <span>{{ isChoosingPetImage ? '正在读取' : '上传图片' }}</span>
-        <small>PNG · JPG · SVG · WebP · GIF</small>
       </button>
     </div>
   </settings-card>

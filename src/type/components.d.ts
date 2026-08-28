@@ -28,7 +28,6 @@ declare module 'vue' {
     IconFile: typeof import('@arco-design/web-vue/es/icon')['IconFile']
     IconHeartFill: typeof import('@arco-design/web-vue/es/icon')['IconHeartFill']
     IconInfoCircle: typeof import('@arco-design/web-vue/es/icon')['IconInfoCircle']
-    IconLeft: typeof import('@arco-design/web-vue/es/icon')['IconLeft']
     IconPlus: typeof import('@arco-design/web-vue/es/icon')['IconPlus']
     IconRight: typeof import('@arco-design/web-vue/es/icon')['IconRight']
     IconSafe: typeof import('@arco-design/web-vue/es/icon')['IconSafe']
@@ -50,7 +49,6 @@ declare module 'vue' {
     RouterView: typeof import('vue-router')['RouterView']
     SettingsCard: typeof import('./../components/pet-view/component/pet-bubble-settings/component/settings-card/index.vue')['default']
     ShredLevelSetting: typeof import('./../components/pet-view/component/pet-bubble-settings/component/shred-level-setting/index.vue')['default']
-    ShredRecordPanel: typeof import('./../components/pet-view/component/pet-bubble-records/component/shred-record-panel/index.vue')['default']
     SvgIcon: typeof import('./../components/svg-icon/index.vue')['default']
     SystemSetting: typeof import('./../components/pet-view/component/pet-bubble-settings/component/system-setting/index.vue')['default']
   }
