@@ -8,9 +8,11 @@ import electron from 'vite-plugin-electron/simple';
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 
 export default defineConfig(() => {
+  const alias = { '@': resolve('src') };
+
   return {
     resolve: {
-      alias: { '@': resolve('src') },
+      alias,
     },
     build: {
       outDir: 'dist-renderer',
@@ -34,7 +36,10 @@ export default defineConfig(() => {
         resolvers: [ArcoResolver({ resolveIcons: true })],
       }),
       electron({
-        main: { entry: 'electron/main.ts' },
+        main: {
+          entry: 'electron/main.ts',
+          vite: { resolve: { alias } },
+        },
         preload: { input: 'electron/preload.ts' },
         renderer: {},
       }),

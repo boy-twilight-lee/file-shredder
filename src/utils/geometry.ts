@@ -25,3 +25,10 @@ export function expandRectangle(bounds: Rectangle, padding: number): Rectangle {
     height: bounds.height + padding * 2,
   };
 }
+
+export function getDraggedPosition(cursor: Point, pointerOffset: Point): Point {
+  return {
+    x: Math.round(cursor.x - pointerOffset.x),
+    y: Math.round(cursor.y - pointerOffset.y),
+  };
+}

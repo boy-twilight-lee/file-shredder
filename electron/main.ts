@@ -2,7 +2,6 @@ import { app, BrowserWindow, screen } from 'electron';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { onWindowDrag } from 'electron-drag-window/electron';
 import {
   applyLoginSetting,
   getExecutablePath,
@@ -22,6 +21,7 @@ import {
   normalizeTargets,
 } from './shred';
 import { AppStore, type AppSettings } from './storage';
+import { registerWindowDrag } from './utils';
 
 const store = new AppStore(app);
 const runtimeDirectory = dirname(fileURLToPath(import.meta.url));
@@ -32,6 +32,7 @@ let startupMaintenanceTimer: NodeJS.Timeout | undefined;
 let queuedLaunchPaths: string[] = [];
 let shouldShowPetOnReady = false;
 let petImageService: PetImageService;
+let disposeWindowDrag: (() => void) | undefined;
 
 const petWindowManager = createPetWindowManager({
   runtimeDirectory,
@@ -151,7 +152,7 @@ function scheduleStartupMaintenance(): void {
 async function initializeApplication(): Promise<void> {
   currentSettings = await store.getSettings();
   petWindowManager.create();
-  onWindowDrag();
+  disposeWindowDrag = registerWindowDrag();
   screen.on('display-removed', petWindowManager.restorePosition);
   screen.on('display-metrics-changed', petWindowManager.restorePosition);
   queueLaunchPaths(parseLaunchPaths(process.argv));
@@ -192,5 +193,6 @@ app.on('window-all-closed', () => undefined);
 app.on('will-quit', () => {
   clearTimeout(launchTimer);
   clearTimeout(startupMaintenanceTimer);
+  disposeWindowDrag?.();
   petWindowManager.dispose();
 });
