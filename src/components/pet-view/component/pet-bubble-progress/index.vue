@@ -8,7 +8,8 @@
         :loading="isCancelling"
         @click="cancelShred"
       >
-        <icon-stop />{{ isCancelling ? '正在终止' : '取消删除' }}
+        <svg-icon name="app-stop" />
+        {{ isCancelling ? '正在终止' : '取消删除' }}
       </a-link>
     </header>
     <div
@@ -17,7 +18,9 @@
     >
       <div class="pet-bubble-progress-summary">
         <span class="pet-bubble-progress-status">
-          <span class="pet-bubble-progress-status-icon"><icon-delete /></span>
+          <span class="pet-bubble-progress-status-icon">
+            <svg-icon name="app-delete" />
+          </span>
           <strong>正在安全删除</strong>
         </span>
         <span class="pet-bubble-progress-count">
@@ -29,7 +32,9 @@
         class="pet-bubble-progress-current-file"
         :title="progress?.path"
       >
-        <span class="pet-bubble-progress-current-file-icon"><icon-file /></span>
+        <span class="pet-bubble-progress-current-file-icon">
+          <svg-icon name="app-file" />
+        </span>
         <span class="pet-bubble-progress-current-file-content">
           <strong>{{ currentFileName }}</strong>
         </span>
@@ -52,7 +57,7 @@
         <strong>{{ progressPercent }}%</strong>
       </div>
       <div class="pet-bubble-progress-security">
-        <icon-safe />
+        <svg-icon name="app-shield" />
         <span>安全粉碎 · 后台执行中</span>
       </div>
     </div>

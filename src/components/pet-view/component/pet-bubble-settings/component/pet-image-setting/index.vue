@@ -29,7 +29,7 @@
           v-if="item.active"
           class="pet-image-setting-selected"
         >
-          <icon-check />
+          <svg-icon name="app-check" />
         </span>
         <a-popconfirm
           v-if="item.deletable"
@@ -45,7 +45,7 @@
             title="删除"
             @click.stop
           >
-            <icon-delete />
+            <svg-icon name="app-delete" />
           </span>
         </a-popconfirm>
       </button>
@@ -56,7 +56,7 @@
         :disabled="isChoosingPetImage"
         @click="emit('choose-pet-image')"
       >
-        <icon-plus />
+        <svg-icon name="app-add" />
         <span>{{ isChoosingPetImage ? '正在读取' : '上传图片' }}</span>
       </button>
     </div>

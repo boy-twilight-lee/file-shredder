@@ -2,12 +2,12 @@ export const PET_HEADER_ACTION_OPTIONS = [
   {
     key: 'records',
     title: '粉碎记录',
-    icon: 'pet-history',
+    icon: 'app-history',
   },
   {
     key: 'settings',
     title: '设置',
-    icon: 'pet-settings',
+    icon: 'app-settings',
   },
 ] as const;
 
@@ -18,7 +18,7 @@ export const PET_ACTION_OPTIONS = [
     description: '支持同时选择多个文件',
     badge: '常用',
     tone: 'blue',
-    icon: 'pet-file',
+    icon: 'app-file-add',
   },
   {
     key: 'directory',
@@ -26,7 +26,7 @@ export const PET_ACTION_OPTIONS = [
     description: '包含文件夹内的所有内容',
     badge: '递归清理',
     tone: 'green',
-    icon: 'pet-folder',
+    icon: 'app-folder-open',
   },
   {
     key: 'lock',
@@ -34,7 +34,7 @@ export const PET_ACTION_OPTIONS = [
     description: '立即锁定当前系统会话',
     badge: '快捷安全',
     tone: 'purple',
-    icon: 'pet-lock',
+    icon: 'app-lock',
   },
   {
     key: 'close',
@@ -42,6 +42,6 @@ export const PET_ACTION_OPTIONS = [
     description: '退出文件粉碎精灵',
     badge: '谨慎操作',
     tone: 'red',
-    icon: 'pet-power',
+    icon: 'app-power',
   },
 ] as const;

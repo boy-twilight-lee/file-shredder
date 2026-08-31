@@ -24,8 +24,10 @@
             class="pet-bubble-confirm-target-icon-wrap"
             :class="`pet-bubble-confirm-target-icon-wrap-${target.targetType}`"
           >
-            <component
-              :is="target.targetType === 'directory' ? IconFolder : IconFile"
+            <svg-icon
+              :name="
+                target.targetType === 'directory' ? 'app-folder' : 'app-file'
+              "
               class="pet-bubble-confirm-target-icon"
             />
           </span>
@@ -49,13 +51,18 @@
             :aria-label="`移除 ${target.path}`"
             @click.stop="removeTarget(target.path)"
           >
-            <template #icon><icon-delete /></template>
+            <template #icon>
+              <svg-icon
+                class="pet-bubble-confirm-target-remove-icon"
+                name="app-delete"
+              />
+            </template>
           </a-button>
         </div>
       </div>
     </a-scrollbar>
     <div class="pet-bubble-confirm-warning">
-      <icon-exclamation-circle-fill />
+      <svg-icon name="app-warning" />
       <span>粉碎后将无法找回，请确认文件已备份。</span>
     </div>
     <footer class="pet-bubble-confirm-footer">
@@ -79,11 +86,6 @@
 </template>
 
 <script setup lang="ts">
-import {
-  IconExclamationCircleFill,
-  IconFile,
-  IconFolder,
-} from '@arco-design/web-vue/es/icon';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { formatByteSize, getPathName } from '@/utils';
 

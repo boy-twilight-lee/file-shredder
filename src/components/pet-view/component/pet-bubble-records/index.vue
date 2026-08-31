@@ -8,7 +8,7 @@
         @click="showBubble('actions')"
       >
         <svg-icon
-          name="icon-back"
+          name="app-back"
           size="16"
         />
       </a-link>
@@ -51,7 +51,9 @@
               size="small"
               :disabled="selectedLogIds.length === 0"
             >
-              <template #icon><icon-delete /></template>
+              <template #icon>
+                <svg-icon name="app-delete" />
+              </template>
               批量删除
             </a-button>
           </a-popconfirm>
@@ -77,8 +79,10 @@
               class="pet-bubble-records-path"
               :title="record.path"
             >
-              <component
-                :is="record.targetType === 'directory' ? IconFolder : IconFile"
+              <svg-icon
+                :name="
+                  record.targetType === 'directory' ? 'app-folder' : 'app-file'
+                "
                 class="pet-bubble-records-path-icon"
                 :aria-label="
                   record.targetType === 'directory' ? '文件夹' : '文件'
@@ -96,8 +100,16 @@
                   : 'pet-bubble-records-status-failure'
               "
             >
-              <icon-check-circle v-if="record.success" />
-              <icon-close-circle v-else />
+              <svg-icon
+                v-if="record.success"
+                class="pet-bubble-records-status-icon"
+                name="app-check-circle"
+              />
+              <svg-icon
+                v-else
+                class="pet-bubble-records-status-icon"
+                name="app-close-circle"
+              />
               {{ record.success ? '成功' : '失败' }}
             </span>
           </template>
@@ -134,7 +146,6 @@
 
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';
-import { IconFile, IconFolder } from '@arco-design/web-vue/es/icon';
 import '@arco-design/web-vue/es/message/style/css.js';
 import { ShredLog } from '@/type';
 import emptyIllustration from '@/styles/icons/empty.svg';

@@ -11,7 +11,7 @@
         class="system-setting-row"
       >
         <span class="system-setting-icon">
-          <component :is="item.icon" />
+          <svg-icon :name="item.icon" />
         </span>
         <div class="system-setting-content">
           <strong>{{ item.label }}</strong>

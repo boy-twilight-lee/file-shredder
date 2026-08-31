@@ -58,11 +58,16 @@
           </span>
           <small>{{ item.description }}</small>
         </span>
-        <icon-right class="pet-bubble-actions-chevron" />
+        <svg-icon
+          class="pet-bubble-actions-chevron"
+          name="app-arrow-right"
+        />
       </button>
     </div>
     <footer class="pet-bubble-actions-tip">
-      <span class="pet-bubble-actions-tip-icon"><icon-heart-fill /></span>
+      <span class="pet-bubble-actions-tip-icon">
+        <svg-icon name="app-heart" />
+      </span>
       <span>小贴士：文件或文件夹也可以直接拖到我身上。</span>
     </footer>
   </section>

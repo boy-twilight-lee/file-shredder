@@ -1,10 +1,3 @@
-import {
-  IconDelete,
-  IconSafe,
-  IconStorage,
-  IconThunderbolt,
-} from '@arco-design/web-vue/es/icon';
-import type { Component } from 'vue';
 import type { AppSettings } from '@/type';
 
 export const SHRED_LEVEL_OPTIONS = [
@@ -34,9 +27,9 @@ export const SHRED_LEVEL_OPTIONS = [
   },
 ] as const;
 
-export const SHRED_LEVEL_ICONS: Record<AppSettings['passes'], Component> = {
-  0: IconDelete,
-  3: IconThunderbolt,
-  7: IconSafe,
-  35: IconStorage,
+export const SHRED_LEVEL_ICONS: Record<AppSettings['passes'], string> = {
+  0: 'app-delete',
+  3: 'app-lightning',
+  7: 'app-shield',
+  35: 'app-storage',
 };

@@ -30,10 +30,10 @@ export default defineConfig(() => {
         imports: ['vue', 'vue-router'],
         vueTemplate: true,
       }),
-      // 自动按需引入模板中使用的 Arco 组件、图标及对应样式。
+      // 自动按需引入模板中使用的 Arco 组件及对应样式；业务图标统一使用 SVG 雪碧图。
       Components({
         dts: 'src/type/components.d.ts',
-        resolvers: [ArcoResolver({ resolveIcons: true })],
+        resolvers: [ArcoResolver({ resolveIcons: false })],
       }),
       electron({
         main: {

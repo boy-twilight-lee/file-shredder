@@ -22,7 +22,7 @@
         @click="emit('update-passes', item.value)"
       >
         <span class="shred-level-setting-icon">
-          <component :is="SHRED_LEVEL_ICONS[item.value]" />
+          <svg-icon :name="SHRED_LEVEL_ICONS[item.value]" />
         </span>
         <span class="shred-level-setting-content">
           <span class="shred-level-setting-title">
@@ -35,7 +35,7 @@
           v-if="modelValue === item.value"
           class="shred-level-setting-check"
         >
-          <icon-check />
+          <svg-icon name="app-check" />
         </span>
       </button>
     </div>

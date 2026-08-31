@@ -8,7 +8,7 @@
         @click="showBubble('actions')"
       >
         <svg-icon
-          name="icon-back"
+          name="app-back"
           size="16"
         />
       </a-link>

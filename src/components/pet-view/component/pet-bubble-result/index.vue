@@ -31,7 +31,7 @@
       class="pet-bubble-result-tip"
       :class="`pet-bubble-result-tip-${resultTone}`"
     >
-      <icon-info-circle />
+      <svg-icon name="app-information" />
       <span>{{ resultTip }}</span>
     </div>
     <footer class="pet-bubble-result-footer">
