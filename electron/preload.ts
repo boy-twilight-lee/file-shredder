@@ -56,8 +56,6 @@ contextBridge.exposeInMainWorld('shredderApi', {
     ipcRenderer.send('pet:expanded', expanded),
   setPetImageSize: (width: number, height: number) =>
     ipcRenderer.send('pet:image-size', { width, height }),
-  setPetBubbleBounds: (bounds: unknown) =>
-    ipcRenderer.send('pet:bubble-bounds', bounds),
   onOpenSettings: (callback: () => void) => {
     const listener = () => callback();
     ipcRenderer.on('pet:open-settings', listener);
@@ -91,12 +89,6 @@ contextBridge.exposeInMainWorld('shredderApi', {
       callback(summary);
     ipcRenderer.on('pet:complete', listener);
     return () => ipcRenderer.removeListener('pet:complete', listener);
-  },
-  onPetPlacement: (callback: (placement: string) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, placement: string) =>
-      callback(placement);
-    ipcRenderer.on('pet:placement', listener);
-    return () => ipcRenderer.removeListener('pet:placement', listener);
   },
   onSettingsChanged: (callback: () => void) => {
     const listener = () => callback();

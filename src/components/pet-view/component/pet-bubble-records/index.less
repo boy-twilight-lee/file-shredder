@@ -1,25 +1,6 @@
-:global(.pet-bubble-records-popconfirm) {
-  min-width: 260px;
-  padding: 12px;
-  border-radius: 8px;
-
-  .arco-popconfirm-body {
-    margin-bottom: 12px;
-  }
-
-  .arco-popconfirm-footer {
-    & > button {
-      min-width: 64px;
-      margin-left: 6px;
-    }
-  }
-}
-
 .pet-bubble-records {
-  overflow: hidden;
-  height: 100%;
-  width: 100%;
-  background: #f7f8fa;
+  height: 560px;
+  width: min(700px, calc((100vw - var(--pet-width)) / 2 - 10px));
   color: #1d2129;
   display: flex;
   flex-direction: column;
@@ -206,6 +187,23 @@
           }
         }
       }
+    }
+  }
+}
+
+:global(.pet-bubble-records-popconfirm) {
+  min-width: 260px;
+  padding: 12px;
+  border-radius: 8px;
+
+  .arco-popconfirm-body {
+    margin-bottom: 12px;
+  }
+
+  .arco-popconfirm-footer {
+    & > button {
+      min-width: 64px;
+      margin-left: 6px;
     }
   }
 }

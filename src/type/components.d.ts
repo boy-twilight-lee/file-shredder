@@ -16,6 +16,7 @@ declare module 'vue' {
     AInputSearch: typeof import('@arco-design/web-vue')['InputSearch']
     ALink: typeof import('@arco-design/web-vue')['Link']
     APopconfirm: typeof import('@arco-design/web-vue')['Popconfirm']
+    APopover: typeof import('@arco-design/web-vue')['Popover']
     AScrollbar: typeof import('@arco-design/web-vue')['Scrollbar']
     ASlider: typeof import('@arco-design/web-vue')['Slider']
     ASpin: typeof import('@arco-design/web-vue')['Spin']

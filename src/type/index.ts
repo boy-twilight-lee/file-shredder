@@ -28,13 +28,6 @@ export interface ShredTarget {
   size: number | null;
 }
 
-export interface PetBubbleBounds {
-  x: number;
-  y: number;
-  width: number;
-  height: number;
-}
-
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
   confirmBeforeShred: boolean;
@@ -109,7 +102,6 @@ export interface ShredderApi {
   cleanupAndExit: () => Promise<boolean>;
   setPetExpanded: (expanded: boolean) => void;
   setPetImageSize: (width: number, height: number) => void;
-  setPetBubbleBounds: (bounds: PetBubbleBounds | null) => void;
   onOpenSettings: (callback: () => void) => () => void;
   onPetState: (
     callback: (state: 'idle' | 'working' | 'success' | 'failure') => void,
@@ -119,9 +111,6 @@ export interface ShredderApi {
   ) => () => void;
   onPetProgress: (callback: (progress: ShredProgress) => void) => () => void;
   onPetComplete: (callback: (summary: ShredSummary) => void) => () => void;
-  onPetPlacement: (
-    callback: (placement: 'left' | 'right') => void,
-  ) => () => void;
   onSettingsChanged: (callback: () => void) => () => void;
   onLogsUpdated: (callback: () => void) => () => void;
 }
