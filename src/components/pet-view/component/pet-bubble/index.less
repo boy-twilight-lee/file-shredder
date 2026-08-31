@@ -1,8 +1,48 @@
-.pet-bubble {
+.pet-view-bubble {
+  position: absolute;
+  z-index: 4;
   overflow: hidden;
   -webkit-app-region: no-drag;
   background: rgba(255, 255, 255, 0.97);
   border: 1px solid rgba(225, 229, 235, 0.82);
   border-radius: 18px;
   box-shadow: 0 14px 36px rgba(30, 55, 90, 0.13);
+  transform-origin: center bottom;
+
+  &.pet-view-bubble-left {
+    top: 50%;
+    right: calc(50% + var(--pet-width) / 2 + var(--pet-bubble-gap));
+    transform: translateY(-50%);
+    transform-origin: right center;
+  }
+
+  &.pet-view-bubble-right {
+    top: 50%;
+    left: calc(50% + var(--pet-width) / 2 + var(--pet-bubble-gap));
+    transform: translateY(-50%);
+    transform-origin: left center;
+  }
+
+  &.pet-view-bubble-settings,
+  &.pet-view-bubble-records {
+    border-radius: 16px;
+  }
+
+  &.pet-bubble-enter-active {
+    transition:
+      opacity 0.18s ease-out,
+      scale 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  &.pet-bubble-leave-active {
+    transition:
+      opacity 0.14s ease-in,
+      scale 0.14s ease-in;
+  }
+
+  &.pet-bubble-enter-from,
+  &.pet-bubble-leave-to {
+    opacity: 0;
+    scale: 0.94;
+  }
 }

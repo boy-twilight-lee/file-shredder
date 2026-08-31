@@ -22,8 +22,12 @@ export interface PetWindowManager {
   showSettings: () => void;
 }
 
-// 固定画布覆盖最大人物和气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
+type PetBubblePlacement = 'left' | 'right';
+
+// 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
 const PET_WINDOW_SIZE = { width: 2240, height: 1160 };
+// 记录表格是尺寸最大的气泡，主进程按其边界选择桌宠旁空间更充足的一侧。
+const PET_BUBBLE_SIZE = { width: 900, height: 560 };
 const PET_SIZE_MIN = 50;
 const PET_SIZE_MAX = 700;
 const PET_FADE_DURATION_MS = 180;
@@ -33,9 +37,11 @@ export function createPetWindowManager(
 ): PetWindowManager {
   let petWindow: BrowserWindow | null = null;
   let fadeTimer: NodeJS.Timeout | undefined;
+  let bubblePlacement: PetBubblePlacement = 'left';
   let isExpanded = false;
   let isMouseThrough = false;
   let isDragging = false;
+  let bubbleBounds: Electron.Rectangle | null = null;
   let dragStartPosition: Electron.Point | null = null;
   let characterSizeCache: {
     imagePath: string;
@@ -239,6 +245,29 @@ export function createPetWindowManager(
     petWindow.setPosition(position.x, position.y);
   }
 
+  function getLocalBubbleBounds(): Electron.Rectangle {
+    const windowSize = getWindowSize();
+    const character = getLocalCharacterBounds();
+    const centerX = windowSize.width / 2;
+    const centerY = windowSize.height / 2;
+    const gap = 14;
+    const bubbles: Record<PetBubblePlacement, Electron.Rectangle> = {
+      left: {
+        x: Math.round(
+          centerX - character.width / 2 - gap - PET_BUBBLE_SIZE.width,
+        ),
+        y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2),
+        ...PET_BUBBLE_SIZE,
+      },
+      right: {
+        x: Math.round(centerX + character.width / 2 + gap),
+        y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2),
+        ...PET_BUBBLE_SIZE,
+      },
+    };
+    return bubbles[bubblePlacement];
+  }
+
   function updateMouseThrough(pointer?: Electron.Point): void {
     if (
       !petWindow ||
@@ -256,13 +285,17 @@ export function createPetWindowManager(
         y: cursor.y - windowBounds.y,
       };
     }
-    // 展开期间由 Arco 接收完整点击并判断内外，收起后只保留人物热区。
+    const interactiveBubbleBounds = bubbleBounds ?? getLocalBubbleBounds();
     const isInteractive =
-      isExpanded ||
       containsPoint(
         expandRectangle(getLocalCharacterBounds(), 10),
         localCursor,
-      );
+      ) ||
+      (isExpanded &&
+        containsPoint(
+          expandRectangle(interactiveBubbleBounds, 6),
+          localCursor,
+        ));
     if (isMouseThrough === !isInteractive) return;
     isMouseThrough = !isInteractive;
     // 透明区域点击穿透，forward 保留鼠标移动以便重新进入人物时恢复交互。
@@ -272,7 +305,23 @@ export function createPetWindowManager(
   function setExpanded(expanded: boolean): void {
     if (!petWindow) return;
     isExpanded = expanded;
+    if (!expanded) {
+      updateMouseThrough();
+      return;
+    }
+    const bounds = getCharacterBounds();
+    if (!bounds) return;
+    const workArea = screen.getDisplayMatching(bounds).workArea;
+    const availableLeft = bounds.x - workArea.x;
+    const availableRight =
+      workArea.x + workArea.width - bounds.x - bounds.width;
+    bubblePlacement =
+      availableLeft >= PET_BUBBLE_SIZE.width + 14 ||
+      availableLeft >= availableRight
+        ? 'left'
+        : 'right';
     updateMouseThrough();
+    petWindow.webContents.send('pet:placement', bubblePlacement);
   }
 
   function create(): void {
@@ -342,6 +391,28 @@ export function createPetWindowManager(
   ipcMain.on('pet:expanded', (_event, expanded: boolean) =>
     setExpanded(Boolean(expanded)),
   );
+  ipcMain.on('pet:bubble-bounds', (_event, bounds: unknown) => {
+    if (bounds === null) {
+      bubbleBounds = null;
+      updateMouseThrough();
+      return;
+    }
+    if (!bounds || typeof bounds !== 'object') return;
+    const candidate = bounds as Partial<Electron.Rectangle>;
+    if (
+      ![candidate.x, candidate.y, candidate.width, candidate.height].every(
+        Number.isFinite,
+      )
+    )
+      return;
+    bubbleBounds = {
+      x: Math.round(candidate.x as number),
+      y: Math.round(candidate.y as number),
+      width: Math.round(candidate.width as number),
+      height: Math.round(candidate.height as number),
+    };
+    updateMouseThrough();
+  });
   ipcMain.on('pet:pointer-move', (event, pointer: unknown) => {
     if (
       !petWindow ||

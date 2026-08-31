@@ -9,6 +9,7 @@ export type PetBubbleMode =
   | 'confirm'
   | 'progress'
   | 'result';
+export type PetBubblePlacement = 'left' | 'right';
 
 export interface PetViewContext {
   petState: Ref<PetState>;
@@ -16,6 +17,7 @@ export interface PetViewContext {
   petImageSource: Ref<string>;
   bubbleElement: Ref<HTMLElement | null>;
   bubbleMode: Ref<PetBubbleMode>;
+  bubblePlacement: Ref<PetBubblePlacement>;
   selectedTargets: Ref<ShredTarget[]>;
   progress: Ref<ShredProgress | null>;
   progressPercent: Ref<number>;
