@@ -5,23 +5,24 @@
     @dragover.prevent
     @drop.prevent="handleDrop"
   >
-    <a-popover
+    <a-trigger
       :popup-visible="bubbleVisible"
       :click-to-close="false"
       :prevent-focus="false"
       :auto-fit-position="false"
       :content-style="petAppearanceStyle"
       :show-arrow="false"
+      animation-name="fade-in"
       position="left"
-      content-class="pet-bubble-popover"
+      content-class="pet-bubble-trigger"
       trigger="click"
       @popup-visible-change="handleBubbleVisibleChange"
     >
-      <pet-character />
+      <pet-character :drag-button-visible="bubbleVisible" />
       <template #content>
         <pet-bubble />
       </template>
-    </a-popover>
+    </a-trigger>
   </main>
 </template>
 <script setup lang="ts">

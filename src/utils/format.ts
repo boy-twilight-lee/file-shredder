@@ -38,3 +38,21 @@ export function formatDateTime(
 ): string {
   return dayjs(value).format(format);
 }
+// 按记录发生日期生成紧凑的相对时间文本。
+export function formatRecordTime(
+  value: string | number | Date,
+  referenceTime: string | number | Date = Date.now(),
+): string {
+  // 解析记录时间与用于判断日期边界的参照时间。
+  const recordTime = dayjs(value);
+  // 固定参照时刻，避免跨越午夜时产生不一致结果。
+  const currentTime = dayjs(referenceTime);
+  if (!recordTime.isValid() || !currentTime.isValid()) return '';
+  if (recordTime.isSame(currentTime, 'day'))
+    return `今天 ${recordTime.format('HH:mm')}`;
+  if (recordTime.isSame(currentTime.subtract(1, 'day'), 'day'))
+    return `昨天 ${recordTime.format('HH:mm')}`;
+  if (recordTime.isSame(currentTime, 'year'))
+    return recordTime.format('MM月DD日');
+  return recordTime.format('YYYY年MM月');
+}

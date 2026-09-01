@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import { clamp } from '@/utils';
 import { PET_SIZE_MAX, PET_SIZE_MIN, PET_SIZE_STEP } from './constants';
-import { SettingsCard } from '../settings-card';
+import SettingsCard from '../settings-card.vue';
 defineProps<{ modelValue: number }>();
 // 向设置页上报规范化后的桌宠尺寸。
 const emit = defineEmits<{ 'update-pet-size': [value: number] }>();

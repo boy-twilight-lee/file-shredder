@@ -37,5 +37,37 @@ withDefaults(
 );
 </script>
 <style lang="less" scoped>
-@import './index.less';
+.settings-card {
+  min-width: 0;
+  padding: var(--settings-card-padding, 16px);
+  background: #fff;
+  border: 1px solid #e7ebf0;
+  border-radius: 12px;
+  box-shadow: 0 5px 18px rgba(30, 55, 90, 0.045);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  .settings-card-header {
+    min-width: 0;
+    .settings-card-title {
+      margin: 0;
+      font-size: 14px;
+      font-weight: 600;
+      line-height: 22px;
+    }
+    .settings-card-description {
+      overflow: hidden;
+      margin: 4px 0 0;
+      font-size: 12px;
+      line-height: 1.6;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+      color: #79828f;
+    }
+  }
+  .settings-card-content {
+    min-width: 0;
+    flex: 1;
+  }
+}
 </style>

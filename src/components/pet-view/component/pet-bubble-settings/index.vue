@@ -1,19 +1,9 @@
 <template>
   <main class="pet-bubble-settings">
-    <header class="pet-bubble-settings-header">
-      <a-link
-        class="pet-bubble-settings-back"
-        title="返回"
-        aria-label="返回操作菜单"
-        @click="showBubble('actions')"
-      >
-        <svg-icon
-          name="app-back"
-          size="16"
-        />
-      </a-link>
-      <h1 class="pet-bubble-settings-title">常规设置</h1>
-    </header>
+    <page-header
+      title="常规设置"
+      @back="showBubble('actions')"
+    />
     <a-spin
       :loading="isLoading"
       class="pet-bubble-settings-content"
@@ -59,6 +49,7 @@ import type { AppSettings, PetImageTemplate, SettingBooleanKey } from '@/type';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { DEFAULT_APP_SETTINGS, PET_SIZE_SAVE_DELAY_MS } from './constants';
 import {
+  PageHeader,
   PetImageSetting,
   PetSizeSetting,
   ShredLevelSetting,

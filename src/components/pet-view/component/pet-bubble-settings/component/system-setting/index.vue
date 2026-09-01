@@ -28,7 +28,7 @@
 <script setup lang="ts">
 import type { SystemSettingProps } from './type';
 import { SYSTEM_SETTING_OPTIONS } from './constants';
-import { SettingsCard } from '../settings-card';
+import SettingsCard from '../settings-card.vue';
 defineProps<SystemSettingProps>();
 </script>
 <style lang="less" scoped>

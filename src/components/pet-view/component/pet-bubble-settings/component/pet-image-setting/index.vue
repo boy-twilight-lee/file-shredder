@@ -67,7 +67,7 @@ import {
   MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
   MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
 } from '@/components/pet-view/component/pet-bubble/constants';
-import { SettingsCard } from '../settings-card';
+import SettingsCard from '../settings-card.vue';
 defineProps<PetImageSettingProps>();
 // 向设置页上报形象选择、上传与删除操作。
 const emit = defineEmits<PetImageSettingEmits>();

@@ -5,6 +5,8 @@ import {
   expandRectangle,
   formatByteSize,
   formatDuration,
+  formatRecordTime,
+  getPathDirectory,
   getPathName,
   mapWithConcurrency,
 } from './index';
@@ -41,6 +43,33 @@ describe('shared utils', () => {
     expect(formatByteSize(1536)).toBe('1.5 KB');
     expect(formatDuration(850)).toBe('850 ms');
     expect(formatDuration(61500)).toBe('1 min 2 s');
+  });
+  // 验证跨平台路径能够稳定拆分末级名称与来源目录。
+  it('extracts names and directories from cross-platform paths', () => {
+    expect(getPathName('C:\\Users\\demo\\report.txt')).toBe('report.txt');
+    expect(getPathDirectory('C:\\Users\\demo\\report.txt')).toBe(
+      'C:\\Users\\demo',
+    );
+    expect(getPathDirectory('C:\\report.txt')).toBe('C:\\');
+    expect(getPathDirectory('/var/tmp/report.txt')).toBe('/var/tmp');
+    expect(getPathDirectory('report.txt')).toBe('');
+  });
+  // 验证记录时间按照今天、昨天、本年和跨年边界生成展示文本。
+  it('formats record times by calendar distance', () => {
+    // 固定参照时间，覆盖跨日和跨年时不会受测试运行时间影响。
+    const referenceTime = '2026-09-01T14:30:00';
+    expect(formatRecordTime('2026-09-01T08:05:00', referenceTime)).toBe(
+      '今天 08:05',
+    );
+    expect(formatRecordTime('2026-08-31T23:45:00', referenceTime)).toBe(
+      '昨天 23:45',
+    );
+    expect(formatRecordTime('2026-03-08T12:00:00', referenceTime)).toBe(
+      '03月08日',
+    );
+    expect(formatRecordTime('2025-12-31T12:00:00', referenceTime)).toBe(
+      '2025年12月',
+    );
   });
   // 验证数值限制与矩形计算的常见场景。
   it('supports common numeric and rectangle operations', () => {

@@ -14,12 +14,15 @@
       draggable="false"
       @load="handlePetImageLoad"
     />
-    <drag-btn />
+    <transition name="fade-in">
+      <drag-btn v-if="dragButtonVisible" />
+    </transition>
   </div>
 </template>
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import DragBtn from './component/drag-btn.vue';
+defineProps<{ dragButtonVisible: boolean }>();
 // 读取桌宠共享状态与人物交互能力。
 const {
   petState,
