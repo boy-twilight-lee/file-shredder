@@ -17,3 +17,21 @@
   width: 100%;
   background: transparent;
 }
+
+:global(.pet-bubble-popover) {
+  -webkit-app-region: no-drag;
+  width: auto;
+  padding: 0;
+  background: transparent;
+  border: 0;
+  border-radius: 0;
+  box-shadow: none;
+
+  .arco-popover-content {
+    width: max-content;
+  }
+}
+
+:global(.pet-bubble-popover-arrow) {
+  display: none;
+}

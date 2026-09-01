@@ -2,10 +2,11 @@
   <div
     class="pet-character"
     :class="`pet-character-${visualPetState}`"
-    @mousedown.left="handleMouseDown"
     @mousedown.right.stop
-    @mouseup.left="handleMouseUp"
+    @click.left="handleClick"
     @contextmenu.prevent
+    @mouseenter="showDragButton"
+    @mouseleave="hideDragButton"
   >
     <img
       class="pet-character-image"
@@ -15,13 +16,26 @@
       draggable="false"
       @load="handlePetImageLoad"
     />
+    <button
+      v-show="isDragButtonVisible"
+      class="pet-character-drag-button"
+      type="button"
+      title="拖动桌宠"
+      aria-label="拖动桌宠"
+      @click.stop
+    >
+      <svg-icon
+        class="pet-character-drag-icon"
+        name="app-drag"
+      />
+    </button>
   </div>
 </template>
 
 <script setup lang="ts">
-import { useEventListener } from '@vueuse/core';
 import { usePetViewContext } from '@/components/pet-view/hooks';
-import { PET_CHARACTER_DRAG_THRESHOLD } from './constants';
+
+const DRAG_BUTTON_HOVER_DELAY_MS = 100;
 
 const {
   petState,
@@ -32,8 +46,8 @@ const {
   closeBubble,
   handlePetImageLoad,
 } = usePetViewContext().inject();
-let pointerStart: { x: number; y: number } | null = null;
-let hasDragged = false;
+const isDragButtonVisible = ref(false);
+let dragButtonVisibilityTimer = 0;
 
 const visualPetState = computed(() => {
   if (bubbleMode.value === 'result') {
@@ -45,38 +59,36 @@ const visualPetState = computed(() => {
     : petState.value;
 });
 
-function handleMouseDown(event: MouseEvent): void {
-  pointerStart = { x: event.screenX, y: event.screenY };
-  hasDragged = false;
-}
-
-function updateDragState(event: MouseEvent): void {
-  if (!pointerStart || hasDragged) return;
-  const horizontalDistance = event.screenX - pointerStart.x;
-  const verticalDistance = event.screenY - pointerStart.y;
-  // 屏幕坐标能反映拖窗的真实位移，client 坐标在拖窗时可能保持不变。
-  hasDragged =
-    Math.hypot(horizontalDistance, verticalDistance) >
-    PET_CHARACTER_DRAG_THRESHOLD;
-}
-
-function handleMouseMove(event: MouseEvent): void {
-  if ((event.buttons & 1) === 0) return;
-  updateDragState(event);
-}
-
-function handleMouseUp(event: MouseEvent): void {
-  if (!pointerStart) return;
-  updateDragState(event);
-  const shouldToggleActions = !hasDragged;
-  pointerStart = null;
-  hasDragged = false;
-  if (!shouldToggleActions) return;
+function handleClick(): void {
   if (bubbleMode.value === 'hidden') openActions();
   else closeBubble();
 }
 
-useEventListener(document, 'mousemove', handleMouseMove);
+function changeDragButtonVisibility(visible: boolean): void {
+  if (dragButtonVisibilityTimer) {
+    window.clearTimeout(dragButtonVisibilityTimer);
+    dragButtonVisibilityTimer = 0;
+  }
+  if (visible === isDragButtonVisible.value) return;
+  dragButtonVisibilityTimer = window.setTimeout(() => {
+    isDragButtonVisible.value = visible;
+    dragButtonVisibilityTimer = 0;
+  }, DRAG_BUTTON_HOVER_DELAY_MS);
+}
+
+function showDragButton(): void {
+  changeDragButtonVisibility(true);
+}
+
+function hideDragButton(): void {
+  changeDragButtonVisibility(false);
+}
+
+onBeforeUnmount(() => {
+  if (dragButtonVisibilityTimer) {
+    window.clearTimeout(dragButtonVisibilityTimer);
+  }
+});
 </script>
 
 <style lang="less" scoped>

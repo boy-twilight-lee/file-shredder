@@ -20,8 +20,7 @@ import {
   getShredTargetMetadata,
   normalizeTargets,
 } from './shred';
-import { AppStore, type AppSettings } from './storage';
-import { registerWindowDrag } from './utils';
+import { AppSettings, AppStore } from './storage';
 
 const store = new AppStore(app);
 const runtimeDirectory = dirname(fileURLToPath(import.meta.url));
@@ -32,7 +31,6 @@ let startupMaintenanceTimer: NodeJS.Timeout | undefined;
 let queuedLaunchPaths: string[] = [];
 let shouldShowPetOnReady = false;
 let petImageService: PetImageService;
-let disposeWindowDrag: (() => void) | undefined;
 
 const petWindowManager = createPetWindowManager({
   runtimeDirectory,
@@ -152,7 +150,6 @@ function scheduleStartupMaintenance(): void {
 async function initializeApplication(): Promise<void> {
   currentSettings = await store.getSettings();
   petWindowManager.create();
-  disposeWindowDrag = registerWindowDrag();
   screen.on('display-removed', petWindowManager.restorePosition);
   screen.on('display-metrics-changed', petWindowManager.restorePosition);
   queueLaunchPaths(parseLaunchPaths(process.argv));
@@ -193,6 +190,5 @@ app.on('window-all-closed', () => undefined);
 app.on('will-quit', () => {
   clearTimeout(launchTimer);
   clearTimeout(startupMaintenanceTimer);
-  disposeWindowDrag?.();
   petWindowManager.dispose();
 });

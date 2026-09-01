@@ -3,12 +3,7 @@ import {
   useMutationObserver,
   useResizeObserver,
 } from '@vueuse/core';
-import {
-  PetBubbleMode,
-  PetBubblePlacement,
-  PetState,
-  PetViewContext,
-} from '../type';
+import { PetBubbleMode, PetState, PetViewContext } from '../type';
 import { ShredProgress, ShredSummary, ShredTarget } from '@/type';
 
 const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
@@ -18,7 +13,6 @@ const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
 const PET_VIEW_DEFAULTS = {
   petState: 'idle' as PetState,
   bubbleMode: 'hidden' as PetBubbleMode,
-  bubblePlacement: 'left' as PetBubblePlacement,
   selectedTargets: [] as ShredTarget[],
   presetPasses: 3 as 0 | 3 | 7 | 35,
   progress: null as ShredProgress | null,
@@ -39,9 +33,6 @@ export function usePetViewContext() {
     provide(): PetViewContext {
       const petState = ref<PetState>(PET_VIEW_DEFAULTS.petState);
       const bubbleMode = ref<PetBubbleMode>(PET_VIEW_DEFAULTS.bubbleMode);
-      const bubblePlacement = ref<PetBubblePlacement>(
-        PET_VIEW_DEFAULTS.bubblePlacement,
-      );
       const selectedTargets = ref<ShredTarget[]>([
         ...PET_VIEW_DEFAULTS.selectedTargets,
       ]);
@@ -180,7 +171,7 @@ export function usePetViewContext() {
           bubbleMode.value === 'progress'
         )
           return;
-        // 点击人物由抬起事件统一切换气泡，避免捕获阶段先关闭后又重新打开。
+        // 人物点击事件统一切换气泡，避免捕获阶段先关闭后又重新打开。
         if (
           event.target instanceof Element &&
           event.target.closest('.pet-character')
@@ -378,14 +369,11 @@ export function usePetViewContext() {
             summary.value = value;
             showBubble('result');
           }),
-          window.shredderApi.onPetPlacement((placement) => {
-            bubblePlacement.value = placement;
-          }),
         );
         await refreshPetAppearance();
       });
 
-      watch([bubbleMode, bubblePlacement], syncBubbleBounds, { flush: 'post' });
+      watch(bubbleMode, syncBubbleBounds, { flush: 'post' });
 
       onBeforeUnmount(() => {
         if (bubbleBoundsFrame) cancelAnimationFrame(bubbleBoundsFrame);
@@ -400,7 +388,6 @@ export function usePetViewContext() {
         petImageSource,
         bubbleElement,
         bubbleMode,
-        bubblePlacement,
         selectedTargets,
         progress,
         progressPercent,
@@ -429,7 +416,6 @@ export function usePetViewContext() {
         petImageSource: ref(''),
         bubbleElement: ref(null),
         bubbleMode: ref('hidden'),
-        bubblePlacement: ref('left'),
         selectedTargets: ref([]),
         progress: ref(null),
         progressPercent: ref(0),

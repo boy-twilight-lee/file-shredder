@@ -104,11 +104,13 @@ export function registerIpcHandlers(
         contextMenuAutoInstall: false,
       });
       dependencies.setSettings(settings);
+      if (typeof safePatch.petSize === 'number')
+        await dependencies.windowManager.recordPosition();
       dependencies.windowManager.setAlwaysOnTop(settings.alwaysOnTop);
       if (typeof safePatch.launchAtLogin === 'boolean')
         applyLoginSetting(safePatch.launchAtLogin);
       dependencies.windowManager.send('settings:changed');
-      return settings;
+      return dependencies.getSettings();
     },
   );
   ipcMain.handle('pet-image:get', () =>

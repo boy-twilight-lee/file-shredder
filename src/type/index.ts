@@ -119,9 +119,6 @@ export interface ShredderApi {
   ) => () => void;
   onPetProgress: (callback: (progress: ShredProgress) => void) => () => void;
   onPetComplete: (callback: (summary: ShredSummary) => void) => () => void;
-  onPetPlacement: (
-    callback: (placement: 'left' | 'right') => void,
-  ) => () => void;
   onSettingsChanged: (callback: () => void) => () => void;
   onLogsUpdated: (callback: () => void) => () => void;
 }

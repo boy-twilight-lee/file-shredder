@@ -5,7 +5,6 @@ import {
   expandRectangle,
   formatByteSize,
   formatDuration,
-  getDraggedPosition,
   getPathName,
   mapWithConcurrency,
 } from './index';
@@ -48,18 +47,5 @@ describe('shared utils', () => {
     expect(expanded).toEqual({ x: 5, y: 15, width: 40, height: 50 });
     expect(containsPoint(expanded, { x: 45, y: 65 })).toBe(true);
     expect(containsPoint(expanded, { x: 46, y: 65 })).toBe(false);
-  });
-
-  it('keeps the pointer offset stable while dragging across displays', () => {
-    const pointerOffset = { x: 1120, y: 580 };
-
-    expect(getDraggedPosition({ x: 1920, y: 900 }, pointerOffset)).toEqual({
-      x: 800,
-      y: 320,
-    });
-    expect(getDraggedPosition({ x: -640, y: 240 }, pointerOffset)).toEqual({
-      x: -1760,
-      y: -340,
-    });
   });
 });

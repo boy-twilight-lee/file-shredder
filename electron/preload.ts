@@ -1,14 +1,7 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
-import { bindDragEvent } from 'electron-drag-window/renderer';
-import { ElectronDragWindow } from 'electron-drag-window/type';
 import { ShredTarget } from '../src/type';
 
 window.addEventListener('DOMContentLoaded', () => {
-  // 指定整个人物容器为热区，库使用 requestAnimationFrame 平滑驱动主进程窗口移动。
-  bindDragEvent((channel, ...args) => ipcRenderer.send(channel, ...args), {
-    dragMode: ElectronDragWindow.DragMode.Appoint,
-    appointClassNames: ['pet-character'],
-  });
   let pendingPointer: { x: number; y: number } | null = null;
   let pointerFrame = 0;
   // Windows 在点击穿透时仍会转发鼠标移动，每帧最多同步一次即可替代主进程常驻轮询。
@@ -91,12 +84,6 @@ contextBridge.exposeInMainWorld('shredderApi', {
       callback(summary);
     ipcRenderer.on('pet:complete', listener);
     return () => ipcRenderer.removeListener('pet:complete', listener);
-  },
-  onPetPlacement: (callback: (placement: string) => void) => {
-    const listener = (_event: Electron.IpcRendererEvent, placement: string) =>
-      callback(placement);
-    ipcRenderer.on('pet:placement', listener);
-    return () => ipcRenderer.removeListener('pet:placement', listener);
   },
   onSettingsChanged: (callback: () => void) => {
     const listener = () => callback();

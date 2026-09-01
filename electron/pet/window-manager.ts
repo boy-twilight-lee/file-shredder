@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain, nativeImage, screen } from 'electron';
 import { join } from 'node:path';
-import type { AppSettings } from '../storage';
+import { AppSettings } from '../storage';
 import { clamp, containsPoint, expandRectangle } from '@/utils';
 
 interface PetWindowManagerDependencies {
@@ -14,6 +14,7 @@ interface PetWindowManagerDependencies {
 export interface PetWindowManager {
   create: () => void;
   dispose: () => void;
+  recordPosition: () => Promise<void>;
   restorePosition: () => void;
   send: (channel: string, ...args: unknown[]) => void;
   setAlwaysOnTop: (enabled: boolean) => void;
@@ -22,12 +23,10 @@ export interface PetWindowManager {
   showSettings: () => void;
 }
 
-type PetBubblePlacement = 'left' | 'right';
-
-// 固定画布覆盖最大人物和四向气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
+// 固定画布覆盖最大人物和左侧气泡，透明区域通过动态鼠标穿透避免遮挡桌面。
 const PET_WINDOW_SIZE = { width: 2240, height: 1160 };
-// 记录表格是尺寸最大的气泡，主进程按其边界选择桌宠旁空间更充足的一侧。
 const PET_BUBBLE_SIZE = { width: 900, height: 560 };
+const PET_DRAG_HANDLE_SIZE = 30;
 const PET_SIZE_MIN = 50;
 const PET_SIZE_MAX = 700;
 const PET_FADE_DURATION_MS = 180;
@@ -37,7 +36,6 @@ export function createPetWindowManager(
 ): PetWindowManager {
   let petWindow: BrowserWindow | null = null;
   let fadeTimer: NodeJS.Timeout | undefined;
-  let bubblePlacement: PetBubblePlacement = 'left';
   let isExpanded = false;
   let isMouseThrough = false;
   let isDragging = false;
@@ -141,24 +139,35 @@ export function createPetWindowManager(
     return { width: bounds.width, height: bounds.height };
   }
 
-  function getLocalCharacterBounds(): Electron.Rectangle {
-    const windowSize = getWindowSize();
-    const size = getCharacterSize();
+  function calculateLocalCharacterBounds(
+    windowSize: Electron.Size,
+    characterSize: Electron.Size,
+  ): Electron.Rectangle {
     return {
-      x: Math.round((windowSize.width - size.width) / 2),
-      y: Math.round((windowSize.height - size.height) / 2),
-      ...size,
+      x: Math.round((windowSize.width - characterSize.width) / 2),
+      y: Math.round((windowSize.height - characterSize.height) / 2),
+      ...characterSize,
     };
   }
 
-  function getCharacterBounds(): Electron.Rectangle | null {
-    if (!petWindow) return null;
-    const windowBounds = petWindow.getBounds();
-    const character = getLocalCharacterBounds();
+  function getLocalCharacterBounds(): Electron.Rectangle {
+    return calculateLocalCharacterBounds(getWindowSize(), getCharacterSize());
+  }
+
+  function getDragAnchor(characterBounds: Electron.Rectangle): Electron.Point {
     return {
-      ...character,
-      x: windowBounds.x + character.x,
-      y: windowBounds.y + character.y,
+      x: characterBounds.x + characterBounds.width,
+      y: characterBounds.y,
+    };
+  }
+
+  function getLocalDragHandleBounds(): Electron.Rectangle {
+    const anchor = getDragAnchor(getLocalCharacterBounds());
+    return {
+      x: anchor.x - PET_DRAG_HANDLE_SIZE / 2,
+      y: anchor.y - PET_DRAG_HANDLE_SIZE / 2,
+      width: PET_DRAG_HANDLE_SIZE,
+      height: PET_DRAG_HANDLE_SIZE,
     };
   }
 
@@ -176,62 +185,58 @@ export function createPetWindowManager(
     const hasSavedPosition =
       Number.isFinite(settings.petPositionX) &&
       Number.isFinite(settings.petPositionY);
-    let characterX = Math.round(
-      workArea.x + (workArea.width - characterSize.width) / 2,
+    const localCharacterBounds = calculateLocalCharacterBounds(
+      windowSize,
+      characterSize,
     );
-    let characterY = Math.round(
+    const localAnchor = getDragAnchor(localCharacterBounds);
+    let anchorX = Math.round(
+      workArea.x + (workArea.width + characterSize.width) / 2,
+    );
+    let anchorY = Math.round(
       workArea.y + (workArea.height - characterSize.height) / 2,
     );
     if (hasSavedPosition) {
       const relativeX = clamp(settings.petPositionX as number, 0, 1);
       const relativeY = clamp(settings.petPositionY as number, 0, 1);
-      characterX = Math.round(
-        workArea.x + relativeX * workArea.width - characterSize.width / 2,
-      );
-      characterY = Math.round(
-        workArea.y + relativeY * workArea.height - characterSize.height / 2,
-      );
+      anchorX = Math.round(workArea.x + relativeX * workArea.width);
+      anchorY = Math.round(workArea.y + relativeY * workArea.height);
     }
-    // 只限制可见人物，允许用于气泡布局的透明画布自然延伸到工作区外。
-    characterX = clamp(
-      characterX,
-      workArea.x,
-      workArea.x + Math.max(0, workArea.width - characterSize.width),
+    // 锚点是拖拽按钮中心，也是人物矩形的右上角；恢复时只限制人物保持可见。
+    anchorX = clamp(
+      anchorX,
+      workArea.x + Math.min(characterSize.width, workArea.width),
+      workArea.x + workArea.width,
     );
-    characterY = clamp(
-      characterY,
+    anchorY = clamp(
+      anchorY,
       workArea.y,
       workArea.y + Math.max(0, workArea.height - characterSize.height),
     );
     return {
-      x: characterX - Math.round((windowSize.width - characterSize.width) / 2),
-      y:
-        characterY - Math.round((windowSize.height - characterSize.height) / 2),
+      x: anchorX - localAnchor.x,
+      y: anchorY - localAnchor.y,
     };
   }
 
-  async function savePositionAfterDrag(): Promise<void> {
-    if (
-      !petWindow ||
-      petWindow.isDestroyed() ||
-      isDragging ||
-      !dragStartPosition
-    )
-      return;
-    const bounds = getCharacterBounds();
-    if (!bounds) return;
-    const display = screen.getDisplayMatching(bounds);
-    const centerX = bounds.x + bounds.width / 2;
-    const centerY = bounds.y + bounds.height / 2;
+  async function recordPosition(): Promise<void> {
+    if (!petWindow || petWindow.isDestroyed() || isDragging) return;
+    const windowBounds = petWindow.getBounds();
+    const localAnchor = getDragAnchor(getLocalCharacterBounds());
+    const anchor = {
+      x: windowBounds.x + localAnchor.x,
+      y: windowBounds.y + localAnchor.y,
+    };
+    const display = screen.getDisplayNearestPoint(anchor);
     await dependencies.updateSettings({
       petDisplayId: display.id,
       petPositionX: clamp(
-        (centerX - display.workArea.x) / display.workArea.width,
+        (anchor.x - display.workArea.x) / display.workArea.width,
         0,
         1,
       ),
       petPositionY: clamp(
-        (centerY - display.workArea.y) / display.workArea.height,
+        (anchor.y - display.workArea.y) / display.workArea.height,
         0,
         1,
       ),
@@ -251,21 +256,13 @@ export function createPetWindowManager(
     const centerX = windowSize.width / 2;
     const centerY = windowSize.height / 2;
     const gap = 14;
-    const bubbles: Record<PetBubblePlacement, Electron.Rectangle> = {
-      left: {
-        x: Math.round(
-          centerX - character.width / 2 - gap - PET_BUBBLE_SIZE.width,
-        ),
-        y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2),
-        ...PET_BUBBLE_SIZE,
-      },
-      right: {
-        x: Math.round(centerX + character.width / 2 + gap),
-        y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2),
-        ...PET_BUBBLE_SIZE,
-      },
+    return {
+      x: Math.round(
+        centerX - character.width / 2 - gap - PET_BUBBLE_SIZE.width,
+      ),
+      y: Math.round(centerY - PET_BUBBLE_SIZE.height / 2),
+      ...PET_BUBBLE_SIZE,
     };
-    return bubbles[bubblePlacement];
   }
 
   function updateMouseThrough(pointer?: Electron.Point): void {
@@ -291,6 +288,10 @@ export function createPetWindowManager(
         expandRectangle(getLocalCharacterBounds(), 10),
         localCursor,
       ) ||
+      containsPoint(
+        expandRectangle(getLocalDragHandleBounds(), 4),
+        localCursor,
+      ) ||
       (isExpanded &&
         containsPoint(
           expandRectangle(interactiveBubbleBounds, 6),
@@ -305,23 +306,29 @@ export function createPetWindowManager(
   function setExpanded(expanded: boolean): void {
     if (!petWindow) return;
     isExpanded = expanded;
-    if (!expanded) {
-      updateMouseThrough();
-      return;
-    }
-    const bounds = getCharacterBounds();
-    if (!bounds) return;
-    const workArea = screen.getDisplayMatching(bounds).workArea;
-    const availableLeft = bounds.x - workArea.x;
-    const availableRight =
-      workArea.x + workArea.width - bounds.x - bounds.width;
-    bubblePlacement =
-      availableLeft >= PET_BUBBLE_SIZE.width + 14 ||
-      availableLeft >= availableRight
-        ? 'left'
-        : 'right';
     updateMouseThrough();
-    petWindow.webContents.send('pet:placement', bubblePlacement);
+  }
+
+  function handleWindowWillMove(): void {
+    if (!petWindow || petWindow.isDestroyed() || isDragging) return;
+    isDragging = true;
+    const [x, y] = petWindow.getPosition();
+    dragStartPosition = { x, y };
+    isMouseThrough = false;
+    petWindow.setIgnoreMouseEvents(false);
+  }
+
+  function handleWindowMoved(): void {
+    if (!petWindow || petWindow.isDestroyed() || !dragStartPosition) return;
+    const [x, y] = petWindow.getPosition();
+    const hasMoved = dragStartPosition.x !== x || dragStartPosition.y !== y;
+    dragStartPosition = null;
+    isDragging = false;
+    updateMouseThrough();
+    if (!hasMoved) return;
+    recordPosition().catch((error: unknown) => {
+      console.error('保存桌宠位置失败', error);
+    });
   }
 
   function create(): void {
@@ -352,6 +359,8 @@ export function createPetWindowManager(
       height: actualWindowSize[1],
     });
     petWindow.setPosition(actualPosition.x, actualPosition.y);
+    petWindow.on('will-move', handleWindowWillMove);
+    petWindow.on('moved', handleWindowMoved);
     petWindow.webContents.once('did-finish-load', () =>
       petWindow?.setBackgroundColor('#00000000'),
     );
@@ -449,40 +458,15 @@ export function createPetWindowManager(
     };
     characterSizeCache = null;
     updateMouseThrough();
-  });
-  ipcMain.on('ELECTRON_DRAG_START', (event) => {
-    if (!petWindow || event.sender !== petWindow.webContents) return;
-    isDragging = true;
-    const [x, y] = petWindow.getPosition();
-    dragStartPosition = { x, y };
-    isMouseThrough = false;
-    petWindow.setIgnoreMouseEvents(false);
-  });
-  ipcMain.on('ELECTRON_DRAG_OVER', async (event) => {
-    if (!petWindow || event.sender !== petWindow.webContents) return;
-    isDragging = false;
-    updateMouseThrough();
-    const [x, y] = petWindow.getPosition();
-    const hasMoved = Boolean(
-      dragStartPosition &&
-      (dragStartPosition.x !== x || dragStartPosition.y !== y),
-    );
-    if (!hasMoved) {
-      dragStartPosition = null;
-      return;
-    }
-    try {
-      await savePositionAfterDrag();
-    } catch (error) {
-      console.error('保存桌宠位置失败', error);
-    } finally {
-      dragStartPosition = null;
-    }
+    recordPosition().catch((error: unknown) => {
+      console.error('保存桌宠尺寸变化后的位置失败', error);
+    });
   });
 
   return {
     create,
     dispose: () => clearInterval(fadeTimer),
+    recordPosition,
     restorePosition,
     send,
     setAlwaysOnTop,
