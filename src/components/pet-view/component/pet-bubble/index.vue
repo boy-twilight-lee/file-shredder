@@ -5,12 +5,17 @@
     class="pet-view-bubble"
     :class="`pet-view-bubble-${bubbleMode}`"
   >
-    <pet-bubble-actions v-if="bubbleMode === 'actions'" />
-    <pet-bubble-settings v-else-if="bubbleMode === 'settings'" />
-    <pet-bubble-records v-else-if="bubbleMode === 'records'" />
-    <pet-bubble-confirm v-else-if="bubbleMode === 'confirm'" />
-    <pet-bubble-progress v-else-if="bubbleMode === 'progress'" />
-    <pet-bubble-result v-else />
+    <transition
+      name="pet-bubble-fade"
+      mode="out-in"
+    >
+      <pet-bubble-actions v-if="bubbleMode === 'actions'" />
+      <pet-bubble-settings v-else-if="bubbleMode === 'settings'" />
+      <pet-bubble-records v-else-if="bubbleMode === 'records'" />
+      <pet-bubble-confirm v-else-if="bubbleMode === 'confirm'" />
+      <pet-bubble-progress v-else-if="bubbleMode === 'progress'" />
+      <pet-bubble-result v-else />
+    </transition>
   </aside>
 </template>
 <script setup lang="ts">

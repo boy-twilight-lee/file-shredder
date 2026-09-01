@@ -78,8 +78,6 @@ contextBridge.exposeInMainWorld('shredderApi', {
   // 同步业务气泡及传送浮层的联合边界。
   setPetBubbleBounds: (bounds: unknown) =>
     ipcRenderer.send('pet:bubble-bounds', bounds),
-  // 查询桌宠窗口内的实时鼠标坐标，供原生拖拽区域命中检测使用。
-  getPetCursorPosition: () => ipcRenderer.invoke('pet:cursor-position'),
   // 订阅主进程打开设置页面的请求。
   onOpenSettings: (callback: () => void) => {
     // 包装业务回调供 Electron 事件订阅与解除使用。

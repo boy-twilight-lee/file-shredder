@@ -102,8 +102,6 @@ export interface ShredderApi {
       height: number;
     } | null,
   ) => void;
-  // 获取鼠标相对桌宠内容区域的实时坐标。
-  getPetCursorPosition: () => Promise<{ x: number; y: number } | null>;
   onOpenSettings: (callback: () => void) => () => void;
   onPetState: (
     callback: (state: 'idle' | 'working' | 'success' | 'failure') => void,

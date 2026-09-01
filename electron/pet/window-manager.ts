@@ -24,8 +24,8 @@ export interface PetWindowManager {
 const PET_WINDOW_SIZE = { width: 1476, height: 1050 };
 // 气泡首次上报前使用最大外框尺寸估算点击热区。
 const PET_BUBBLE_MAX_SIZE = { width: 702, height: 602 };
-// 定义桌宠拖拽按钮的交互区域尺寸。
-const PET_DRAG_HANDLE_SIZE = 30;
+// 定义常显桌宠拖拽按钮的交互区域尺寸。
+const PET_DRAG_HANDLE_SIZE = 36;
 // 为拖拽按钮阴影和人物动效预留窗口边缘空间。
 const PET_WINDOW_PADDING = 30;
 // 预留人物与左侧气泡之间的定位间距。
@@ -165,18 +165,6 @@ export function createPetWindowManager(
     const bounds = petWindow.getContentBounds();
     return { width: bounds.width, height: bounds.height };
   }
-  // 返回鼠标相对桌宠内容区域的坐标，避免原生拖拽区域吞掉渲染进程事件。
-  function getLocalCursorPosition(): Electron.Point | null {
-    if (!petWindow || petWindow.isDestroyed()) return null;
-    // 获取桌宠内容区域在屏幕中的实际位置。
-    const windowBounds = petWindow.getContentBounds();
-    // 获取主进程可见的系统鼠标坐标。
-    const cursor = screen.getCursorScreenPoint();
-    return {
-      x: cursor.x - windowBounds.x,
-      y: cursor.y - windowBounds.y,
-    };
-  }
   // 计算桌宠在固定内容区内靠右且垂直居中的边界。
   function calculateLocalCharacterBounds(
     windowSize: Electron.Size,
@@ -192,7 +180,7 @@ export function createPetWindowManager(
   function getLocalCharacterBounds(): Electron.Rectangle {
     return calculateLocalCharacterBounds(getWindowSize(), getCharacterSize());
   }
-  // 返回人物右上角对应的拖拽锚点。
+  // 返回人物右上角对应的拖拽按钮与位置记录锚点。
   function getDragAnchor(characterBounds: Electron.Rectangle): Electron.Point {
     return {
       x: characterBounds.x + characterBounds.width,
@@ -201,7 +189,7 @@ export function createPetWindowManager(
   }
   // 返回拖拽按钮在窗口内容区域中的交互边界。
   function getLocalDragHandleBounds(): Electron.Rectangle {
-    // 读取当前人物右上角拖拽锚点。
+    // 读取当前人物右上角的按钮锚点。
     const anchor = getDragAnchor(getLocalCharacterBounds());
     return {
       x: anchor.x - PET_DRAG_HANDLE_SIZE / 2,
@@ -254,7 +242,7 @@ export function createPetWindowManager(
       anchorX = Math.round(workArea.x + relativeX * workArea.width);
       anchorY = Math.round(workArea.y + relativeY * workArea.height);
     }
-    // 锚点是拖拽按钮中心，也是人物矩形的右上角；恢复时只限制人物保持可见。
+    // 按钮锚点位于人物矩形右上角，恢复时只限制人物保持可见。
     anchorX = clamp(
       anchorX,
       workArea.x + Math.min(characterSize.width, workArea.width),
@@ -472,11 +460,6 @@ export function createPetWindowManager(
   ipcMain.on('pet:expanded', (event, expanded: boolean) => {
     if (!petWindow || event.sender !== petWindow.webContents) return;
     setExpanded(Boolean(expanded));
-  });
-  // 向桌宠渲染进程提供不受 CSS 拖拽区域影响的鼠标位置。
-  ipcMain.handle('pet:cursor-position', (event) => {
-    if (!petWindow || event.sender !== petWindow.webContents) return null;
-    return getLocalCursorPosition();
   });
   // 接收并校验渲染进程上报的气泡联合边界。
   ipcMain.on('pet:bubble-bounds', (_event, bounds: unknown) => {

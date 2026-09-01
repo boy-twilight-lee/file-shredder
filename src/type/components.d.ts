@@ -23,6 +23,7 @@ declare module 'vue' {
     ASwitch: typeof import('@arco-design/web-vue')['Switch']
     ATable: typeof import('@arco-design/web-vue')['Table']
     ATooltip: typeof import('@arco-design/web-vue')['Tooltip']
+    DragBtn: typeof import('./../components/pet-view/component/pet-character/component/drag-btn.vue')['default']
     PetBubble: typeof import('./../components/pet-view/component/pet-bubble/index.vue')['default']
     PetBubbleActions: typeof import('./../components/pet-view/component/pet-bubble-actions/index.vue')['default']
     PetBubbleConfirm: typeof import('./../components/pet-view/component/pet-bubble-confirm/index.vue')['default']
