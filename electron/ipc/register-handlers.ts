@@ -1,12 +1,16 @@
 import { app, dialog, ipcMain } from 'electron';
-import { clamp } from '@/utils';
+import { clamp, normalizeBubbleAppTitle } from '@/utils';
 import { applyLoginSetting, getExecutablePath } from '../app';
 import {
   isContextMenuInstalled,
   lockScreen,
   removeContextMenu,
 } from '../integrations';
-import { PetImageService, PetWindowManager } from '../pet';
+import {
+  PetBubbleBrandingService,
+  PetImageService,
+  PetWindowManager,
+} from '../pet';
 import {
   getShredTargetMetadata,
   normalizeTargets,
@@ -16,6 +20,7 @@ import { AppSettings, AppStore } from '../storage';
 interface IpcHandlerDependencies {
   store: AppStore;
   petImageService: PetImageService;
+  petBubbleBrandingService: PetBubbleBrandingService;
   shredSession: ShredSession;
   windowManager: PetWindowManager;
   getSettings: () => AppSettings;
@@ -101,6 +106,12 @@ export function registerIpcHandlers(
       delete safePatch.customPetImagePath;
       delete safePatch.petImageTemplateId;
       delete safePatch.uploadedPetImages;
+      delete safePatch.bubbleAppIconPath;
+      if (typeof safePatch.bubbleAppTitle === 'string')
+        safePatch.bubbleAppTitle = normalizeBubbleAppTitle(
+          safePatch.bubbleAppTitle,
+        );
+      else delete safePatch.bubbleAppTitle;
       if (typeof safePatch.petSize === 'number')
         safePatch.petSize = clamp(
           Math.round(safePatch.petSize),
@@ -128,6 +139,18 @@ export function registerIpcHandlers(
       dependencies.windowManager.send('settings:changed');
       return dependencies.getSettings();
     },
+  );
+  // 返回操作气泡当前使用的自定义应用图标。
+  ipcMain.handle('bubble-app-icon:get', () =>
+    dependencies.petBubbleBrandingService.getIconDataUrl(),
+  );
+  // 打开图片选择器并保存操作气泡自定义应用图标。
+  ipcMain.handle('bubble-app-icon:choose', () =>
+    dependencies.petBubbleBrandingService.chooseIcon(),
+  );
+  // 删除自定义图标并恢复操作气泡默认应用图标。
+  ipcMain.handle('bubble-app-icon:reset', () =>
+    dependencies.petBubbleBrandingService.resetIcon(),
   );
   // 返回当前桌宠形象完整数据。
   ipcMain.handle('pet-image:get', () =>

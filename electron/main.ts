@@ -14,7 +14,11 @@ import {
   updateContextMenuIcon,
 } from './integrations';
 import { registerIpcHandlers } from './ipc';
-import { createPetWindowManager, PetImageService } from './pet';
+import {
+  createPetWindowManager,
+  PetBubbleBrandingService,
+  PetImageService,
+} from './pet';
 import {
   createShredSession,
   getShredTargetMetadata,
@@ -63,6 +67,19 @@ petImageService = new PetImageService(store, {
   },
   // 形象变化后通知渲染进程刷新桌宠外观。
   notifyAppearanceChanged: () => petWindowManager.send('settings:changed'),
+  // 原生选择器关闭后恢复设置气泡。
+  restoreSettingsBubble: () => petWindowManager.send('pet:open-settings'),
+});
+// 保存操作气泡品牌服务实例供 IPC 使用。
+const petBubbleBrandingService = new PetBubbleBrandingService(store, {
+  // 向气泡品牌服务提供当前应用设置。
+  getSettings: () => currentSettings,
+  // 将品牌服务保存后的设置同步到主进程缓存。
+  onSettingsUpdated: (settings) => {
+    currentSettings = settings;
+  },
+  // 品牌变化后通知渲染进程刷新操作气泡。
+  notifyBrandingChanged: () => petWindowManager.send('settings:changed'),
   // 原生选择器关闭后恢复设置气泡。
   restoreSettingsBubble: () => petWindowManager.send('pet:open-settings'),
 });
@@ -206,6 +223,7 @@ else {
 registerIpcHandlers({
   store,
   petImageService,
+  petBubbleBrandingService,
   shredSession,
   windowManager: petWindowManager,
   // 向 IPC 处理器提供当前设置。

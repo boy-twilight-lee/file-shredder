@@ -33,6 +33,8 @@ describe('AppStore.getSettings', () => {
     await expect(store.getSettings()).resolves.toMatchObject({
       passes: 0,
       systemNotifications: true,
+      bubbleAppTitle: '文件粉碎精灵',
+      bubbleAppIconPath: '',
     });
     await expect(store.getSettings()).resolves.not.toHaveProperty('shortcut');
   });

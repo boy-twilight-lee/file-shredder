@@ -3,11 +3,11 @@
     <header class="pet-bubble-actions-header">
       <img
         class="pet-bubble-actions-avatar"
-        :src="appIconSource"
-        alt="文件粉碎精灵"
+        :src="bubbleAppIconSource"
+        :alt="bubbleAppTitle"
       />
       <span class="pet-bubble-actions-heading">
-        <strong>文件粉碎精灵</strong>
+        <strong>{{ bubbleAppTitle }}</strong>
         <small>安全、彻底地清理文件</small>
       </span>
       <span class="pet-bubble-actions-header-tools">
@@ -76,10 +76,27 @@
 import Message from '@arco-design/web-vue/es/message';
 import '@arco-design/web-vue/es/message/style/css.js';
 import appIconSource from '@/assets/app-icon.png';
+import { DEFAULT_BUBBLE_APP_TITLE } from '@/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { PET_ACTION_OPTIONS, PET_HEADER_ACTION_OPTIONS } from './constants';
 // 读取目标选择与气泡导航能力。
 const { chooseTargets, closeBubble, showBubble } = usePetViewContext().inject();
+// 保存操作气泡当前展示的应用标题。
+const bubbleAppTitle = ref(DEFAULT_BUBBLE_APP_TITLE);
+// 保存操作气泡当前展示的内置或自定义应用图标。
+const bubbleAppIconSource = ref(appIconSource);
+// 收集组件销毁时需要执行的事件清理器。
+const disposers: Array<() => void> = [];
+// 从持久化设置刷新操作气泡头部品牌信息。
+async function refreshBubbleBranding(): Promise<void> {
+  // 并行读取标题设置与自定义图标数据。
+  const [settings, customIconSource] = await Promise.all([
+    window.shredderApi.getSettings(),
+    window.shredderApi.getBubbleAppIcon(),
+  ]);
+  bubbleAppTitle.value = settings.bubbleAppTitle || DEFAULT_BUBBLE_APP_TITLE;
+  bubbleAppIconSource.value = customIconSource || appIconSource;
+}
 // 根据菜单项执行导航、系统操作或目标选择。
 async function handleAction(
   key:
@@ -110,6 +127,16 @@ async function handleAction(
   }
   await chooseTargets(key);
 }
+// 组件挂载后加载品牌设置并订阅后续变更。
+onMounted(async () => {
+  disposers.push(window.shredderApi.onSettingsChanged(refreshBubbleBranding));
+  await refreshBubbleBranding();
+});
+// 组件销毁前解除设置变化监听。
+onBeforeUnmount(() => {
+  // 依次执行已注册的设置更新清理器。
+  disposers.forEach((dispose) => dispose());
+});
 </script>
 <style lang="less" scoped>
 @import './index.less';

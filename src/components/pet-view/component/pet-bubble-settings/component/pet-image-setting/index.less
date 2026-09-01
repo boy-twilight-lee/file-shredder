@@ -1,5 +1,12 @@
 .pet-image-setting {
+  .pet-image-setting-section-label {
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 20px;
+    color: #1d2129;
+  }
   .pet-image-setting-list {
+    margin-top: 6px;
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
@@ -120,6 +127,46 @@
         &:hover {
           background: #fff;
           color: #f53f3f;
+        }
+      }
+    }
+  }
+  .pet-image-setting-size-row {
+    min-width: 0;
+    margin-top: 16px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    .pet-image-setting-size-label {
+      min-width: 0;
+      font-size: 13px;
+      font-weight: 600;
+      line-height: 20px;
+      color: #1d2129;
+      flex: 1;
+    }
+    .pet-image-setting-size-controls {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      .pet-image-setting-size-slider {
+        min-width: 0;
+        width: 300px;
+        flex-shrink: 0;
+      }
+      .pet-image-setting-size-input {
+        font-size: 12px;
+        color: #79828f;
+        display: flex;
+        flex-shrink: 0;
+        align-items: center;
+        gap: 7px;
+        &:deep(.arco-input-number) {
+          width: 72px;
+        }
+        &:deep(.arco-input-wrapper) {
+          border-radius: 9px;
         }
       }
     }

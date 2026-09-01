@@ -1,7 +1,9 @@
 import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
-import type { App } from 'electron';
+import { App } from 'electron';
+import { DEFAULT_BUBBLE_APP_TITLE } from '@/constants';
+import { normalizeBubbleAppTitle } from '@/utils';
 import { readJsonFile, writeJsonFile } from '../utils';
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
@@ -18,6 +20,8 @@ export interface AppSettings {
   petDisplayId: number | null;
   petPositionX: number | null;
   petPositionY: number | null;
+  bubbleAppTitle: string;
+  bubbleAppIconPath: string;
 }
 export interface UploadedPetImage {
   id: string;
@@ -53,6 +57,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   petDisplayId: null,
   petPositionX: null,
   petPositionY: null,
+  bubbleAppTitle: DEFAULT_BUBBLE_APP_TITLE,
+  bubbleAppIconPath: '',
 };
 // 限制本地持久化的最大粉碎记录数量。
 const MAX_LOG_COUNT = 1000;
@@ -65,6 +71,8 @@ export class AppStore {
   private readonly petImagePath: string;
   // 保存当前版本桌宠模板目录路径。
   private readonly petImagesDirectory: string;
+  // 保存操作气泡自定义品牌资源目录路径。
+  private readonly bubbleBrandingDirectory: string;
   // 根据 Electron 用户数据目录初始化持久化路径。
   constructor(app: App) {
     // 读取当前应用隔离的用户数据目录。
@@ -73,6 +81,7 @@ export class AppStore {
     this.logsPath = join(dataDirectory, 'shred-logs.json');
     this.petImagePath = join(dataDirectory, 'custom-pet.png');
     this.petImagesDirectory = join(dataDirectory, 'pet-templates');
+    this.bubbleBrandingDirectory = join(dataDirectory, 'bubble-branding');
   }
   // 读取持久化设置并合并当前版本默认值。
   async getSettings(): Promise<AppSettings> {
@@ -83,7 +92,16 @@ export class AppStore {
     // 清除旧版本遗留且界面已不再提供的配置，后续保存时不会再写回。
     delete storedSettings.shortcut;
     delete storedSettings.snapToEdge;
-    return { ...DEFAULT_SETTINGS, ...storedSettings };
+    // 合并默认设置，并修正旧配置或手工修改产生的无效品牌字段。
+    const settings = { ...DEFAULT_SETTINGS, ...storedSettings };
+    settings.bubbleAppTitle = normalizeBubbleAppTitle(
+      storedSettings.bubbleAppTitle,
+    );
+    settings.bubbleAppIconPath =
+      typeof storedSettings.bubbleAppIconPath === 'string'
+        ? storedSettings.bubbleAppIconPath
+        : '';
+    return settings;
   }
   // 合并并持久化部分应用设置。
   async updateSettings(patch: Partial<AppSettings>): Promise<AppSettings> {
@@ -139,6 +157,7 @@ export class AppStore {
       rm(this.logsPath, { force: true }),
       rm(this.petImagePath, { force: true }),
       rm(this.petImagesDirectory, { force: true, recursive: true }),
+      rm(this.bubbleBrandingDirectory, { force: true, recursive: true }),
     ]);
   }
 }

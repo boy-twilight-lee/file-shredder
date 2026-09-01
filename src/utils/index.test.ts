@@ -9,6 +9,7 @@ import {
   getPathDirectory,
   getPathName,
   mapWithConcurrency,
+  normalizeBubbleAppTitle,
 } from './index';
 // 验证共享工具函数的核心边界行为。
 describe('shared utils', () => {
@@ -82,5 +83,15 @@ describe('shared utils', () => {
     expect(expanded).toEqual({ x: 5, y: 15, width: 40, height: 50 });
     expect(containsPoint(expanded, { x: 45, y: 65 })).toBe(true);
     expect(containsPoint(expanded, { x: 46, y: 65 })).toBe(false);
+  });
+  // 验证操作气泡标题会去除空白、限制字符数并保留合理默认值。
+  it('normalizes bubble app titles', () => {
+    expect(normalizeBubbleAppTitle('  我的文件粉碎工具箱  ')).toBe(
+      '我的文件粉碎工具箱',
+    );
+    expect(normalizeBubbleAppTitle('一二三四五六七八九十十一')).toBe(
+      '一二三四五六七八九十',
+    );
+    expect(normalizeBubbleAppTitle('   ')).toBe('文件粉碎精灵');
   });
 });

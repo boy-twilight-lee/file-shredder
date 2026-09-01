@@ -39,6 +39,8 @@ export interface AppSettings {
   petDisplayId: number | null;
   petPositionX: number | null;
   petPositionY: number | null;
+  bubbleAppTitle: string;
+  bubbleAppIconPath: string;
 }
 export interface UploadedPetImage {
   id: string;
@@ -81,6 +83,9 @@ export interface ShredderApi {
   getContextMenuStatus: () => Promise<boolean>;
   getSettings: () => Promise<AppSettings>;
   updateSettings: (settings: Partial<AppSettings>) => Promise<AppSettings>;
+  getBubbleAppIcon: () => Promise<string>;
+  chooseBubbleAppIcon: () => Promise<string | null>;
+  resetBubbleAppIcon: () => Promise<string>;
   getPetImage: () => Promise<string>;
   getPetImageTemplates: () => Promise<PetImageTemplate[]>;
   choosePetImage: () => Promise<PetImageTemplate[] | null>;
