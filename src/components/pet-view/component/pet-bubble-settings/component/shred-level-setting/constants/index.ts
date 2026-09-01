@@ -1,5 +1,5 @@
 import type { AppSettings } from '@/type';
-
+// 定义文件清理强度及其面向用户的说明。
 export const SHRED_LEVEL_OPTIONS = [
   {
     value: 0,
@@ -26,7 +26,7 @@ export const SHRED_LEVEL_OPTIONS = [
     description: '覆写 35 次，耗时较长',
   },
 ] as const;
-
+// 映射不同清理强度对应的业务图标。
 export const SHRED_LEVEL_ICONS: Record<AppSettings['passes'], string> = {
   0: 'app-delete',
   3: 'app-lightning',

@@ -41,18 +41,16 @@
     </div>
   </settings-card>
 </template>
-
 <script setup lang="ts">
 import type { AppSettings } from '@/type';
 import { SHRED_LEVEL_ICONS, SHRED_LEVEL_OPTIONS } from './constants';
 import { SettingsCard } from '../settings-card';
-
 defineProps<{ modelValue: AppSettings['passes'] }>();
+// 向设置页上报用户选择的清理强度。
 const emit = defineEmits<{
   'update-passes': [value: AppSettings['passes']];
 }>();
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

@@ -27,27 +27,26 @@
     </div>
   </settings-card>
 </template>
-
 <script setup lang="ts">
 import { clamp } from '@/utils';
 import { PET_SIZE_MAX, PET_SIZE_MIN, PET_SIZE_STEP } from './constants';
 import { SettingsCard } from '../settings-card';
-
 defineProps<{ modelValue: number }>();
+// 向设置页上报规范化后的桌宠尺寸。
 const emit = defineEmits<{ 'update-pet-size': [value: number] }>();
-
+// 校验并规范化输入框提交的桌宠尺寸。
 function updatePetSize(value: number | undefined): void {
   if (typeof value !== 'number' || !Number.isFinite(value)) return;
+  // 将用户输入限制在桌宠支持的尺寸区间内。
   const normalizedValue = clamp(Math.round(value), PET_SIZE_MIN, PET_SIZE_MAX);
   emit('update-pet-size', normalizedValue);
 }
-
+// 将单值滑块结果转交给统一尺寸更新逻辑。
 function updatePetSizeFromSlider(value: number | [number, number]): void {
   // 当前控件使用单值滑块，显式收窄 Arco Slider 的区间联合类型。
   if (typeof value === 'number') updatePetSize(value);
 }
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

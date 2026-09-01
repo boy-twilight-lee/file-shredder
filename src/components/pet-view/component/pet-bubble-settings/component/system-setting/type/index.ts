@@ -1,5 +1,4 @@
 import type { AppSettings, SettingBooleanKey } from '@/type';
-
 export interface SystemSettingProps {
   settings: AppSettings;
   onBeforeChange: (
@@ -7,7 +6,6 @@ export interface SystemSettingProps {
     value: boolean | string | number,
   ) => Promise<boolean>;
 }
-
 export interface SystemSettingOption {
   key: SettingBooleanKey;
   label: string;

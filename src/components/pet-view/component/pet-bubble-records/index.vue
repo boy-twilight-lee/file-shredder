@@ -58,7 +58,6 @@
             </a-button>
           </a-popconfirm>
         </div>
-
         <!-- 使用 Arco Table 原生虚拟列表，固定布局避免内容改变列宽。 -->
         <a-table
           v-model:selected-keys="selectedLogIds"
@@ -143,7 +142,6 @@
     </a-spin>
   </main>
 </template>
-
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';
 import '@arco-design/web-vue/es/message/style/css.js';
@@ -162,29 +160,38 @@ import {
   SHRED_RECORD_TIME_FORMAT,
   SHRED_RECORD_VIRTUAL_LIST_PROPS,
 } from './constants';
-
+// 保存当前加载的粉碎记录。
 const logs = ref<ShredLog[]>([]);
+// 保存用户在表格中选中的记录标识。
 const selectedLogIds = ref<Array<string | number>>([]);
+// 保存文件路径搜索关键字。
 const pathKeyword = ref('');
+// 标识记录列表是否正在加载。
 const isLoading = ref(true);
+// 收集组件销毁时需要执行的事件清理器。
 const disposers: Array<() => void> = [];
+// 读取气泡页面导航能力。
 const { showBubble } = usePetViewContext().inject();
+// 按路径关键字筛选当前可见的粉碎记录。
 const filteredLogs = computed(() => {
+  // 生成忽略大小写与首尾空白的搜索条件。
   const normalizedKeyword = pathKeyword.value.trim().toLocaleLowerCase();
   if (!normalizedKeyword) return logs.value;
+  // 保留路径中包含搜索关键字的记录。
   return logs.value.filter((log) =>
     log.path.toLocaleLowerCase().includes(normalizedKeyword),
   );
 });
+// 根据数据与搜索结果生成空状态文案。
 const emptyStateTitle = computed(() =>
   logs.value.length === 0 ? '暂无粉碎记录' : '未找到匹配的粉碎记录',
 );
-
+// 从主进程重新读取粉碎记录。
 async function refreshLogs(): Promise<void> {
   logs.value = await window.shredderApi.getLogs();
   isLoading.value = false;
 }
-
+// 删除指定粉碎记录并同步列表状态。
 async function deleteLogs(ids: Array<string | number>): Promise<void> {
   try {
     logs.value = await window.shredderApi.deleteLogs(ids.map(String));
@@ -193,39 +200,43 @@ async function deleteLogs(ids: Array<string | number>): Promise<void> {
     Message.error(error instanceof Error ? error.message : '粉碎记录删除失败');
   }
 }
-
+// 删除用户当前选中的全部粉碎记录。
 async function deleteSelectedLogs(): Promise<void> {
   // 复制当前选择，避免确认浮层关闭期间的响应式变化影响本次删除目标。
   await deleteLogs([...selectedLogIds.value]);
 }
-
+// 根据目标类型与执行结果生成记录说明。
 function getLogMessage(log: ShredLog): string {
   if (log.targetType === 'directory' && !log.success)
     return `成功 ${log.succeededCount ?? 0} 个，失败 ${log.failedCount ?? 0} 个`;
   if (log.targetType === 'directory') return '文件夹已安全删除';
   return log.success ? '文件已安全删除' : log.message;
 }
-
+// 搜索条件变化时清空可能已经不可见的选择项。
 watch(pathKeyword, () => {
   // 过滤条件变化后清空选择，避免批量操作包含当前不可见的记录。
   selectedLogIds.value = [];
 });
-
+// 记录列表变化时移除已经不存在的选择项。
 watch(logs, (currentLogs) => {
+  // 汇总当前仍然存在的记录标识。
   const existingIds = new Set(currentLogs.map((log) => log.id));
+  // 保留仍然存在于最新记录列表中的选择项。
   selectedLogIds.value = selectedLogIds.value.filter((id) =>
     existingIds.has(String(id)),
   );
 });
-
+// 组件挂载后加载记录并订阅跨窗口更新事件。
 onMounted(async () => {
   await refreshLogs();
   disposers.push(window.shredderApi.onLogsUpdated(refreshLogs));
 });
-
-onBeforeUnmount(() => disposers.forEach((dispose) => dispose()));
+// 组件销毁前解除所有记录更新监听。
+onBeforeUnmount(() => {
+  // 依次执行已注册的记录更新清理器。
+  disposers.forEach((dispose) => dispose());
+});
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

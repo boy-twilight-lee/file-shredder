@@ -25,15 +25,12 @@
     </div>
   </settings-card>
 </template>
-
 <script setup lang="ts">
 import type { SystemSettingProps } from './type';
 import { SYSTEM_SETTING_OPTIONS } from './constants';
 import { SettingsCard } from '../settings-card';
-
 defineProps<SystemSettingProps>();
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

@@ -1,8 +1,7 @@
 import { isNumber, isString } from 'lodash-es';
-
-// value转pc
+// 将无单位数值转换为像素尺寸，并保留已有 CSS 单位。
 export const valueToPx = (value: string | number | undefined) => {
-  // 检查是否是数字类型，或者是可以转换为数字的字符串
+  // 数字及纯数字字符串默认按像素解释。
   if (isNumber(value) || (isString(value) && /^-?\d+(\.\d+)?$/.test(value))) {
     return value + 'px';
   }

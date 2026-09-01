@@ -84,11 +84,10 @@
     </footer>
   </section>
 </template>
-
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { formatByteSize, getPathName } from '@/utils';
-
+// 读取待确认目标与粉碎任务控制能力。
 const {
   selectedTargets,
   isSubmitting,
@@ -97,7 +96,6 @@ const {
   confirmShred,
 } = usePetViewContext().inject();
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

@@ -2,12 +2,11 @@ export interface Point {
   x: number;
   y: number;
 }
-
 export interface Rectangle extends Point {
   width: number;
   height: number;
 }
-
+// 判断坐标点是否位于指定矩形边界内。
 export function containsPoint(bounds: Rectangle, point: Point): boolean {
   return (
     point.x >= bounds.x &&
@@ -16,7 +15,7 @@ export function containsPoint(bounds: Rectangle, point: Point): boolean {
     point.y <= bounds.y + bounds.height
   );
 }
-
+// 向四周扩展矩形边界并返回新的矩形。
 export function expandRectangle(bounds: Rectangle, padding: number): Rectangle {
   return {
     x: bounds.x - padding,

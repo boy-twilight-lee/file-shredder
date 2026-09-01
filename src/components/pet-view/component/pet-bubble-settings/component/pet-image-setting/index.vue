@@ -49,7 +49,6 @@
           </span>
         </a-popconfirm>
       </button>
-
       <button
         type="button"
         class="pet-image-setting-item pet-image-setting-item-upload"
@@ -62,7 +61,6 @@
     </div>
   </settings-card>
 </template>
-
 <script setup lang="ts">
 import type { PetImageSettingEmits, PetImageSettingProps } from './type';
 import {
@@ -70,11 +68,10 @@ import {
   MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
 } from '@/components/pet-view/component/pet-bubble/constants';
 import { SettingsCard } from '../settings-card';
-
 defineProps<PetImageSettingProps>();
+// 向设置页上报形象选择、上传与删除操作。
 const emit = defineEmits<PetImageSettingEmits>();
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

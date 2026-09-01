@@ -13,7 +13,6 @@
     <pet-bubble-result v-else />
   </aside>
 </template>
-
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import {
@@ -24,9 +23,9 @@ import {
   PetBubbleSettings,
   PetBubbleRecords,
 } from '@/components/pet-view/component';
+// 读取气泡容器引用与当前业务视图。
 const { bubbleElement, bubbleMode } = usePetViewContext().inject();
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

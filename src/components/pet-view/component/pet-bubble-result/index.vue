@@ -44,18 +44,19 @@
     </footer>
   </section>
 </template>
-
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { formatDuration } from '@/utils';
 import { RESULT_METRIC_OPTIONS } from './constants';
-
+// 读取任务结果与气泡关闭能力。
 const { summary, errorMessage, closeBubble } = usePetViewContext().inject();
-
+// 标识当前任务是否包含顶层错误。
 const hasError = computed(() => Boolean(errorMessage.value));
+// 将任务耗时转换为用户可读文本。
 const formattedDuration = computed(() =>
   formatDuration(summary.value?.durationMs ?? 0),
 );
+// 将任务汇总映射为结果统计卡片数据。
 const resultMetrics = computed(() =>
   RESULT_METRIC_OPTIONS.map((item) => ({
     ...item,
@@ -65,20 +66,23 @@ const resultMetrics = computed(() =>
         : (summary.value?.[item.key] ?? 0),
   })),
 );
-
+// 根据错误、取消及失败状态生成结果视觉语气。
 const resultTone = computed(() => {
   if (hasError.value) return 'failure';
   if (summary.value?.cancelled) return 'cancelled';
   return summary.value?.failed ? 'failure' : 'success';
 });
+// 根据任务最终状态生成结果标题。
 const resultTitle = computed(() => {
   if (hasError.value) return '删除失败';
   if (summary.value?.cancelled) return '删除已取消';
   return summary.value?.failed ? '部分元素删除失败' : '删除完成';
 });
+// 根据错误状态生成结果副标题。
 const resultSubtitle = computed(() =>
   hasError.value ? '本次任务未能完成' : '本次任务结果已汇总',
 );
+// 根据任务最终状态生成后续处理提示。
 const resultTip = computed(() => {
   if (hasError.value) return errorMessage.value;
   if (summary.value?.cancelled) return '任务已停止，当前文件可能已经部分覆写。';
@@ -86,19 +90,19 @@ const resultTip = computed(() => {
     ? '失败文件已保留，请检查占用状态后重新尝试。'
     : '文件已安全粉碎，无法通过常规方式恢复。';
 });
-
+// 组合结果指标的视觉状态类名。
 function metricClasses(
   key: string,
   tone: string,
   value: string | number,
 ): string[] {
+  // 保存当前指标需要应用的状态类名。
   const classes = [`pet-bubble-result-metric-${tone}`];
   if (key === 'failed' && value === 0)
     classes.push('pet-bubble-result-metric-muted');
   return classes;
 }
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

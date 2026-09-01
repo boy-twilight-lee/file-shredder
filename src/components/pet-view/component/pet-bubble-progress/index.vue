@@ -63,12 +63,11 @@
     </div>
   </section>
 </template>
-
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { getPathName } from '@/utils';
 import { PROGRESS_TONE_OPTIONS } from './constants';
-
+// 读取粉碎进度及任务取消能力。
 const {
   progress,
   progressPercent,
@@ -76,18 +75,18 @@ const {
   isCancelling,
   cancelShred,
 } = usePetViewContext().inject();
-
+// 根据总体进度选择对应的视觉状态。
 const progressTone = computed(
   () =>
     PROGRESS_TONE_OPTIONS.find(
       (item) => progressPercent.value <= item.maximum,
     ) ?? PROGRESS_TONE_OPTIONS[PROGRESS_TONE_OPTIONS.length - 1],
 );
+// 提取当前处理目标的文件名用于进度展示。
 const currentFileName = computed(() =>
   progress.value?.path ? getPathName(progress.value.path) : '正在准备目标',
 );
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

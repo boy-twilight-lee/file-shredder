@@ -1,3 +1,4 @@
+// 定义任务结果面板展示的统计指标。
 export const RESULT_METRIC_OPTIONS = [
   {
     key: 'succeeded',

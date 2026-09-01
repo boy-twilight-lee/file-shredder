@@ -4,7 +4,6 @@ import { copyFile, mkdir, readFile, rm, stat } from 'node:fs/promises';
 import { basename, extname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { AppSettings, AppStore, UploadedPetImage } from '../storage';
-
 export interface PetImageTemplate {
   id: string;
   name: string;
@@ -13,14 +12,13 @@ export interface PetImageTemplate {
   active: boolean;
   deletable: boolean;
 }
-
 interface PetImageServiceDependencies {
   getSettings: () => AppSettings;
   onSettingsUpdated: (settings: AppSettings) => void;
   notifyAppearanceChanged: () => void;
   restoreSettingsBubble: () => void;
 }
-
+// 定义随应用发布的内置桌宠形象。
 const BUILT_IN_PET_IMAGES = [
   {
     id: 'built-in-ao-yin',
@@ -28,8 +26,11 @@ const BUILT_IN_PET_IMAGES = [
     fileName: 'ao-yin.webp',
   },
 ] as const;
+// 限制设置页桌宠缩略图的传输宽度。
 const PET_TEMPLATE_THUMBNAIL_WIDTH = 192;
+// 限制用户上传桌宠图片的最大字节数。
 const PET_IMAGE_MAX_BYTES = 50 * 1024 * 1024;
+// 映射支持的桌宠图片扩展名与 MIME 类型。
 const PET_IMAGE_MIME_TYPES: Record<string, string> = {
   '.png': 'image/png',
   '.jpg': 'image/jpeg',
@@ -39,31 +40,32 @@ const PET_IMAGE_MIME_TYPES: Record<string, string> = {
   '.webp': 'image/webp',
   '.gif': 'image/gif',
 };
-
 export class PetImageService {
+  // 缓存设置页已经生成的桌宠缩略图。
   private readonly thumbnailCache = new Map<string, string>();
-
+  // 注入桌宠形象存储与外部状态同步能力。
   constructor(
     private readonly store: AppStore,
     private readonly dependencies: PetImageServiceDependencies,
   ) {}
-
+  // 返回用户上传桌宠形象的持久化目录。
   private getImagesDirectory(): string {
     return join(app.getPath('userData'), 'pet-templates');
   }
-
+  // 返回当前运行环境中的内置桌宠图片路径。
   private getBuiltInImagePath(fileName: string): string {
     return app.isPackaged
       ? join(process.resourcesPath, 'pet-templates', fileName)
       : join(app.getAppPath(), 'src', 'assets', 'pet-templates', fileName);
   }
-
+  // 返回指定用户桌宠形象的持久化路径。
   private getUploadedImagePath(image: UploadedPetImage): string {
     return join(this.getImagesDirectory(), image.fileName);
   }
-
+  // 将本地图片原始数据转换为浏览器可用的数据地址。
   private imagePathToDataUrl(imagePath: string): string {
     if (!imagePath || !existsSync(imagePath)) return '';
+    // 根据文件扩展名解析图片 MIME 类型。
     const mimeType = PET_IMAGE_MIME_TYPES[extname(imagePath).toLowerCase()];
     if (!mimeType) return '';
     try {
@@ -73,23 +75,27 @@ export class PetImageService {
       return '';
     }
   }
-
+  // 生成并缓存设置页使用的小尺寸图片数据地址。
   private imagePathToThumbnailDataUrl(imagePath: string): string {
     if (!imagePath || !existsSync(imagePath)) return '';
+    // 读取当前图片已经生成的缩略图缓存。
     const cachedImage = this.thumbnailCache.get(imagePath);
     if (cachedImage) return cachedImage;
+    // 使用 Electron 原生图片 API 解码静态图片。
     const image = nativeImage.createFromPath(imagePath);
     if (image.isEmpty()) return this.imagePathToDataUrl(imagePath);
     // 设置页只传输小尺寸预览，避免通过 IPC 反复传递完整图片。
+    // 将图片缩放为设置页需要的缩略图。
     const thumbnail = image
       .resize({ width: PET_TEMPLATE_THUMBNAIL_WIDTH, quality: 'good' })
       .toDataURL();
     this.thumbnailCache.set(imagePath, thumbnail);
     return thumbnail;
   }
-
+  // 按文件签名验证图片内容与扩展名是否一致。
   private isValidImage(fileExtension: string, imageBuffer: Buffer): boolean {
     if (fileExtension === '.svg') {
+      // 规范化 SVG 文本头以检查根元素。
       const content = imageBuffer
         .toString('utf8')
         .replace(/^\uFEFF/, '')
@@ -119,22 +125,26 @@ export class PetImageService {
       );
     return false;
   }
-
+  // 持久化桌宠设置并通知所有外观消费者。
   private async updateSettings(
     patch: Partial<AppSettings>,
   ): Promise<AppSettings> {
+    // 保存更新后的完整应用设置。
     const settings = await this.store.updateSettings(patch);
     this.dependencies.onSettingsUpdated(settings);
     this.dependencies.notifyAppearanceChanged();
     return settings;
   }
-
+  // 解析当前生效的内置、上传或旧版桌宠图片路径。
   getActiveImagePath(): string {
+    // 读取当前桌宠形象相关设置。
     const settings = this.dependencies.getSettings();
+    // 查找当前选中的内置桌宠形象。
     const builtIn = BUILT_IN_PET_IMAGES.find(
       (image) => image.id === settings.petImageTemplateId,
     );
     if (builtIn) return this.getBuiltInImagePath(builtIn.fileName);
+    // 查找当前选中的用户上传桌宠形象。
     const uploaded = settings.uploadedPetImages.find(
       (image) => image.id === settings.petImageTemplateId,
     );
@@ -143,14 +153,17 @@ export class PetImageService {
       return settings.customPetImagePath;
     return this.getBuiltInImagePath(BUILT_IN_PET_IMAGES[0].fileName);
   }
-
+  // 返回当前桌宠形象的完整数据地址。
   getImageDataUrl(): string {
     return this.imagePathToDataUrl(this.getActiveImagePath());
   }
-
+  // 返回设置页展示的全部桌宠形象模板。
   getTemplates(): PetImageTemplate[] {
+    // 读取当前桌宠形象列表与选择状态。
     const settings = this.dependencies.getSettings();
+    // 保存当前选中的桌宠模板标识。
     const activeId = settings.petImageTemplateId;
+    // 将内置形象映射为设置页模板数据。
     const builtInTemplates = BUILT_IN_PET_IMAGES.map((image) => ({
       id: image.id,
       name: image.name,
@@ -161,6 +174,7 @@ export class PetImageService {
       active: image.id === activeId,
       deletable: false,
     }));
+    // 过滤丢失文件并映射用户上传模板数据。
     const uploadedTemplates = settings.uploadedPetImages
       .filter((image) => existsSync(this.getUploadedImagePath(image)))
       .map((image) => ({
@@ -180,8 +194,9 @@ export class PetImageService {
       builtInTemplates[0].active = true;
     return [...builtInTemplates, ...uploadedTemplates];
   }
-
+  // 将旧版本单张自定义图片迁移到模板目录。
   async migrateLegacyImage(): Promise<void> {
+    // 读取判断迁移条件所需的当前设置。
     const settings = this.dependencies.getSettings();
     if (
       !settings.customPetImagePath ||
@@ -189,7 +204,9 @@ export class PetImageService {
       settings.uploadedPetImages.length > 0
     )
       return;
+    // 为迁移后的模板生成唯一标识。
     const id = randomUUID();
+    // 生成迁移图片在模板目录中的文件名。
     const fileName = `${id}.png`;
     await mkdir(this.getImagesDirectory(), { recursive: true });
     await copyFile(
@@ -202,9 +219,10 @@ export class PetImageService {
       uploadedPetImages: [{ id, name: '我的桌宠', fileName }],
     });
   }
-
+  // 打开文件选择器、校验并保存用户桌宠图片。
   async chooseImage(): Promise<PetImageTemplate[] | null> {
     try {
+      // 获取用户在原生文件选择器中的选择结果。
       const result = await dialog.showOpenDialog({
         title: '选择桌宠图片',
         properties: ['openFile'],
@@ -216,23 +234,30 @@ export class PetImageService {
         ],
       });
       if (result.canceled || result.filePaths.length === 0) return null;
+      // 保存用户选择的源图片路径。
       const sourcePath = result.filePaths[0];
+      // 提取并规范化源图片扩展名。
       const fileExtension = extname(sourcePath).toLowerCase();
       if (!PET_IMAGE_MIME_TYPES[fileExtension])
         throw new Error('仅支持 PNG、JPG、JPEG、SVG、WebP 和 GIF 图片');
+      // 读取源图片文件大小供复制前快速校验。
       const sourceStats = await stat(sourcePath);
       if (sourceStats.size > PET_IMAGE_MAX_BYTES)
         throw new Error('桌宠图片不能超过 50 MB');
+      // 读取图片原始数据供完整大小与签名校验。
       const imageBuffer = await readFile(sourcePath);
       if (imageBuffer.byteLength > PET_IMAGE_MAX_BYTES)
         throw new Error('桌宠图片不能超过 50 MB');
       if (!this.isValidImage(fileExtension, imageBuffer))
         throw new Error('图片文件已损坏或格式与扩展名不符');
+      // 为新上传的桌宠模板生成唯一标识。
       const id = randomUUID();
       // 保留扩展名才能让 Chromium 按原格式解码，并继续播放 GIF 动画。
+      // 生成新模板的持久化文件名。
       const fileName = `${id}${fileExtension}`;
       await mkdir(this.getImagesDirectory(), { recursive: true });
       await copyFile(sourcePath, join(this.getImagesDirectory(), fileName));
+      // 将新模板追加到现有用户上传形象列表。
       const uploadedPetImages = [
         ...this.dependencies.getSettings().uploadedPetImages,
         {
@@ -252,10 +277,12 @@ export class PetImageService {
       this.dependencies.restoreSettingsBubble();
     }
   }
-
+  // 将指定存在的模板设为当前桌宠形象。
   async selectImage(id: unknown): Promise<PetImageTemplate[]> {
     if (typeof id !== 'string') throw new Error('无效的桌宠模板');
+    // 读取验证模板与更新选择状态所需的设置。
     const settings = this.dependencies.getSettings();
+    // 标识模板是否属于有效内置或现存上传形象。
     const exists =
       BUILT_IN_PET_IMAGES.some((image) => image.id === id) ||
       settings.uploadedPetImages.some(
@@ -266,13 +293,16 @@ export class PetImageService {
     await this.updateSettings({ petImageTemplateId: id });
     return this.getTemplates();
   }
-
+  // 删除指定用户桌宠形象并回退失效选择。
   async deleteImage(id: unknown): Promise<PetImageTemplate[]> {
     if (typeof id !== 'string') throw new Error('无效的桌宠模板');
+    // 读取用户上传形象及当前选择状态。
     const settings = this.dependencies.getSettings();
+    // 查找用户请求删除的自定义模板。
     const target = settings.uploadedPetImages.find((image) => image.id === id);
     if (!target) throw new Error('内置模板不能删除');
     await rm(this.getUploadedImagePath(target), { force: true });
+    // 从设置中移除已经删除的模板。
     const uploadedPetImages = settings.uploadedPetImages.filter(
       (image) => image.id !== id,
     );

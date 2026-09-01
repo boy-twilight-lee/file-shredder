@@ -1,24 +1,20 @@
 .pet-bubble-result {
   width: 344px;
   padding: 14px;
-
   .pet-bubble-result-title {
     padding: 2px 2px 3px;
     display: flex;
     align-items: center;
-
     .pet-bubble-result-title-content {
       min-width: 0;
       display: flex;
       flex-direction: column;
       gap: 2px;
-
       & > strong {
         font-size: 14px;
         line-height: 1.35;
         color: #1d2129;
       }
-
       & > small {
         font-size: 10px;
         line-height: 1.4;
@@ -26,12 +22,10 @@
       }
     }
   }
-
   .pet-bubble-result-metrics {
     margin: 12px 0 10px;
     display: flex;
     gap: 8px;
-
     .pet-bubble-result-metric {
       position: relative;
       overflow: hidden;
@@ -45,41 +39,34 @@
       flex: 1;
       flex-direction: column;
       gap: 8px;
-
       &.pet-bubble-result-metric-success {
         background: linear-gradient(145deg, #f8fdf9, #effaf3);
         border-color: rgba(0, 168, 84, 0.1);
         color: #00a854;
       }
-
       &.pet-bubble-result-metric-failure {
         background: linear-gradient(145deg, #fffafa, #fff0f0);
         border-color: rgba(245, 63, 63, 0.1);
         color: #f53f3f;
       }
-
       &.pet-bubble-result-metric-duration {
         background: linear-gradient(145deg, #f9fbff, #eef4ff);
         border-color: rgba(22, 93, 255, 0.1);
         color: #165dff;
       }
-
       &.pet-bubble-result-metric-muted {
         background: #f7f8fa;
         border-color: #eef0f3;
         color: #86909c;
-
         .pet-bubble-result-metric-heading {
           .pet-bubble-result-metric-icon {
             filter: grayscale(1);
           }
         }
-
         .pet-bubble-result-metric-background-icon {
           filter: grayscale(1);
         }
       }
-
       .pet-bubble-result-metric-heading {
         position: relative;
         z-index: 1;
@@ -87,7 +74,6 @@
         display: flex;
         align-items: center;
         gap: 4px;
-
         .pet-bubble-result-metric-icon {
           height: 15px;
           width: 15px;
@@ -95,7 +81,6 @@
           display: block;
           flex-shrink: 0;
         }
-
         & > small {
           overflow: hidden;
           font-size: 11px;
@@ -105,7 +90,6 @@
           color: #86909c;
         }
       }
-
       & > strong {
         position: relative;
         z-index: 1;
@@ -119,7 +103,6 @@
         white-space: nowrap;
         color: #1d2129;
       }
-
       .pet-bubble-result-metric-background-icon {
         position: absolute;
         right: -12px;
@@ -132,7 +115,6 @@
       }
     }
   }
-
   .pet-bubble-result-tip {
     margin: 0 0 10px;
     padding: 6px 8px;
@@ -143,36 +125,30 @@
     display: flex;
     align-items: center;
     gap: 5px;
-
     & > svg {
       font-size: 13px;
       flex-shrink: 0;
     }
-
     &.pet-bubble-result-tip-success {
       background: #f2fbf5;
       border-color: rgba(0, 168, 84, 0.14);
       color: #008f49;
     }
-
     &.pet-bubble-result-tip-failure {
       background: #fff3f3;
       border-color: rgba(245, 63, 63, 0.14);
       color: #d9363e;
     }
-
     &.pet-bubble-result-tip-cancelled {
       background: #fff7e8;
       border-color: rgba(255, 125, 0, 0.16);
       color: #d46b08;
     }
   }
-
   .pet-bubble-result-footer {
     margin-top: 2px;
     display: flex;
     justify-content: center;
-
     .pet-bubble-result-link {
       height: 26px;
       padding: 3px 8px;

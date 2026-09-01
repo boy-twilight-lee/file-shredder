@@ -1,20 +1,17 @@
 .pet-bubble-progress {
   width: 344px;
   padding: 14px;
-
   .pet-bubble-progress-heading {
     min-height: 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-
     & > strong {
       font-size: 17px;
       font-weight: 700;
       line-height: 24px;
     }
-
     .pet-bubble-progress-cancel {
       font-size: 11px;
       display: inline-flex;
@@ -22,7 +19,6 @@
       gap: 4px;
     }
   }
-
   .pet-bubble-progress-panel {
     margin-top: 12px;
     padding: 12px;
@@ -33,47 +29,40 @@
     transition:
       border-color 0.3s ease,
       box-shadow 0.3s ease;
-
     &.pet-bubble-progress-panel-blue {
       --progress-color: #4096ff;
       --progress-soft-color: rgba(64, 150, 255, 0.12);
       --progress-panel-color: rgba(64, 150, 255, 0.05);
       border-color: rgba(64, 150, 255, 0.2);
     }
-
     &.pet-bubble-progress-panel-purple {
       --progress-color: #722ed1;
       --progress-soft-color: rgba(114, 46, 209, 0.11);
       --progress-panel-color: rgba(114, 46, 209, 0.045);
       border-color: rgba(114, 46, 209, 0.2);
     }
-
     &.pet-bubble-progress-panel-orange {
       --progress-color: #fa8c16;
       --progress-soft-color: rgba(250, 140, 22, 0.12);
       --progress-panel-color: rgba(250, 140, 22, 0.05);
       border-color: rgba(250, 140, 22, 0.22);
     }
-
     &.pet-bubble-progress-panel-green {
       --progress-color: #52c41a;
       --progress-soft-color: rgba(82, 196, 26, 0.12);
       --progress-panel-color: rgba(82, 196, 26, 0.05);
       border-color: rgba(82, 196, 26, 0.2);
     }
-
     .pet-bubble-progress-summary {
       margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-
       .pet-bubble-progress-status {
         display: flex;
         align-items: center;
         gap: 9px;
-
         .pet-bubble-progress-status-icon {
           height: 32px;
           width: 32px;
@@ -88,14 +77,12 @@
             color 0.3s ease,
             background-color 0.3s ease;
         }
-
         & > strong {
           font-size: 13px;
           font-weight: 600;
           color: #1d2129;
         }
       }
-
       .pet-bubble-progress-count {
         font-size: 12px;
         white-space: nowrap;
@@ -103,7 +90,6 @@
         display: inline-flex;
         align-items: baseline;
         gap: 3px;
-
         & > strong {
           font-size: 16px;
           font-weight: 600;
@@ -113,7 +99,6 @@
         }
       }
     }
-
     .pet-bubble-progress-current-file {
       overflow: hidden;
       height: 32px;
@@ -126,7 +111,6 @@
       display: flex;
       align-items: center;
       gap: 6px;
-
       .pet-bubble-progress-current-file-icon {
         font-size: 14px;
         color: #86909c;
@@ -135,12 +119,10 @@
         align-items: center;
         justify-content: center;
       }
-
       .pet-bubble-progress-current-file-content {
         min-width: 0;
         display: block;
         flex: 1;
-
         & > strong {
           overflow: hidden;
           font-size: 12px;
@@ -153,14 +135,12 @@
         }
       }
     }
-
     .pet-bubble-progress-track {
       overflow: hidden;
       height: 10px;
       background: #edf0f3;
       border-radius: 999px;
       box-shadow: inset 0 1px 2px rgba(29, 33, 41, 0.08);
-
       .pet-bubble-progress-bar {
         height: 100%;
         min-width: 2px;
@@ -172,7 +152,6 @@
           background-color 0.3s ease;
       }
     }
-
     .pet-bubble-progress-meta {
       height: 28px;
       font-size: 11px;
@@ -180,7 +159,6 @@
       display: flex;
       align-items: center;
       justify-content: space-between;
-
       & > strong {
         font-size: 14px;
         font-weight: 600;
@@ -188,7 +166,6 @@
         color: var(--progress-color);
       }
     }
-
     .pet-bubble-progress-security {
       min-height: 28px;
       width: max-content;
@@ -204,7 +181,6 @@
       align-items: center;
       justify-content: center;
       gap: 5px;
-
       & > svg {
         font-size: 13px;
         flex-shrink: 0;

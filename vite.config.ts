@@ -6,10 +6,10 @@ import Components from 'unplugin-vue-components/vite';
 import { ArcoResolver } from 'unplugin-vue-components/resolvers';
 import electron from 'vite-plugin-electron/simple';
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
-
+// 生成渲染进程、主进程与预加载脚本的统一构建配置。
 export default defineConfig(() => {
+  // 统一源码目录别名供三个构建入口复用。
   const alias = { '@': resolve('src') };
-
   return {
     resolve: {
       alias,

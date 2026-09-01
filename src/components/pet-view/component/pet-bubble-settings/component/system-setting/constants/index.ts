@@ -1,5 +1,5 @@
 import type { SystemSettingOption } from '../type';
-
+// 定义系统设置开关及其展示信息。
 export const SYSTEM_SETTING_OPTIONS: SystemSettingOption[] = [
   {
     key: 'alwaysOnTop',

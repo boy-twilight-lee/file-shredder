@@ -24,7 +24,6 @@
     </div>
   </section>
 </template>
-
 <script setup lang="ts">
 withDefaults(
   defineProps<{
@@ -37,7 +36,6 @@ withDefaults(
   },
 );
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

@@ -1,5 +1,4 @@
 import { ShredProgress, ShredSummary, ShredTarget } from '@/type';
-
 export type PetState = 'idle' | 'working' | 'success' | 'failure';
 export type PetBubbleMode =
   | 'hidden'
@@ -9,7 +8,6 @@ export type PetBubbleMode =
   | 'confirm'
   | 'progress'
   | 'result';
-
 export interface PetViewContext {
   petState: Ref<PetState>;
   petAppearanceStyle: ComputedRef<Record<string, string>>;

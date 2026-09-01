@@ -72,16 +72,15 @@
     </footer>
   </section>
 </template>
-
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';
 import '@arco-design/web-vue/es/message/style/css.js';
 import appIconSource from '@/assets/app-icon.png';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { PET_ACTION_OPTIONS, PET_HEADER_ACTION_OPTIONS } from './constants';
-
+// 读取目标选择与气泡导航能力。
 const { chooseTargets, closeBubble, showBubble } = usePetViewContext().inject();
-
+// 根据菜单项执行导航、系统操作或目标选择。
 async function handleAction(
   key:
     | (typeof PET_ACTION_OPTIONS)[number]['key']
@@ -93,6 +92,7 @@ async function handleAction(
   }
   if (key === 'lock') {
     try {
+      // 标识当前系统锁屏请求是否成功执行。
       const isLocked = await window.shredderApi.lockScreen();
       if (!isLocked) {
         Message.error('当前系统不支持屏幕锁定');
@@ -111,7 +111,6 @@ async function handleAction(
   await chooseTargets(key);
 }
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

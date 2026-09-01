@@ -3,7 +3,6 @@
     display: flex;
     flex-wrap: wrap;
     gap: 8px;
-
     .pet-image-setting-item {
       position: relative;
       cursor: pointer;
@@ -25,38 +24,31 @@
         border-color 160ms ease,
         background-color 160ms ease,
         box-shadow 160ms ease;
-
       &:hover {
         background: #f4f7ff;
         border-color: #bed2ff;
       }
-
       &:disabled {
         cursor: wait;
         opacity: 0.65;
       }
-
       &.pet-image-setting-item-active {
         background: #f2f5ff;
         border-color: #3564ff;
         box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.1);
       }
-
       &.pet-image-setting-item-upload {
         background: #fff;
         border-style: dashed;
         color: #3564ff;
         justify-content: center;
-
         & > svg {
           font-size: 24px;
         }
-
         & > span {
           font-size: 12px;
         }
       }
-
       .pet-image-setting-preview {
         overflow: hidden;
         height: 96px;
@@ -83,14 +75,12 @@
         display: flex;
         align-items: center;
         justify-content: center;
-
         & > img {
           height: 100%;
           width: 100%;
           object-fit: contain;
         }
       }
-
       .pet-image-setting-name {
         overflow: hidden;
         width: 100%;
@@ -99,7 +89,6 @@
         text-overflow: ellipsis;
         white-space: nowrap;
       }
-
       .pet-image-setting-selected {
         position: absolute;
         top: 5px;
@@ -115,7 +104,6 @@
         align-items: center;
         justify-content: center;
       }
-
       .pet-image-setting-delete {
         position: absolute;
         top: 5px;
@@ -129,7 +117,6 @@
         display: flex;
         align-items: center;
         justify-content: center;
-
         &:hover {
           background: #fff;
           color: #f53f3f;

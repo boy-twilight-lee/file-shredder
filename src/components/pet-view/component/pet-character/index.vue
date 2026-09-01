@@ -1,12 +1,11 @@
 <template>
   <div
+    ref="characterElement"
     class="pet-character"
     :class="`pet-character-${visualPetState}`"
     @mousedown.right.stop
     @click.left="handleClick"
     @contextmenu.prevent
-    @mouseenter="showDragButton"
-    @mouseleave="hideDragButton"
   >
     <img
       class="pet-character-image"
@@ -17,6 +16,7 @@
       @load="handlePetImageLoad"
     />
     <button
+      ref="dragButtonElement"
       v-show="isDragButtonVisible"
       class="pet-character-drag-button"
       type="button"
@@ -31,12 +31,10 @@
     </button>
   </div>
 </template>
-
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
-
-const DRAG_BUTTON_HOVER_DELAY_MS = 100;
-
+import { useDragButtonVisibility } from './hooks';
+// 读取桌宠共享状态与人物交互能力。
 const {
   petState,
   bubbleMode,
@@ -46,9 +44,16 @@ const {
   closeBubble,
   handlePetImageLoad,
 } = usePetViewContext().inject();
-const isDragButtonVisible = ref(false);
-let dragButtonVisibilityTimer = 0;
-
+// 保存人物触发区域的真实 DOM。
+const characterElement = ref<HTMLElement | null>(null);
+// 保存拖拽按钮内容区域的真实 DOM。
+const dragButtonElement = ref<HTMLButtonElement | null>(null);
+// 按触发区域与内容区域的悬停状态控制拖拽按钮显隐。
+const { isDragButtonVisible } = useDragButtonVisibility(
+  characterElement,
+  dragButtonElement,
+);
+// 将任务结果与临时状态映射为人物视觉状态。
 const visualPetState = computed(() => {
   if (bubbleMode.value === 'result') {
     if (summary.value?.cancelled) return 'idle';
@@ -58,39 +63,12 @@ const visualPetState = computed(() => {
     ? 'idle'
     : petState.value;
 });
-
+// 点击人物时切换操作气泡面板。
 function handleClick(): void {
   if (bubbleMode.value === 'hidden') openActions();
   else closeBubble();
 }
-
-function changeDragButtonVisibility(visible: boolean): void {
-  if (dragButtonVisibilityTimer) {
-    window.clearTimeout(dragButtonVisibilityTimer);
-    dragButtonVisibilityTimer = 0;
-  }
-  if (visible === isDragButtonVisible.value) return;
-  dragButtonVisibilityTimer = window.setTimeout(() => {
-    isDragButtonVisible.value = visible;
-    dragButtonVisibilityTimer = 0;
-  }, DRAG_BUTTON_HOVER_DELAY_MS);
-}
-
-function showDragButton(): void {
-  changeDragButtonVisibility(true);
-}
-
-function hideDragButton(): void {
-  changeDragButtonVisibility(false);
-}
-
-onBeforeUnmount(() => {
-  if (dragButtonVisibilityTimer) {
-    window.clearTimeout(dragButtonVisibilityTimer);
-  }
-});
 </script>
-
 <style lang="less" scoped>
 @import './index.less';
 </style>

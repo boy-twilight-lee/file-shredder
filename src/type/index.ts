@@ -7,27 +7,23 @@ export interface ShredProgress {
   estimatedSeconds: number;
   stage: 'overwriting' | 'removing' | 'done';
 }
-
 export interface ShredResult {
   path: string;
   success: boolean;
   deletedFileCount: number;
   error?: string;
 }
-
 export interface ShredSummary {
   succeeded: number;
   failed: number;
   durationMs: number;
   cancelled: boolean;
 }
-
 export interface ShredTarget {
   path: string;
   targetType: 'file' | 'directory';
   size: number | null;
 }
-
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
   confirmBeforeShred: boolean;
@@ -44,13 +40,11 @@ export interface AppSettings {
   petPositionX: number | null;
   petPositionY: number | null;
 }
-
 export interface UploadedPetImage {
   id: string;
   name: string;
   fileName: string;
 }
-
 export interface PetImageTemplate {
   id: string;
   name: string;
@@ -59,14 +53,12 @@ export interface PetImageTemplate {
   active: boolean;
   deletable: boolean;
 }
-
 export type SettingBooleanKey =
   | 'confirmBeforeShred'
   | 'alwaysOnTop'
   | 'launchAtLogin'
   | 'systemNotifications'
   | 'contextMenuInstalled';
-
 export interface ShredLog {
   id: string;
   timestamp: string;
@@ -78,7 +70,6 @@ export interface ShredLog {
   succeededCount?: number;
   failedCount?: number;
 }
-
 export interface ShredderApi {
   getPathForFile: (file: File) => string;
   chooseTargets: (kind: 'file' | 'directory') => Promise<string[]>;
@@ -100,6 +91,7 @@ export interface ShredderApi {
   lockScreen: () => Promise<boolean>;
   exitApp: () => Promise<boolean>;
   cleanupAndExit: () => Promise<boolean>;
+  // 同步桌宠业务气泡展开状态。
   setPetExpanded: (expanded: boolean) => void;
   setPetImageSize: (width: number, height: number) => void;
   setPetBubbleBounds: (
@@ -110,6 +102,8 @@ export interface ShredderApi {
       height: number;
     } | null,
   ) => void;
+  // 获取鼠标相对桌宠内容区域的实时坐标。
+  getPetCursorPosition: () => Promise<{ x: number; y: number } | null>;
   onOpenSettings: (callback: () => void) => () => void;
   onPetState: (
     callback: (state: 'idle' | 'working' | 'success' | 'failure') => void,
@@ -122,7 +116,6 @@ export interface ShredderApi {
   onSettingsChanged: (callback: () => void) => () => void;
   onLogsUpdated: (callback: () => void) => () => void;
 }
-
 declare global {
   interface Window {
     shredderApi: ShredderApi;

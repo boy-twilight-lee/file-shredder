@@ -1,3 +1,4 @@
+// 定义气泡标题栏中的辅助操作入口。
 export const PET_HEADER_ACTION_OPTIONS = [
   {
     key: 'records',
@@ -10,7 +11,7 @@ export const PET_HEADER_ACTION_OPTIONS = [
     icon: 'app-settings',
   },
 ] as const;
-
+// 定义桌宠主操作菜单及其展示语义。
 export const PET_ACTION_OPTIONS = [
   {
     key: 'file',

@@ -2,7 +2,6 @@
   width: 380px;
   padding: 16px;
   text-align: left;
-
   .pet-bubble-actions-tone(@color) {
     background: linear-gradient(
       135deg,
@@ -10,18 +9,15 @@
       mix(#fff, @color, 93%) 100%
     );
     border-color: fade(@color, 20%);
-
     &:hover {
       border-color: fade(@color, 42%);
       background: mix(#fff, @color, 90%);
       box-shadow: 0 5px 14px fade(@color, 15%);
     }
-
     .pet-bubble-actions-icon-wrap {
       background: fade(@color, 12%);
       color: @color;
     }
-
     .pet-bubble-actions-content {
       .pet-bubble-actions-item-heading {
         .pet-bubble-actions-badge {
@@ -30,19 +26,16 @@
         }
       }
     }
-
     .pet-bubble-actions-chevron {
       color: fade(@color, 72%);
     }
   }
-
   .pet-bubble-actions-header {
     margin-bottom: 14px;
     padding: 2px 0 0;
     display: flex;
     align-items: center;
     gap: 12px;
-
     .pet-bubble-actions-avatar {
       height: 48px;
       width: 48px;
@@ -54,7 +47,6 @@
       object-fit: cover;
       flex-shrink: 0;
     }
-
     .pet-bubble-actions-heading {
       overflow: hidden;
       min-width: 0;
@@ -69,19 +61,16 @@
         letter-spacing: 0;
         color: #151a21;
       }
-
       & > small {
         font-size: 12px;
         line-height: 17px;
         color: #7d8794;
       }
     }
-
     .pet-bubble-actions-header-tools {
       flex-shrink: 0;
       display: flex;
       gap: 8px;
-
       .pet-bubble-actions-header-button {
         cursor: pointer;
         height: 34px;
@@ -102,12 +91,10 @@
           box-shadow 0.18s ease,
           color 0.18s ease,
           transform 0.18s ease;
-
         .pet-bubble-actions-header-icon {
           height: 19px;
           width: 19px;
         }
-
         &:hover {
           background: #f1f6fd;
           border-color: rgba(36, 117, 220, 0.3);
@@ -115,7 +102,6 @@
           color: #2475dc;
           transform: translateY(-1px);
         }
-
         &:focus-visible {
           outline: 2px solid rgba(36, 117, 220, 0.28);
           outline-offset: 2px;
@@ -123,12 +109,10 @@
       }
     }
   }
-
   .pet-bubble-actions-list {
     display: flex;
     flex-direction: column;
     gap: 8px;
-
     .pet-bubble-actions-item {
       cursor: pointer;
       min-height: 62px;
@@ -148,30 +132,24 @@
         border-color 0.18s ease,
         box-shadow 0.18s ease,
         transform 0.18s ease;
-
       &:hover {
         background: #edf5ff;
         border-color: #b9d2f7;
         box-shadow: 0 5px 14px rgba(55, 108, 184, 0.1);
         transform: translateY(-1px);
       }
-
       &.pet-bubble-actions-item-blue {
         .pet-bubble-actions-tone(#2475dc);
       }
-
       &.pet-bubble-actions-item-green {
         .pet-bubble-actions-tone(#169c73);
       }
-
       &.pet-bubble-actions-item-purple {
         .pet-bubble-actions-tone(#7a5af8);
       }
-
       &.pet-bubble-actions-item-red {
         .pet-bubble-actions-tone(#e5484d);
       }
-
       .pet-bubble-actions-icon-wrap {
         height: 42px;
         width: 42px;
@@ -182,13 +160,11 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-
         .pet-bubble-actions-icon {
           height: 23px;
           width: 23px;
         }
       }
-
       .pet-bubble-actions-content {
         overflow: hidden;
         min-width: 0;
@@ -196,13 +172,11 @@
         flex: 1;
         flex-direction: column;
         gap: 3px;
-
         .pet-bubble-actions-item-heading {
           min-width: 0;
           display: flex;
           align-items: center;
           gap: 8px;
-
           & > strong {
             overflow: hidden;
             font-size: 14px;
@@ -211,7 +185,6 @@
             text-overflow: ellipsis;
             white-space: nowrap;
           }
-
           .pet-bubble-actions-badge {
             height: 20px;
             flex-shrink: 0;
@@ -224,7 +197,6 @@
             align-items: center;
           }
         }
-
         & > small {
           overflow: hidden;
           font-size: 12px;
@@ -234,14 +206,12 @@
           color: #79828f;
         }
       }
-
       .pet-bubble-actions-chevron {
         flex-shrink: 0;
         font-size: 16px;
       }
     }
   }
-
   .pet-bubble-actions-tip {
     margin-top: 12px;
     font-size: 10px;
@@ -250,7 +220,6 @@
     display: flex;
     align-items: center;
     gap: 4px;
-
     .pet-bubble-actions-tip-icon {
       height: 18px;
       width: 18px;
@@ -261,7 +230,6 @@
       display: inline-flex;
       align-items: center;
       justify-content: center;
-
       & > svg {
         font-size: 11px;
       }

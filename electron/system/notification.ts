@@ -1,6 +1,6 @@
 import { Notification } from 'electron';
 import { getIconPath } from '../app';
-
+// 在系统支持时展示文件粉碎完成通知。
 export function showShredCompletionNotification(
   succeeded: number,
   failed: number,
