@@ -27,6 +27,7 @@ declare module 'vue' {
     ATooltip: typeof import('@arco-design/web-vue')['Tooltip']
     ATrigger: typeof import('@arco-design/web-vue')['Trigger']
     DragBtn: typeof import('./../components/pet-view/component/pet-character/component/drag-btn.vue')['default']
+    LayoutRow: typeof import('./../components/pet-view/component/pet-bubble-settings/component/layout-row.vue')['default']
     PageHeader: typeof import('./../components/pet-view/component/pet-bubble-settings/component/page-header.vue')['default']
     PetBubble: typeof import('./../components/pet-view/component/pet-bubble/index.vue')['default']
     PetBubbleActions: typeof import('./../components/pet-view/component/pet-bubble-actions/index.vue')['default']

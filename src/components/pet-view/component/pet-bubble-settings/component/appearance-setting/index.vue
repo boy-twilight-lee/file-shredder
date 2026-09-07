@@ -71,8 +71,10 @@
         </div>
       </section>
       <div class="appearance-setting-content">
-        <label class="appearance-setting-field">
-          <span class="appearance-setting-section-label">应用名称</span>
+        <layout-row
+          tag="label"
+          title="应用名称"
+        >
           <a-input
             :model-value="appTitle"
             :max-length="BUBBLE_APP_TITLE_MAX_LENGTH"
@@ -81,9 +83,8 @@
             @blur="emit('save-app-title')"
             @press-enter="blurTitleInput"
           />
-        </label>
-        <div class="appearance-setting-field">
-          <span class="appearance-setting-section-label">应用图标</span>
+        </layout-row>
+        <layout-row title="应用图标">
           <div
             class="appearance-setting-image-item appearance-setting-icon-item"
           >
@@ -102,16 +103,12 @@
                 :disabled="isChoosingAppIcon"
                 @click.stop="emit('choose-app-icon')"
               >
-                <svg-icon
-                  name="app-edit"
-                  :size="20"
-                />
+                <svg-icon name="app-edit" />
               </button>
             </div>
           </div>
-        </div>
-        <div class="appearance-setting-field">
-          <span class="appearance-setting-section-label">桌宠形象</span>
+        </layout-row>
+        <layout-row title="桌宠形象">
           <article
             class="appearance-setting-image-item appearance-setting-pet-item"
           >
@@ -130,16 +127,15 @@
                 :disabled="isChoosingPetImage"
                 @click.stop="emit('choose-pet-image')"
               >
-                <svg-icon
-                  name="app-edit"
-                  :size="20"
-                />
+                <svg-icon name="app-edit" />
               </button>
             </div>
           </article>
-        </div>
-        <label class="appearance-setting-field">
-          <span class="appearance-setting-section-label">桌宠大小</span>
+        </layout-row>
+        <layout-row
+          tag="label"
+          title="桌宠大小"
+        >
           <span class="appearance-setting-size-input">
             <a-input-number
               :model-value="petSize"
@@ -152,7 +148,7 @@
             />
             <span>px</span>
           </span>
-        </label>
+        </layout-row>
       </div>
     </div>
   </settings-card>
@@ -173,6 +169,7 @@ import {
 } from './constants';
 import { AppearanceSettingEmits, AppearanceSettingProps } from './type';
 import { PET_ACTION_OPTIONS } from '@/components/pet-view/component/pet-bubble-actions/constants';
+import LayoutRow from '../layout-row.vue';
 import SettingsCard from '../settings-card.vue';
 // 接收并实时呈现当前外观设置。
 const props = defineProps<AppearanceSettingProps>();
