@@ -74,10 +74,10 @@ describe('AppStore.deleteLogs', () => {
     await expect(store.getLogs()).resolves.toEqual(remainingLogs);
   });
 });
-// 验证粉碎记录追加与数量上限。
+// 验证粉碎记录追加不受固定数量限制。
 describe('AppStore.appendLogs', () => {
-  // 验证超大批次只持久化允许的最大记录数量。
-  it('超大批次仅持久化记录上限内的数据', async () => {
+  // 验证超大批次能够完整持久化。
+  it('超大批次会完整持久化全部记录', async () => {
     // 创建隔离的应用存储。
     const store = await createStore();
     // 生成超过持久化上限的测试记录。
@@ -88,10 +88,10 @@ describe('AppStore.appendLogs', () => {
       message: '粉碎成功',
     }));
     await store.appendLogs(entries);
-    // 读取截断后的持久化记录。
+    // 读取完整持久化后的记录。
     const logs = await store.getLogs();
-    expect(logs).toHaveLength(1000);
+    expect(logs).toHaveLength(1500);
     expect(logs[0].path).toBe('C:\\batch\\0.txt');
-    expect(logs[999].path).toBe('C:\\batch\\999.txt');
+    expect(logs[1499].path).toBe('C:\\batch\\1499.txt');
   });
 });

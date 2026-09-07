@@ -3,7 +3,7 @@ import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { App } from 'electron';
 import { DEFAULT_BUBBLE_APP_TITLE } from '@/constants';
-import { normalizeBubbleAppTitle } from '@/utils';
+import { clamp, normalizeBubbleAppTitle } from '@/utils';
 import { readJsonFile, writeJsonFile } from '../utils';
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
@@ -59,8 +59,10 @@ const DEFAULT_SETTINGS: AppSettings = {
   bubbleAppTitle: DEFAULT_BUBBLE_APP_TITLE,
   bubbleAppIconPath: '',
 };
-// 限制本地持久化的最大粉碎记录数量。
-const MAX_LOG_COUNT = 1000;
+// 限制旧版持久化设置恢复时可使用的最小桌宠宽度。
+const PET_SIZE_MIN = 50;
+// 限制旧版持久化设置恢复时可使用的最大桌宠宽度。
+const PET_SIZE_MAX = 400;
 export class AppStore {
   // 保存应用设置文件路径。
   private readonly settingsPath: string;
@@ -100,6 +102,16 @@ export class AppStore {
       typeof storedSettings.bubbleAppIconPath === 'string'
         ? storedSettings.bubbleAppIconPath
         : '';
+    // 将旧版本或手动修改的桌宠尺寸收敛到当前允许范围。
+    settings.petSize = clamp(
+      Math.round(
+        typeof storedSettings.petSize === 'number'
+          ? storedSettings.petSize
+          : DEFAULT_SETTINGS.petSize,
+      ),
+      PET_SIZE_MIN,
+      PET_SIZE_MAX,
+    );
     return settings;
   }
   // 合并并持久化部分应用设置。
@@ -121,17 +133,13 @@ export class AppStore {
     const logs = await this.getLogs();
     // 为本批记录生成统一的完成时间。
     const timestamp = new Date().toISOString();
-    // 先截断再生成 UUID，避免超大批次为最终不会展示的记录分配大量对象。
-    // 计算本批次最多允许追加的记录数量。
-    const availableEntryCount = Math.min(entries.length, MAX_LOG_COUNT);
     // 为保留的记录补充唯一标识与时间戳。
-    const appendedLogs = entries
-      .slice(0, availableEntryCount)
-      .map((entry) => ({ ...entry, id: randomUUID(), timestamp }));
-    await writeJsonFile(
-      this.logsPath,
-      [...appendedLogs, ...logs].slice(0, MAX_LOG_COUNT),
-    );
+    const appendedLogs = entries.map((entry) => ({
+      ...entry,
+      id: randomUUID(),
+      timestamp,
+    }));
+    await writeJsonFile(this.logsPath, [...appendedLogs, ...logs]);
   }
   // 清空全部本地粉碎记录。
   async clearLogs(): Promise<void> {

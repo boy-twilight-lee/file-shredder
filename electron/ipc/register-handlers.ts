@@ -27,7 +27,7 @@ interface IpcHandlerDependencies {
 // 限制 IPC 设置允许的最小桌宠宽度。
 const PET_SIZE_MIN = 50;
 // 限制 IPC 设置允许的最大桌宠宽度。
-const PET_SIZE_MAX = 700;
+const PET_SIZE_MAX = 400;
 // 注册渲染进程可调用的全部主进程业务处理器。
 export function registerIpcHandlers(
   dependencies: IpcHandlerDependencies,

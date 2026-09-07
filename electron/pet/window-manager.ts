@@ -33,7 +33,7 @@ const PET_BUBBLE_GAP = 14;
 // 限制桌宠支持的最小人物宽度。
 const PET_SIZE_MIN = 50;
 // 限制桌宠支持的最大人物宽度。
-const PET_SIZE_MAX = 700;
+const PET_SIZE_MAX = 400;
 // 定义桌宠窗口淡入动画的持续时间。
 const PET_FADE_DURATION_MS = 180;
 // 创建桌宠窗口及其布局、位置与交互控制器。
