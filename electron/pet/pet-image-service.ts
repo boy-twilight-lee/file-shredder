@@ -23,7 +23,7 @@ const BUILT_IN_PET_IMAGES = [
 // 限制设置页桌宠缩略图的传输宽度。
 const PET_TEMPLATE_THUMBNAIL_WIDTH = 192;
 // 限制用户上传桌宠图片的最大字节数。
-const PET_IMAGE_MAX_BYTES = 50 * 1024 * 1024;
+const PET_IMAGE_MAX_BYTES = 100 * 1024 * 1024;
 // 映射支持的桌宠图片扩展名与 MIME 类型。
 const PET_IMAGE_MIME_TYPES: Record<string, string> = {
   '.png': 'image/png',
