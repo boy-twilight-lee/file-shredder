@@ -10,7 +10,7 @@
     "dev": "vite",
     "build": "npm run build:app && electron-builder",
     "build:app": "vue-tsc --noEmit && vite build",
-    "build:win": "npm run build:app && electron-builder --win portable --x64 --ia32",
+    "build:win": "npm run build:win:x64",
     "build:win:x64": "npm run build:app && electron-builder --win portable --x64",
     "build:win:ia32": "npm run build:app && electron-builder --win portable --ia32",
     "build:mac": "npm run build:app && electron-builder --mac dmg zip --x64 --arm64",
@@ -83,7 +83,7 @@
       "target": [
         "portable"
       ],
-      "artifactName": "文件粉碎精灵-${version}-${arch}.${ext}",
+      "artifactName": "文件粉碎精灵.${ext}",
       "signAndEditExecutable": false
     },
     "mac": {
@@ -99,7 +99,7 @@
       "artifactName": "File-Shredder-${version}-${arch}.${ext}"
     },
     "portable": {
-      "artifactName": "文件粉碎精灵-${version}-${arch}.${ext}"
+      "artifactName": "文件粉碎精灵.${ext}"
     }
   }
 }
