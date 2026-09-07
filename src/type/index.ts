@@ -44,16 +44,10 @@ export interface AppSettings {
 }
 export interface UploadedPetImage {
   id: string;
-  name: string;
   fileName: string;
 }
 export interface PetImageTemplate {
-  id: string;
-  name: string;
   image: string;
-  builtIn: boolean;
-  active: boolean;
-  deletable: boolean;
 }
 export type SettingBooleanKey =
   | 'confirmBeforeShred'
@@ -89,11 +83,9 @@ export interface ShredderApi {
   getPetImage: () => Promise<string>;
   getPetImageTemplates: () => Promise<PetImageTemplate[]>;
   choosePetImage: () => Promise<PetImageTemplate[] | null>;
-  selectPetImage: (id: string) => Promise<PetImageTemplate[]>;
   deletePetImage: (id: string) => Promise<PetImageTemplate[]>;
   getLogs: () => Promise<ShredLog[]>;
   deleteLogs: (ids: string[]) => Promise<ShredLog[]>;
-  lockScreen: () => Promise<boolean>;
   exitApp: () => Promise<boolean>;
   cleanupAndExit: () => Promise<boolean>;
   // 同步桌宠业务气泡展开状态。

@@ -1,16 +1,11 @@
 import { app, dialog, nativeImage } from 'electron';
 import { existsSync, readFileSync } from 'node:fs';
 import { copyFile, mkdir, readFile, rm, stat } from 'node:fs/promises';
-import { basename, extname, join } from 'node:path';
+import { extname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import type { AppSettings, AppStore, UploadedPetImage } from '../storage';
 export interface PetImageTemplate {
-  id: string;
-  name: string;
   image: string;
-  builtIn: boolean;
-  active: boolean;
-  deletable: boolean;
 }
 interface PetImageServiceDependencies {
   getSettings: () => AppSettings;
@@ -22,7 +17,6 @@ interface PetImageServiceDependencies {
 const BUILT_IN_PET_IMAGES = [
   {
     id: 'built-in-ao-yin',
-    name: '敖隐',
     fileName: 'ao-yin.webp',
   },
 ] as const;
@@ -61,6 +55,17 @@ export class PetImageService {
   // 返回指定用户桌宠形象的持久化路径。
   private getUploadedImagePath(image: UploadedPetImage): string {
     return join(this.getImagesDirectory(), image.fileName);
+  }
+  // 返回当前设置中仍然存在的最新自定义桌宠形象。
+  private getCurrentUploadedImage(
+    settings: AppSettings,
+  ): UploadedPetImage | null {
+    const uploadedImages = settings.uploadedPetImages.filter((image) =>
+      existsSync(this.getUploadedImagePath(image)),
+    );
+    return uploadedImages.length > 0
+      ? uploadedImages[uploadedImages.length - 1]
+      : null;
   }
   // 将本地图片原始数据转换为浏览器可用的数据地址。
   private imagePathToDataUrl(imagePath: string): string {
@@ -135,19 +140,12 @@ export class PetImageService {
     this.dependencies.notifyAppearanceChanged();
     return settings;
   }
-  // 解析当前生效的内置、上传或旧版桌宠图片路径。
+  // 解析当前生效的上传、旧版或内置桌宠图片路径。
   getActiveImagePath(): string {
     // 读取当前桌宠形象相关设置。
     const settings = this.dependencies.getSettings();
-    // 查找当前选中的内置桌宠形象。
-    const builtIn = BUILT_IN_PET_IMAGES.find(
-      (image) => image.id === settings.petImageTemplateId,
-    );
-    if (builtIn) return this.getBuiltInImagePath(builtIn.fileName);
-    // 查找当前选中的用户上传桌宠形象。
-    const uploaded = settings.uploadedPetImages.find(
-      (image) => image.id === settings.petImageTemplateId,
-    );
+    // 有自定义形象时始终使用唯一的最新上传图片。
+    const uploaded = this.getCurrentUploadedImage(settings);
     if (uploaded) return this.getUploadedImagePath(uploaded);
     if (settings.customPetImagePath && existsSync(settings.customPetImagePath))
       return settings.customPetImagePath;
@@ -157,42 +155,29 @@ export class PetImageService {
   getImageDataUrl(): string {
     return this.imagePathToDataUrl(this.getActiveImagePath());
   }
-  // 返回设置页展示的全部桌宠形象模板。
+  // 返回设置页展示的唯一当前桌宠形象。
   getTemplates(): PetImageTemplate[] {
-    // 读取当前桌宠形象列表与选择状态。
+    // 读取当前桌宠形象设置。
     const settings = this.dependencies.getSettings();
-    // 保存当前选中的桌宠模板标识。
-    const activeId = settings.petImageTemplateId;
-    // 将内置形象映射为设置页模板数据。
-    const builtInTemplates = BUILT_IN_PET_IMAGES.map((image) => ({
-      id: image.id,
-      name: image.name,
-      image: this.imagePathToThumbnailDataUrl(
-        this.getBuiltInImagePath(image.fileName),
-      ),
-      builtIn: true,
-      active: image.id === activeId,
-      deletable: false,
-    }));
-    // 过滤丢失文件并映射用户上传模板数据。
-    const uploadedTemplates = settings.uploadedPetImages
-      .filter((image) => existsSync(this.getUploadedImagePath(image)))
-      .map((image) => ({
-        id: image.id,
-        name: image.name,
+    // 自定义形象存在时替换内置默认形象的展示项。
+    const uploaded = this.getCurrentUploadedImage(settings);
+    if (uploaded)
+      return [
+        {
+          image: this.imagePathToThumbnailDataUrl(
+            this.getUploadedImagePath(uploaded),
+          ),
+        },
+      ];
+    // 没有自定义形象时始终提供一个内置默认形象。
+    const builtIn = BUILT_IN_PET_IMAGES[0];
+    return [
+      {
         image: this.imagePathToThumbnailDataUrl(
-          this.getUploadedImagePath(image),
+          this.getBuiltInImagePath(builtIn.fileName),
         ),
-        builtIn: false,
-        active: image.id === activeId,
-        deletable: true,
-      }));
-    // 配置中的模板丢失时，界面和桌宠都回退到第一个内置形象。
-    if (
-      ![...builtInTemplates, ...uploadedTemplates].some((image) => image.active)
-    )
-      builtInTemplates[0].active = true;
-    return [...builtInTemplates, ...uploadedTemplates];
+      },
+    ];
   }
   // 将旧版本单张自定义图片迁移到模板目录。
   async migrateLegacyImage(): Promise<void> {
@@ -216,7 +201,7 @@ export class PetImageService {
     await this.updateSettings({
       customPetImagePath: '',
       petImageTemplateId: id,
-      uploadedPetImages: [{ id, name: '我的桌宠', fileName }],
+      uploadedPetImages: [{ id, fileName }],
     });
   }
   // 打开文件选择器、校验并保存用户桌宠图片。
@@ -257,19 +242,22 @@ export class PetImageService {
       const fileName = `${id}${fileExtension}`;
       await mkdir(this.getImagesDirectory(), { recursive: true });
       await copyFile(sourcePath, join(this.getImagesDirectory(), fileName));
-      // 将新模板追加到现有用户上传形象列表。
-      const uploadedPetImages = [
-        ...this.dependencies.getSettings().uploadedPetImages,
-        {
-          id,
-          name: basename(sourcePath, fileExtension) || '我的桌宠',
-          fileName,
-        },
-      ];
+      // 读取旧上传列表并在新图片落盘后清理旧文件。
+      const settings = this.dependencies.getSettings();
+      await Promise.all(
+        settings.uploadedPetImages.map((image) =>
+          rm(this.getUploadedImagePath(image), { force: true }),
+        ),
+      );
       await this.updateSettings({
         customPetImagePath: '',
         petImageTemplateId: id,
-        uploadedPetImages,
+        uploadedPetImages: [
+          {
+            id,
+            fileName,
+          },
+        ],
       });
       return this.getTemplates();
     } finally {
@@ -277,41 +265,22 @@ export class PetImageService {
       this.dependencies.restoreSettingsBubble();
     }
   }
-  // 将指定存在的模板设为当前桌宠形象。
-  async selectImage(id: unknown): Promise<PetImageTemplate[]> {
-    if (typeof id !== 'string') throw new Error('无效的桌宠模板');
-    // 读取验证模板与更新选择状态所需的设置。
-    const settings = this.dependencies.getSettings();
-    // 标识模板是否属于有效内置或现存上传形象。
-    const exists =
-      BUILT_IN_PET_IMAGES.some((image) => image.id === id) ||
-      settings.uploadedPetImages.some(
-        (image) =>
-          image.id === id && existsSync(this.getUploadedImagePath(image)),
-      );
-    if (!exists) throw new Error('桌宠模板不存在');
-    await this.updateSettings({ petImageTemplateId: id });
-    return this.getTemplates();
-  }
-  // 删除指定用户桌宠形象并回退失效选择。
+  // 删除唯一自定义形象并回退到内置默认形象。
   async deleteImage(id: unknown): Promise<PetImageTemplate[]> {
     if (typeof id !== 'string') throw new Error('无效的桌宠模板');
-    // 读取用户上传形象及当前选择状态。
+    // 读取用户上传形象并确认请求删除的是自定义形象。
     const settings = this.dependencies.getSettings();
-    // 查找用户请求删除的自定义模板。
     const target = settings.uploadedPetImages.find((image) => image.id === id);
     if (!target) throw new Error('内置模板不能删除');
-    await rm(this.getUploadedImagePath(target), { force: true });
-    // 从设置中移除已经删除的模板。
-    const uploadedPetImages = settings.uploadedPetImages.filter(
-      (image) => image.id !== id,
+    // 清理旧版本可能遗留的多份自定义文件，恢复单形象约束。
+    await Promise.all(
+      settings.uploadedPetImages.map((image) =>
+        rm(this.getUploadedImagePath(image), { force: true }),
+      ),
     );
     await this.updateSettings({
-      petImageTemplateId:
-        settings.petImageTemplateId === id
-          ? BUILT_IN_PET_IMAGES[0].id
-          : settings.petImageTemplateId,
-      uploadedPetImages,
+      petImageTemplateId: BUILT_IN_PET_IMAGES[0].id,
+      uploadedPetImages: [],
     });
     return this.getTemplates();
   }

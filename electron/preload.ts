@@ -61,16 +61,12 @@ contextBridge.exposeInMainWorld('shredderApi', {
   getPetImageTemplates: () => ipcRenderer.invoke('pet-image:list'),
   // 选择并保存用户桌宠图片。
   choosePetImage: () => ipcRenderer.invoke('pet-image:choose'),
-  // 选择指定桌宠形象模板。
-  selectPetImage: (id: string) => ipcRenderer.invoke('pet-image:select', id),
   // 删除指定用户桌宠形象。
   deletePetImage: (id: string) => ipcRenderer.invoke('pet-image:delete', id),
   // 读取全部粉碎记录。
   getLogs: () => ipcRenderer.invoke('logs:get'),
   // 删除指定粉碎记录。
   deleteLogs: (ids: string[]) => ipcRenderer.invoke('logs:delete', ids),
-  // 请求系统立即锁屏。
-  lockScreen: () => ipcRenderer.invoke('system:lock-screen'),
   // 请求正常退出应用。
   exitApp: () => ipcRenderer.invoke('app:exit'),
   // 请求清理应用数据后退出。

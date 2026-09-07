@@ -16,23 +16,17 @@
           disable-horizontal
         >
           <div class="pet-bubble-settings-list">
-            <bubble-header-setting
+            <appearance-setting
               :app-title="settings.bubbleAppTitle"
               :app-icon-source="bubbleAppIconSource"
-              :has-custom-app-icon="Boolean(settings.bubbleAppIconPath)"
               :is-choosing-app-icon="isChoosingAppIcon"
+              :pet-image-source="petImageSource"
+              :is-choosing-pet-image="isChoosingPetImage"
+              :pet-size="settings.petSize"
               @update-app-title="updateBubbleAppTitle"
               @save-app-title="saveBubbleAppTitle"
               @choose-app-icon="chooseBubbleAppIcon"
-              @reset-app-icon="resetBubbleAppIcon"
-            />
-            <pet-image-setting
-              :pet-image-templates="petImageTemplates"
-              :is-choosing-pet-image="isChoosingPetImage"
-              :pet-size="settings.petSize"
               @choose-pet-image="choosePetImage"
-              @select-pet-image="selectPetImage"
-              @delete-pet-image="deletePetImage"
               @update-pet-size="updatePetSize"
             />
             <shred-level-setting
@@ -60,16 +54,19 @@ import { BUBBLE_APP_TITLE_MAX_LENGTH } from '@/constants';
 import { normalizeBubbleAppTitle } from '@/utils';
 import { DEFAULT_APP_SETTINGS, PET_SIZE_SAVE_DELAY_MS } from './constants';
 import {
-  BubbleHeaderSetting,
+  AppearanceSetting,
   PageHeader,
-  PetImageSetting,
   ShredLevelSetting,
   SystemSetting,
 } from './component';
 // 保存当前设置表单数据。
 const settings = ref<AppSettings>({ ...DEFAULT_APP_SETTINGS });
+// 保存最近一次成功落盘的应用名称，空值失焦时恢复该名称。
+const lastSavedBubbleAppTitle = ref(DEFAULT_APP_SETTINGS.bubbleAppTitle);
 // 保存内置与用户上传的桌宠形象列表。
 const petImageTemplates = ref<PetImageTemplate[]>([]);
+// 提供当前唯一桌宠形象的设置页预览地址。
+const petImageSource = computed(() => petImageTemplates.value[0]?.image ?? '');
 // 标识设置页是否正在加载初始数据。
 const isLoading = ref(true);
 // 标识自定义桌宠形象是否正在读取。
@@ -101,6 +98,7 @@ async function refreshData(): Promise<void> {
     window.shredderApi.getBubbleAppIcon(),
   ]);
   settings.value = { ...storedSettings, contextMenuInstalled };
+  lastSavedBubbleAppTitle.value = settings.value.bubbleAppTitle;
   petImageTemplates.value = storedPetImageTemplates;
   bubbleAppIconSource.value = storedBubbleAppIcon || appIconSource;
   isLoading.value = false;
@@ -111,6 +109,7 @@ async function saveSettingsPatch(
 ): Promise<boolean> {
   try {
     settings.value = await window.shredderApi.updateSettings(patch);
+    lastSavedBubbleAppTitle.value = settings.value.bubbleAppTitle;
     return true;
   } catch (error) {
     Message.error(error instanceof Error ? error.message : '设置保存失败');
@@ -144,6 +143,10 @@ function updateBubbleAppTitle(value: string): void {
 }
 // 将操作气泡标题规范化后保存到应用设置。
 async function saveBubbleAppTitle(): Promise<void> {
+  if (!settings.value.bubbleAppTitle.trim()) {
+    settings.value.bubbleAppTitle = lastSavedBubbleAppTitle.value;
+    return;
+  }
   // 空标题恢复默认名称，主进程会再次执行相同的可信边界校验。
   const bubbleAppTitle = normalizeBubbleAppTitle(settings.value.bubbleAppTitle);
   await saveSettingsPatch({ bubbleAppTitle });
@@ -165,17 +168,6 @@ async function chooseBubbleAppIcon(): Promise<void> {
     isChoosingAppIcon.value = false;
   }
 }
-// 删除自定义应用图标并恢复内置图标。
-async function resetBubbleAppIcon(): Promise<void> {
-  try {
-    await window.shredderApi.resetBubbleAppIcon();
-    bubbleAppIconSource.value = appIconSource;
-    settings.value = await window.shredderApi.getSettings();
-    Message.success('已恢复默认应用图标');
-  } catch (error) {
-    Message.error(error instanceof Error ? error.message : '默认图标恢复失败');
-  }
-}
 // 读取用户选择的图片并设为当前桌宠形象。
 async function choosePetImage(): Promise<void> {
   isChoosingPetImage.value = true;
@@ -191,27 +183,6 @@ async function choosePetImage(): Promise<void> {
     Message.error(error instanceof Error ? error.message : '图片读取失败');
   } finally {
     isChoosingPetImage.value = false;
-  }
-}
-// 将指定模板设为当前桌宠形象。
-async function selectPetImage(id: string): Promise<void> {
-  try {
-    petImageTemplates.value = await window.shredderApi.selectPetImage(id);
-    settings.value = await window.shredderApi.getSettings();
-  } catch (error) {
-    Message.error(error instanceof Error ? error.message : '桌宠形象切换失败');
-  }
-}
-// 删除指定自定义形象并刷新当前设置。
-async function deletePetImage(id: string): Promise<void> {
-  try {
-    petImageTemplates.value = await window.shredderApi.deletePetImage(id);
-    settings.value = await window.shredderApi.getSettings();
-    Message.success('自定义形象已删除');
-  } catch (error) {
-    Message.error(
-      error instanceof Error ? error.message : '自定义形象删除失败',
-    );
   }
 }
 // 组件挂载后加载设置并订阅跨窗口变更。

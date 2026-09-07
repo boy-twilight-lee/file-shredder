@@ -5,11 +5,6 @@ export const PET_HEADER_ACTION_OPTIONS = [
     title: '粉碎记录',
     icon: 'app-history',
   },
-  {
-    key: 'settings',
-    title: '设置',
-    icon: 'app-settings',
-  },
 ] as const;
 // 定义桌宠主操作菜单及其展示语义。
 export const PET_ACTION_OPTIONS = [
@@ -30,12 +25,12 @@ export const PET_ACTION_OPTIONS = [
     icon: 'app-folder-open',
   },
   {
-    key: 'lock',
-    title: '锁定屏幕',
-    description: '立即锁定当前系统会话',
-    badge: '快捷安全',
+    key: 'settings',
+    title: '设置',
+    description: '调整桌宠与应用行为',
+    badge: '偏好设置',
     tone: 'purple',
-    icon: 'app-lock',
+    icon: 'app-settings',
   },
   {
     key: 'close',

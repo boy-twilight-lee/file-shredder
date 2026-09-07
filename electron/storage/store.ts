@@ -25,7 +25,6 @@ export interface AppSettings {
 }
 export interface UploadedPetImage {
   id: string;
-  name: string;
   fileName: string;
 }
 export interface ShredLog {

@@ -6,17 +6,12 @@
     aria-label="拖动桌宠"
     @click.stop
   >
-    <icon-drag-arrow
+    <svg-icon
       class="drag-btn-icon"
-      :stroke-width="3.5"
-      stroke-linecap="round"
-      stroke-linejoin="round"
+      name="app-drag"
     />
   </button>
 </template>
-<script setup lang="ts">
-import { IconDragArrow } from '@arco-design/web-vue/es/icon';
-</script>
 <style lang="less" scoped>
 .drag-btn {
   position: absolute;
@@ -42,8 +37,7 @@ import { IconDragArrow } from '@arco-design/web-vue/es/icon';
   transform: translate(50%, -50%);
   .drag-btn-icon {
     pointer-events: none;
-    height: 18px;
-    width: 18px;
+    font-size: 20px;
   }
 }
 </style>

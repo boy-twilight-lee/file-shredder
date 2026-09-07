@@ -73,14 +73,12 @@
   </section>
 </template>
 <script setup lang="ts">
-import Message from '@arco-design/web-vue/es/message';
-import '@arco-design/web-vue/es/message/style/css.js';
 import appIconSource from '@/assets/app-icon.png';
 import { DEFAULT_BUBBLE_APP_TITLE } from '@/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { PET_ACTION_OPTIONS, PET_HEADER_ACTION_OPTIONS } from './constants';
 // 读取目标选择与气泡导航能力。
-const { chooseTargets, closeBubble, showBubble } = usePetViewContext().inject();
+const { chooseTargets, showBubble } = usePetViewContext().inject();
 // 保存操作气泡当前展示的应用标题。
 const bubbleAppTitle = ref(DEFAULT_BUBBLE_APP_TITLE);
 // 保存操作气泡当前展示的内置或自定义应用图标。
@@ -105,20 +103,6 @@ async function handleAction(
 ): Promise<void> {
   if (key === 'settings' || key === 'records') {
     showBubble(key);
-    return;
-  }
-  if (key === 'lock') {
-    try {
-      // 标识当前系统锁屏请求是否成功执行。
-      const isLocked = await window.shredderApi.lockScreen();
-      if (!isLocked) {
-        Message.error('当前系统不支持屏幕锁定');
-        return;
-      }
-      closeBubble();
-    } catch (error) {
-      Message.error(error instanceof Error ? error.message : '屏幕锁定失败');
-    }
     return;
   }
   if (key === 'close') {

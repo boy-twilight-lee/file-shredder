@@ -1,11 +1,7 @@
 import { app, dialog, ipcMain } from 'electron';
 import { clamp, normalizeBubbleAppTitle } from '@/utils';
 import { applyLoginSetting, getExecutablePath } from '../app';
-import {
-  isContextMenuInstalled,
-  lockScreen,
-  removeContextMenu,
-} from '../integrations';
+import { isContextMenuInstalled, removeContextMenu } from '../integrations';
 import {
   PetBubbleBrandingService,
   PetImageService,
@@ -164,10 +160,6 @@ export function registerIpcHandlers(
   ipcMain.handle('pet-image:choose', () =>
     dependencies.petImageService.chooseImage(),
   );
-  // 将指定模板设为当前桌宠形象。
-  ipcMain.handle('pet-image:select', (_event, id: unknown) =>
-    dependencies.petImageService.selectImage(id),
-  );
   // 删除指定用户桌宠形象。
   ipcMain.handle('pet-image:delete', (_event, id: unknown) =>
     dependencies.petImageService.deleteImage(id),
@@ -181,7 +173,6 @@ export function registerIpcHandlers(
       throw new Error('无效的粉碎记录参数');
     return dependencies.store.deleteLogs([...new Set(ids)]);
   });
-  ipcMain.handle('system:lock-screen', lockScreen);
   // 标记正常退出并结束应用进程。
   ipcMain.handle('app:exit', () => {
     dependencies.setQuitting();

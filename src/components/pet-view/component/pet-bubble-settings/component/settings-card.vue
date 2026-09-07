@@ -46,7 +46,7 @@ withDefaults(
   box-shadow: 0 5px 18px rgba(30, 55, 90, 0.045);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 16px;
   .settings-card-header {
     min-width: 0;
     .settings-card-title {
