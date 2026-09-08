@@ -124,7 +124,7 @@
                 type="button"
                 title="更换桌宠形象"
                 aria-label="更换桌宠形象"
-                :disabled="isChoosingPetImage"
+                :disabled="isChoosingPetImage || isRestoringPetImage"
                 @click.stop="emit('choose-pet-image')"
               >
                 <svg-icon name="app-edit" />

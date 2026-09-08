@@ -1,12 +1,10 @@
 <template>
   <section class="pet-bubble-confirm">
     <header class="pet-bubble-confirm-heading">
-      <span class="pet-bubble-confirm-heading-content">
-        <strong>确定永久粉碎吗？</strong>
-        <small>
-          共 {{ selectedTargets.length }} 项，此操作<span>不可撤销</span>。
-        </small>
-      </span>
+      <strong>确定永久粉碎吗？</strong>
+      <small>
+        共 {{ selectedTargets.length }} 项，此操作<span>不可撤销</span>。
+      </small>
     </header>
     <a-scrollbar
       class="pet-bubble-confirm-scrollbar-container"

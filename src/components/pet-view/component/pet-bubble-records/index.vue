@@ -1,183 +1,144 @@
 <template>
-  <main class="pet-bubble-records">
+  <a-spin
+    :loading="isLoading"
+    class="pet-bubble-records"
+  >
+    <record-empty-state
+      v-if="!logs.length"
+      :title="!logs.length ? '暂无粉碎记录' : '未找到匹配的粉碎记录'"
+    />
     <page-header
       title="粉碎记录"
       @back="showBubble('actions')"
     />
-    <a-spin
-      :loading="isLoading"
-      class="pet-bubble-records-content"
-    >
-      <section class="pet-bubble-records-panel">
-        <div class="pet-bubble-records-toolbar">
-          <a-input-search
-            v-model="pathKeyword"
-            class="pet-bubble-records-search"
-            allow-clear
-            placeholder="筛选文件路径"
-          />
-          <div class="pet-bubble-records-actions">
-            <div>
-              <span class="pet-bubble-records-summary">
-                共
-                <strong class="pet-bubble-records-summary-total">
-                  {{ logs.length }}
-                </strong>
-                条
-              </span>
-              <span class="pet-bubble-records-summary">
-                ，已选
-                <strong class="pet-bubble-records-summary-selected">
-                  {{ selectedLogIds.length }}
-                </strong>
-                条
-              </span>
-            </div>
-            <a-popconfirm
-              :content="`确定删除选中的 ${selectedLogIds.length} 条粉碎记录吗？`"
-              content-class="pet-bubble-records-popconfirm"
-              type="error"
-              :disabled="selectedLogIds.length === 0"
-              :ok-button-props="MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS"
-              :cancel-button-props="MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS"
-              @ok="deleteSelectedLogs"
-            >
-              <a-button
-                class="pet-bubble-records-delete"
-                type="outline"
-                size="small"
-                :disabled="selectedLogIds.length === 0"
-              >
-                <template #icon>
-                  <svg-icon name="app-delete" />
-                </template>
-                批量删除
-              </a-button>
-            </a-popconfirm>
-          </div>
+    <div class="pet-bubble-records-toolbar">
+      <a-input-search
+        v-model="pathKeyword"
+        class="pet-bubble-records-search"
+        allow-clear
+        placeholder="筛选文件路径"
+      />
+      <div class="pet-bubble-records-actions">
+        <div>
+          <span class="pet-bubble-records-summary">
+            共
+            <strong class="pet-bubble-records-summary-total">
+              {{ logs.length }}
+            </strong>
+            条
+          </span>
+          <span class="pet-bubble-records-summary">
+            ，已选
+            <strong class="pet-bubble-records-summary-selected">
+              {{ selectedLogIds.length }}
+            </strong>
+            条
+          </span>
         </div>
-        <a-table
-          v-model:selected-keys="selectedLogIds"
-          class="pet-bubble-records-table"
-          :data="pagedLogs"
-          :pagination="false"
-          :row-selection="{ type: 'checkbox', showCheckedAll: true }"
-          :scroll="{ y: '100%' }"
-          :bordered="{
-            wrapper: false,
-          }"
-          row-key="id"
-          stripe
+        <a-popconfirm
+          :content="`确定删除选中的 ${selectedLogIds.length} 条粉碎记录吗？`"
+          :disabled="selectedLogIds.length === 0"
+          :ok-button-props="MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS"
+          :cancel-button-props="MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS"
+          content-class="pet-bubble-records-popconfirm"
+          type="error"
+          position="br"
+          @ok="deleteSelectedLogs"
         >
-          <template #columns>
-            <a-table-column
-              title="目标名称"
-              data-index="displayName"
-              :width="174"
-              ellipsis
-              tooltip
-            >
-              <template #cell="{ record }">
-                <span
-                  class="pet-bubble-records-target"
-                  :title="record.path"
-                >
-                  <svg-icon
-                    class="pet-bubble-records-target-icon"
-                    :name="record.targetIconName"
-                  />
-                  <span class="pet-bubble-records-target-name">
-                    {{ record.displayName }}
-                  </span>
-                </span>
-              </template>
-            </a-table-column>
-            <a-table-column
-              title="来源位置"
-              data-index="sourcePath"
-              :width="244"
-              ellipsis
-              tooltip
-            >
-              <template #cell="{ record }">
-                <span
-                  class="pet-bubble-records-source"
-                  :title="record.sourcePath"
-                >
-                  {{ record.sourcePath }}
-                </span>
-              </template>
-            </a-table-column>
-            <a-table-column
-              title="粉碎状态"
-              data-index="statusLabel"
-              :width="94"
-            >
-              <template #cell="{ record }">
-                <a-tooltip
-                  :content="record.message"
-                  content-class="pet-bubble-records-result-tooltip"
-                >
-                  <span
-                    class="pet-bubble-records-status"
-                    :class="record.statusClass"
-                  >
-                    {{ record.statusLabel }}
-                  </span>
-                </a-tooltip>
-              </template>
-            </a-table-column>
-            <a-table-column
-              title="执行时间"
-              data-index="timestamp"
-              :width="136"
-              ellipsis
-              tooltip
+          <a-button
+            class="pet-bubble-records-delete"
+            type="outline"
+            size="small"
+            :disabled="selectedLogIds.length === 0"
+          >
+            <template #icon>
+              <svg-icon name="app-delete" />
+            </template>
+            批量删除
+          </a-button>
+        </a-popconfirm>
+      </div>
+    </div>
+    <a-table
+      v-model:selected-keys="selectedLogIds"
+      class="pet-bubble-records-table"
+      :data="pagedLogs"
+      :pagination="false"
+      :row-selection="{ type: 'checkbox', showCheckedAll: true }"
+      :scroll="{ y: '100%' }"
+      :bordered="{
+        wrapper: false,
+      }"
+      row-key="id"
+      stripe
+    >
+      <template #columns>
+        <a-table-column
+          v-for="column in RECORD_TABLE_COLUMNS"
+          :key="column.key"
+          :title="column.title"
+          :data-index="column.dataIndex"
+          :width="column.width"
+          :ellipsis="column.ellipsis"
+          :tooltip="column.tooltip"
+        >
+          <template
+            v-if="column.cellType === 'target'"
+            #cell="{ record }"
+          >
+            <record-target-cell
+              :path="record.path"
+              :icon-name="record.targetIconName"
+              :name="record.displayName"
             />
           </template>
-          <template #empty>
-            <div class="pet-bubble-records-empty">
-              <img
-                :src="emptyIllustration"
-                alt=""
-              />
-              <span>{{ emptyStateTitle }}</span>
-            </div>
+          <template
+            v-else-if="column.cellType === 'status'"
+            #cell="{ record }"
+          >
+            <record-status-cell
+              :message="record.message"
+              :status-class="record.statusClass"
+              :status-label="record.statusLabel"
+            />
           </template>
-        </a-table>
-        <div class="pet-bubble-records-pagination">
-          <a-pagination
-            :current="currentPage"
-            :page-size="pageSize"
-            :page-size-options="RECORD_PAGE_SIZE_OPTIONS"
-            :total="filteredLogs.length"
-            show-jumper
-            show-page-size
-            @change="handlePageChange"
-            @page-size-change="handlePageSizeChange"
-          />
-        </div>
-      </section>
-    </a-spin>
-  </main>
+        </a-table-column>
+      </template>
+    </a-table>
+    <div class="pet-bubble-records-pagination">
+      <a-pagination
+        :current="currentPage"
+        :page-size="pageSize"
+        :page-size-options="RECORD_PAGE_SIZE_OPTIONS"
+        :total="filteredLogs.length"
+        show-jumper
+        show-page-size
+        @change="handlePageChange"
+        @page-size-change="handlePageSizeChange"
+      />
+    </div>
+  </a-spin>
 </template>
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';
 import '@arco-design/web-vue/es/message/style/css.js';
 import { RecordTableRow } from './type';
 import { ShredLog } from '@/type';
-import emptyIllustration from '@/styles/icons/empty.svg';
 import { formatRecordTime, getPathDirectory, getPathName } from '@/utils';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import {
   DEFAULT_RECORD_PAGE_SIZE,
   RECORD_PAGE_SIZE_OPTIONS,
+  RECORD_TABLE_COLUMNS,
 } from './constants';
 import {
   MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
   MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
 } from '@/components/pet-view/component/pet-bubble/constants';
 import { PageHeader } from '@/components/pet-view/component/pet-bubble-settings/component';
+import RecordEmptyState from './component/record-empty-state.vue';
+import RecordStatusCell from './component/record-status-cell.vue';
+import RecordTargetCell from './component/record-target-cell.vue';
 // 保存当前加载的粉碎记录。
 const logs = ref<RecordTableRow[]>([]);
 // 保存用户跨分页选中的记录标识。
@@ -214,10 +175,6 @@ const pagedLogs = computed(() => {
   const startIndex = (currentPage.value - 1) * pageSize.value;
   return filteredLogs.value.slice(startIndex, startIndex + pageSize.value);
 });
-// 根据数据与搜索结果生成空状态文案。
-const emptyStateTitle = computed(() =>
-  logs.value.length === 0 ? '暂无粉碎记录' : '未找到匹配的粉碎记录',
-);
 // 从主进程重新读取粉碎记录。
 async function refreshLogs(): Promise<void> {
   logs.value = formatLogRows(await window.shredderApi.getLogs());

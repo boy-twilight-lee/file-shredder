@@ -1,50 +1,46 @@
 <template>
-  <main class="pet-bubble-settings">
+  <a-spin
+    :loading="isLoading"
+    class="pet-bubble-settings"
+  >
     <page-header
       title="常规设置"
       @back="showBubble('actions')"
     />
-    <a-spin
-      :loading="isLoading"
-      class="pet-bubble-settings-content"
+    <a-scrollbar
+      class="pet-bubble-settings-scrollbar-container"
+      outer-class="pet-bubble-settings-scrollbar"
+      outer-style="height: 100%"
+      disable-horizontal
     >
-      <section class="pet-bubble-settings-body">
-        <a-scrollbar
-          class="pet-bubble-settings-scrollbar-container"
-          outer-class="pet-bubble-settings-scrollbar"
-          outer-style="height: 100%"
-          disable-horizontal
-        >
-          <div class="pet-bubble-settings-list">
-            <appearance-setting
-              :app-title="settings.bubbleAppTitle"
-              :app-icon-source="bubbleAppIconSource"
-              :is-choosing-app-icon="isChoosingAppIcon"
-              :pet-image-source="petImageSource"
-              :is-choosing-pet-image="isChoosingPetImage"
-              :is-custom-pet-image="isCustomPetImage"
-              :is-restoring-pet-image="isRestoringPetImage"
-              :pet-size="settings.petSize"
-              @update-app-title="updateBubbleAppTitle"
-              @save-app-title="saveBubbleAppTitle"
-              @choose-app-icon="chooseBubbleAppIcon"
-              @choose-pet-image="choosePetImage"
-              @restore-default-pet-image="restoreDefaultPetImage"
-              @update-pet-size="updatePetSize"
-            />
-            <shred-level-setting
-              :model-value="settings.passes"
-              @update-passes="updatePasses"
-            />
-            <system-setting
-              :settings="settings"
-              :on-before-change="updateBooleanSetting"
-            />
-          </div>
-        </a-scrollbar>
-      </section>
-    </a-spin>
-  </main>
+      <div class="pet-bubble-settings-list">
+        <appearance-setting
+          :app-title="settings.bubbleAppTitle"
+          :app-icon-source="bubbleAppIconSource"
+          :is-choosing-app-icon="isChoosingAppIcon"
+          :pet-image-source="petImageSource"
+          :is-choosing-pet-image="isChoosingPetImage"
+          :is-custom-pet-image="isCustomPetImage"
+          :is-restoring-pet-image="isRestoringPetImage"
+          :pet-size="settings.petSize"
+          @update-app-title="updateBubbleAppTitle"
+          @save-app-title="saveBubbleAppTitle"
+          @choose-app-icon="chooseBubbleAppIcon"
+          @choose-pet-image="choosePetImage"
+          @restore-default-pet-image="restoreDefaultPetImage"
+          @update-pet-size="updatePetSize"
+        />
+        <shred-level-setting
+          :model-value="settings.passes"
+          @update-passes="updatePasses"
+        />
+        <system-setting
+          :settings="settings"
+          :on-before-change="updateBooleanSetting"
+        />
+      </div>
+    </a-scrollbar>
+  </a-spin>
 </template>
 <script setup lang="ts">
 import Message from '@arco-design/web-vue/es/message';

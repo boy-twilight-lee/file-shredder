@@ -1,5 +1,6 @@
+import { PetActionOption, PetHeaderActionOption } from '../type';
 // 定义气泡标题栏中的辅助操作入口。
-export const PET_HEADER_ACTION_OPTIONS = [
+export const PET_HEADER_ACTION_OPTIONS: PetHeaderActionOption[] = [
   {
     key: 'records',
     title: '粉碎记录',
@@ -7,7 +8,7 @@ export const PET_HEADER_ACTION_OPTIONS = [
   },
 ] as const;
 // 定义桌宠主操作菜单及其展示语义。
-export const PET_ACTION_OPTIONS = [
+export const PET_ACTION_OPTIONS: PetActionOption[] = [
   {
     key: 'file',
     title: '选择文件',
@@ -40,4 +41,4 @@ export const PET_ACTION_OPTIONS = [
     tone: 'red',
     icon: 'app-power',
   },
-] as const;
+];

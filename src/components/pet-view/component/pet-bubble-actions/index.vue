@@ -1,82 +1,33 @@
 <template>
   <section class="pet-bubble-actions">
-    <header class="pet-bubble-actions-header">
-      <img
-        class="pet-bubble-actions-avatar"
-        :src="bubbleAppIconSource"
-        :alt="bubbleAppTitle"
-      />
-      <span class="pet-bubble-actions-heading">
-        <strong>{{ bubbleAppTitle }}</strong>
-        <small>安全、彻底地清理文件</small>
-      </span>
-      <span class="pet-bubble-actions-header-tools">
-        <a-tooltip
-          v-for="item in PET_HEADER_ACTION_OPTIONS"
-          :key="item.key"
-          :content="item.title"
-          position="top"
-        >
-          <button
-            class="pet-bubble-actions-header-button"
-            type="button"
-            :title="item.title"
-            :aria-label="item.title"
-            @click="handleAction(item.key)"
-          >
-            <svg-icon
-              class="pet-bubble-actions-header-icon"
-              :name="item.icon"
-            />
-          </button>
-        </a-tooltip>
-      </span>
-    </header>
+    <pet-bubble-actions-header
+      :title="bubbleAppTitle"
+      :icon-source="bubbleAppIconSource"
+      @select="handleAction"
+    />
     <div
       class="pet-bubble-actions-list"
       role="menu"
     >
-      <button
+      <pet-bubble-action
         v-for="item in PET_ACTION_OPTIONS"
         :key="item.key"
-        class="pet-bubble-actions-item"
-        :class="`pet-bubble-actions-item-${item.tone}`"
-        type="button"
-        role="menuitem"
-        @click="handleAction(item.key)"
-      >
-        <span class="pet-bubble-actions-icon-wrap">
-          <svg-icon
-            :name="item.icon"
-            class="pet-bubble-actions-icon"
-          />
-        </span>
-        <span class="pet-bubble-actions-content">
-          <span class="pet-bubble-actions-item-heading">
-            <strong>{{ item.title }}</strong>
-            <small class="pet-bubble-actions-badge">{{ item.badge }}</small>
-          </span>
-          <small>{{ item.description }}</small>
-        </span>
-        <svg-icon
-          class="pet-bubble-actions-chevron"
-          name="app-arrow-right"
-        />
-      </button>
+        :item="item"
+        @select="handleAction"
+      />
     </div>
-    <footer class="pet-bubble-actions-tip">
-      <span class="pet-bubble-actions-tip-icon">
-        <svg-icon name="app-heart" />
-      </span>
-      <span>小贴士：文件或文件夹也可以直接拖到我身上。</span>
-    </footer>
+    <pet-bubble-actions-tip />
   </section>
 </template>
 <script setup lang="ts">
 import appIconSource from '@/assets/app-icon.png';
 import { DEFAULT_BUBBLE_APP_TITLE } from '@/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
-import { PET_ACTION_OPTIONS, PET_HEADER_ACTION_OPTIONS } from './constants';
+import { PET_ACTION_OPTIONS } from './constants';
+import { PetActionKey, PetHeaderActionKey } from './type';
+import PetBubbleAction from './component/pet-bubble-action.vue';
+import PetBubbleActionsHeader from './component/pet-bubble-actions-header.vue';
+import PetBubbleActionsTip from './component/pet-bubble-actions-tip.vue';
 // 读取目标选择与气泡导航能力。
 const { chooseTargets, showBubble } = usePetViewContext().inject();
 // 保存操作气泡当前展示的应用标题。
@@ -97,9 +48,7 @@ async function refreshBubbleBranding(): Promise<void> {
 }
 // 根据菜单项执行导航、系统操作或目标选择。
 async function handleAction(
-  key:
-    | (typeof PET_ACTION_OPTIONS)[number]['key']
-    | (typeof PET_HEADER_ACTION_OPTIONS)[number]['key'],
+  key: PetActionKey | PetHeaderActionKey,
 ): Promise<void> {
   if (key === 'settings' || key === 'records') {
     showBubble(key);

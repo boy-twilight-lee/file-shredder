@@ -1,10 +1,8 @@
 <template>
   <section class="pet-bubble-result">
     <header class="pet-bubble-result-title">
-      <span class="pet-bubble-result-title-content">
-        <strong>{{ resultTitle }}</strong>
-        <small>{{ resultSubtitle }}</small>
-      </span>
+      <strong>{{ resultTitle }}</strong>
+      <small>{{ resultSubtitle }}</small>
     </header>
     <div class="pet-bubble-result-metrics">
       <div

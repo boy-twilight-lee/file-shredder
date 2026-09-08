@@ -242,17 +242,13 @@ export function createPetWindowManager(
       anchorX = Math.round(workArea.x + relativeX * workArea.width);
       anchorY = Math.round(workArea.y + relativeY * workArea.height);
     }
-    // 按钮锚点位于人物矩形右上角，恢复时只限制人物保持可见。
+    // 按钮锚点位于人物矩形右上角，允许人物底部超出工作区以保留用户的拖拽位置。
     anchorX = clamp(
       anchorX,
       workArea.x + Math.min(characterSize.width, workArea.width),
       workArea.x + workArea.width,
     );
-    anchorY = clamp(
-      anchorY,
-      workArea.y,
-      workArea.y + Math.max(0, workArea.height - characterSize.height),
-    );
+    anchorY = clamp(anchorY, workArea.y, workArea.y + workArea.height);
     return {
       x: anchorX - localAnchor.x,
       y: anchorY - localAnchor.y,

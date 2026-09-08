@@ -35,9 +35,9 @@
         <span class="pet-bubble-progress-current-file-icon">
           <svg-icon name="app-file" />
         </span>
-        <span class="pet-bubble-progress-current-file-content">
-          <strong>{{ currentFileName }}</strong>
-        </span>
+        <strong class="pet-bubble-progress-current-file-name">
+          {{ currentFileName }}
+        </strong>
       </div>
       <div
         class="pet-bubble-progress-track"

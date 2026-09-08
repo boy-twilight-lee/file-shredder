@@ -119,20 +119,17 @@
         align-items: center;
         justify-content: center;
       }
-      .pet-bubble-progress-current-file-content {
+      .pet-bubble-progress-current-file-name {
+        overflow: hidden;
         min-width: 0;
+        font-size: 12px;
+        font-weight: 500;
+        line-height: 20px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #4e5969;
         display: block;
         flex: 1;
-        & > strong {
-          overflow: hidden;
-          font-size: 12px;
-          font-weight: 500;
-          line-height: 20px;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          color: #4e5969;
-          display: block;
-        }
       }
     }
     .pet-bubble-progress-track {

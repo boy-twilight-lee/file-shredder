@@ -1,5 +1,6 @@
 .pet-bubble-records {
-  height: 640px;
+  position: relative;
+  height: 600px;
   width: min(
     760px,
     calc(
@@ -10,153 +11,68 @@
   color: #1d2129;
   display: flex;
   flex-direction: column;
-  .pet-bubble-records-content {
-    overflow: hidden;
-    min-height: 0;
-    display: block;
-    flex: 1;
-    &:deep(.arco-spin-children) {
-      height: 100%;
+  .pet-bubble-records-toolbar {
+    min-height: 32px;
+    margin: 12px 16px 8px;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    gap: 12px;
+    .pet-bubble-records-summary {
+      font-size: 12px;
+      line-height: 20px;
+      white-space: nowrap;
+      color: #86909c;
+      .pet-bubble-records-summary-selected,
+      .pet-bubble-records-summary-total {
+        margin: 0 2px;
+        font-weight: 600;
+      }
+      .pet-bubble-records-summary-selected {
+        color: #f7ba1e;
+      }
+      .pet-bubble-records-summary-total {
+        color: #165dff;
+      }
     }
-    .pet-bubble-records-panel {
-      overflow: hidden;
-      height: 100%;
-      width: 100%;
-      min-height: 0;
-      padding: 12px 16px 0;
-      background: #fff;
+    .pet-bubble-records-search {
+      width: 280px;
+      &:deep(.arco-input-wrapper) {
+        height: 32px;
+      }
+    }
+    .pet-bubble-records-actions {
+      margin-left: auto;
       display: flex;
-      flex-direction: column;
-      .pet-bubble-records-toolbar {
-        min-height: 32px;
-        margin-bottom: 8px;
-        display: flex;
-        flex-shrink: 0;
-        align-items: center;
-        gap: 12px;
-        .pet-bubble-records-summary {
-          font-size: 12px;
-          line-height: 20px;
-          white-space: nowrap;
-          color: #86909c;
-          .pet-bubble-records-summary-selected,
-          .pet-bubble-records-summary-total {
-            margin: 0 2px;
-            font-weight: 600;
-          }
-          .pet-bubble-records-summary-selected {
-            color: #f7ba1e;
-          }
-          .pet-bubble-records-summary-total {
-            color: #165dff;
-          }
-        }
-        .pet-bubble-records-search {
-          width: 280px;
-          &:deep(.arco-input-wrapper) {
-            height: 32px;
-          }
-        }
-        .pet-bubble-records-actions {
-          margin-left: auto;
-          display: flex;
-          flex-shrink: 0;
-          align-items: center;
-          gap: 12px;
-          .pet-bubble-records-delete {
-            height: 32px;
-            min-width: 92px;
-            padding: 0 12px;
-            border-radius: 6px;
-            font-size: 12px;
-          }
-        }
-      }
-      .pet-bubble-records-table {
-        overflow: hidden;
-        min-height: 0;
-        width: 100%;
-        flex: 1;
-        &:deep(.arco-table-container) {
-          height: 100%;
-          .arco-table-content {
-            height: 100%;
-            .arco-table-body {
-              min-height: 0;
-              flex: 1;
-            }
-          }
-        }
-        .pet-bubble-records-target {
-          overflow: hidden;
-          min-width: 0;
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          .pet-bubble-records-target-icon {
-            height: 15px;
-            width: 15px;
-            color: #165dff;
-            flex-shrink: 0;
-          }
-          .pet-bubble-records-target-name {
-            overflow: hidden;
-            min-width: 0;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-          }
-        }
-        .pet-bubble-records-source {
-          overflow: hidden;
-          min-width: 0;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-          display: block;
-        }
-        .pet-bubble-records-status {
-          height: 20px;
-          padding: 0 7px;
-          border-radius: 4px;
-          font-size: 12px;
-          font-weight: 500;
-          line-height: 20px;
-          white-space: nowrap;
-          display: inline-flex;
-          align-items: center;
-          &.pet-bubble-records-status-success {
-            background: rgba(0, 168, 112, 0.1);
-            color: #00a870;
-          }
-          &.pet-bubble-records-status-failure {
-            background: rgba(245, 63, 63, 0.1);
-            color: #f53f3f;
-          }
-        }
-        .pet-bubble-records-empty {
-          min-height: 180px;
-          padding: 24px 0;
-          font-size: 13px;
-          color: #99a1ad;
-          display: flex;
-          flex-direction: column;
-          align-items: center;
-          justify-content: center;
-          & > img {
-            height: 116px;
-            width: 124px;
-            margin-bottom: 8px;
-          }
-        }
-      }
-      .pet-bubble-records-pagination {
-        flex-shrink: 0;
-        height: 56px;
-        border-top: 1px solid #e7ebf0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
+      flex-shrink: 0;
+      align-items: center;
+      gap: 12px;
+      .pet-bubble-records-delete {
+        height: 32px;
+        min-width: 92px;
+        padding: 0 12px;
+        border-radius: 6px;
+        font-size: 12px;
       }
     }
+  }
+  .pet-bubble-records-table {
+    overflow: hidden;
+    flex: 1;
+    width: calc(100% - 32px);
+    margin: 0 16px;
+    &:deep(.arco-table-container::after) {
+      display: none;
+    }
+  }
+  .pet-bubble-records-pagination {
+    height: 56px;
+    margin: 0 16px;
+    border-top: 1px solid #e7ebf0;
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    justify-content: center;
   }
 }
 :global(.pet-bubble-records-popconfirm) {
