@@ -8,48 +8,27 @@
     )
   );
   color: #0d1014;
-  &:deep(.arco-spin-children) {
+  display: flex;
+  flex-direction: column;
+  &:deep(.arco-scrollbar) {
     overflow: hidden;
-    height: 100%;
-    min-height: 0;
-    display: flex;
-    flex-direction: column;
-  }
-  .pet-bubble-settings-scrollbar {
-    overflow: hidden;
-    height: 100%;
-    min-height: 0;
-    width: 100%;
-    display: flex;
     flex: 1;
-    &:deep(.pet-bubble-settings-scrollbar-container) {
-      overflow-x: hidden;
-      overflow-y: auto;
+    .arco-scrollbar-container {
+      overflow: auto;
       height: 100%;
-    }
-    &:deep(.arco-scrollbar-track-direction-vertical) {
-      position: absolute;
-      right: 0;
-      width: 14px;
-    }
-    &:deep(.arco-scrollbar-thumb-direction-vertical) {
-      .arco-scrollbar-thumb-bar {
-        width: 6px;
-        margin: 0 4px;
-        border-radius: 6px;
+      .pet-bubble-settings-list {
+        --settings-card-padding: 12px;
+        --system-setting-row-padding: 9px;
+        --system-setting-description-font-size: 11px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
       }
-    }
-    .pet-bubble-settings-list {
-      --settings-card-padding: 12px;
-      --system-setting-row-padding: 9px;
-      --system-setting-description-font-size: 11px;
-      padding: 10px;
-      display: flex;
-      flex-direction: column;
-      gap: 16px;
     }
   }
 }
+// 全局样式覆盖
 :global(.pet-bubble-settings-popconfirm) {
   min-width: 272px;
   padding: 18px;

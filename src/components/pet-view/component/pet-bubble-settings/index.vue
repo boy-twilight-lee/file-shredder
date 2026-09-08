@@ -7,12 +7,7 @@
       title="常规设置"
       @back="showBubble('actions')"
     />
-    <a-scrollbar
-      class="pet-bubble-settings-scrollbar-container"
-      outer-class="pet-bubble-settings-scrollbar"
-      outer-style="height: 100%"
-      disable-horizontal
-    >
+    <a-scrollbar>
       <div class="pet-bubble-settings-list">
         <appearance-setting
           :app-title="settings.bubbleAppTitle"

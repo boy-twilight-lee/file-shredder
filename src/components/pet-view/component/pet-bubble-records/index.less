@@ -11,11 +11,11 @@
   color: #1d2129;
   display: flex;
   flex-direction: column;
+
   .pet-bubble-records-toolbar {
     min-height: 32px;
     margin: 12px 16px 8px;
     display: flex;
-    flex-shrink: 0;
     align-items: center;
     gap: 12px;
     .pet-bubble-records-summary {
@@ -37,9 +37,6 @@
     }
     .pet-bubble-records-search {
       width: 280px;
-      &:deep(.arco-input-wrapper) {
-        height: 32px;
-      }
     }
     .pet-bubble-records-actions {
       margin-left: auto;
@@ -56,13 +53,15 @@
       }
     }
   }
-  .pet-bubble-records-table {
+  &:deep(.pet-bubble-records-table) {
     overflow: hidden;
     flex: 1;
     width: calc(100% - 32px);
     margin: 0 16px;
-    &:deep(.arco-table-container::after) {
-      display: none;
+    .arco-table-container {
+      &::after {
+        display: none;
+      }
     }
   }
   .pet-bubble-records-pagination {
