@@ -22,11 +22,14 @@
               :is-choosing-app-icon="isChoosingAppIcon"
               :pet-image-source="petImageSource"
               :is-choosing-pet-image="isChoosingPetImage"
+              :is-custom-pet-image="isCustomPetImage"
+              :is-restoring-pet-image="isRestoringPetImage"
               :pet-size="settings.petSize"
               @update-app-title="updateBubbleAppTitle"
               @save-app-title="saveBubbleAppTitle"
               @choose-app-icon="chooseBubbleAppIcon"
               @choose-pet-image="choosePetImage"
+              @restore-default-pet-image="restoreDefaultPetImage"
               @update-pet-size="updatePetSize"
             />
             <shred-level-setting
@@ -67,10 +70,16 @@ const lastSavedBubbleAppTitle = ref(DEFAULT_APP_SETTINGS.bubbleAppTitle);
 const petImageTemplates = ref<PetImageTemplate[]>([]);
 // 提供当前唯一桌宠形象的设置页预览地址。
 const petImageSource = computed(() => petImageTemplates.value[0]?.image ?? '');
+// 标识当前桌宠形象是否为用户自定义版本。
+const isCustomPetImage = computed(
+  () => settings.value.uploadedPetImages.length > 0,
+);
 // 标识设置页是否正在加载初始数据。
 const isLoading = ref(true);
 // 标识自定义桌宠形象是否正在读取。
 const isChoosingPetImage = ref(false);
+// 标识恢复默认桌宠形象请求是否正在执行。
+const isRestoringPetImage = ref(false);
 // 保存操作气泡当前展示的内置或自定义应用图标。
 const bubbleAppIconSource = ref(appIconSource);
 // 标识自定义应用图标是否正在读取。
@@ -183,6 +192,25 @@ async function choosePetImage(): Promise<void> {
     Message.error(error instanceof Error ? error.message : '图片读取失败');
   } finally {
     isChoosingPetImage.value = false;
+  }
+}
+// 删除当前自定义桌宠形象并恢复内置默认形象。
+async function restoreDefaultPetImage(): Promise<void> {
+  // 防止请求尚未结束时重复删除同一张自定义图片。
+  if (isRestoringPetImage.value || !isCustomPetImage.value) return;
+  isRestoringPetImage.value = true;
+  try {
+    // 当前版本只保留一张自定义形象，因此删除首个模板即可恢复默认形象。
+    const templates = await window.shredderApi.deletePetImage(
+      settings.value.uploadedPetImages[0].id,
+    );
+    petImageTemplates.value = templates;
+    settings.value = await window.shredderApi.getSettings();
+    Message.success('已恢复默认桌宠形象');
+  } catch (error) {
+    Message.error(error instanceof Error ? error.message : '恢复默认形象失败');
+  } finally {
+    isRestoringPetImage.value = false;
   }
 }
 // 组件挂载后加载设置并订阅跨窗口变更。

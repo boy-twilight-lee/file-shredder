@@ -129,6 +129,17 @@
               >
                 <svg-icon name="app-edit" />
               </button>
+              <button
+                v-if="isCustomPetImage"
+                class="appearance-setting-image-action"
+                type="button"
+                title="恢复默认桌宠形象"
+                aria-label="恢复默认桌宠形象"
+                :disabled="isChoosingPetImage || isRestoringPetImage"
+                @click.stop="emit('restore-default-pet-image')"
+              >
+                <svg-icon name="app-restore" />
+              </button>
             </div>
           </article>
         </layout-row>

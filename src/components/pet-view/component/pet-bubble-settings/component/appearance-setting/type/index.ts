@@ -5,6 +5,8 @@ export interface AppearanceSettingProps {
   isChoosingAppIcon: boolean;
   petImageSource: string;
   isChoosingPetImage: boolean;
+  isCustomPetImage: boolean;
+  isRestoringPetImage: boolean;
   petSize: number;
 }
 export interface AppearanceSettingEmits {
@@ -12,5 +14,6 @@ export interface AppearanceSettingEmits {
   'save-app-title': [];
   'choose-app-icon': [];
   'choose-pet-image': [];
+  'restore-default-pet-image': [];
   'update-pet-size': [value: AppSettings['petSize']];
 }
