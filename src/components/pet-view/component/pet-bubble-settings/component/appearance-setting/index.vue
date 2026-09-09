@@ -147,18 +147,19 @@
           tag="label"
           title="桌宠大小"
         >
-          <span class="appearance-setting-size-input">
-            <a-input-number
-              :model-value="petSize"
-              :min="PET_SIZE_MIN"
-              :max="PET_SIZE_MAX"
-              :step="PET_SIZE_STEP"
-              style="width: 100px"
-              hide-button
-              @change="updatePetSize"
-            />
-            <span>px</span>
-          </span>
+          <a-input-number
+            :model-value="petSize"
+            :min="PET_SIZE_MIN"
+            :max="PET_SIZE_MAX"
+            :step="PET_SIZE_STEP"
+            hide-button
+            class="pet-size-input"
+            @change="updatePetSize"
+          >
+            <template #suffix>
+              <span class="pet-size-unit">px</span>
+            </template>
+          </a-input-number>
         </layout-row>
       </div>
     </div>
