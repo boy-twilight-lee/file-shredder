@@ -140,7 +140,7 @@ import {
   RecordStatusCell,
   RecordTargetCell,
 } from './component';
-import { PetBubblePageHeader } from '../pet-bubble-page-header';
+import { PetBubblePageHeader } from '../shred-page-header';
 // 保存当前加载的粉碎记录。
 const logs = ref<RecordTableRow[]>([]);
 // 保存用户跨分页选中的记录标识。

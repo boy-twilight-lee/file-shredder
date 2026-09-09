@@ -202,7 +202,7 @@ import {
   PET_SIZE_MIN,
   PET_SIZE_STEP,
 } from './constants';
-import { PET_ACTION_OPTIONS } from '@/components/pet-view/component/pet-bubble-actions/constants';
+import { PET_ACTION_OPTIONS } from '@/components/pet-view/component/shred-actions/constants';
 import { SettingsCard } from '../settings-card';
 import { SettingsLayoutRow } from './component';
 // 接收并实时呈现当前外观设置。

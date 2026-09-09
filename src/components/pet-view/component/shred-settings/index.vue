@@ -52,7 +52,7 @@ import {
   ShredLevelSetting,
   SystemSetting,
 } from './component';
-import { PetBubblePageHeader } from '../pet-bubble-page-header';
+import { PetBubblePageHeader } from '../shred-page-header';
 // 保存当前设置表单数据。
 const settings = ref<AppSettings>({ ...DEFAULT_APP_SETTINGS });
 // 保存最近一次成功落盘的应用名称，空值失焦时恢复该名称。
