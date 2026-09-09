@@ -1,7 +1,7 @@
 <template>
-  <div class="pet-bubble-page-header">
+  <div class="shred-page-header">
     <a-link
-      class="pet-bubble-page-header-back"
+      class="shred-page-header-back"
       title="返回"
       aria-label="返回操作菜单"
       @click="handleBack"
@@ -11,7 +11,7 @@
         size="16"
       />
     </a-link>
-    <span class="pet-bubble-page-header-title">{{ title }}</span>
+    <span class="shred-page-header-title">{{ title }}</span>
   </div>
 </template>
 <script setup lang="ts">
@@ -25,7 +25,7 @@ function handleBack(): void {
 }
 </script>
 <style lang="less" scoped>
-.pet-bubble-page-header {
+.shred-page-header {
   height: 40px;
   padding: 8px 12px;
   background: #fff;
@@ -34,7 +34,7 @@ function handleBack(): void {
   flex-shrink: 0;
   align-items: center;
   gap: 8px;
-  .pet-bubble-page-header-back {
+  .shred-page-header-back {
     cursor: pointer;
     padding: 0;
     font-size: 16px;
@@ -48,7 +48,7 @@ function handleBack(): void {
       color: #244fd6;
     }
   }
-  .pet-bubble-page-header-title {
+  .shred-page-header-title {
     font-size: 14px;
     font-weight: 600;
     line-height: 20px;

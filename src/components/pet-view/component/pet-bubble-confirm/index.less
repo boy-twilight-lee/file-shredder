@@ -1,43 +1,43 @@
-.pet-bubble-confirm {
+.shred-confirm {
   width: 344px;
   padding: 14px;
-  .pet-bubble-confirm-heading {
+  .shred-confirm-heading {
     display: flex;
     flex-direction: column;
     gap: 2px;
-    .pet-bubble-confirm-title {
+    .shred-confirm-title {
       font-size: 14px;
       font-weight: 700;
       line-height: 20px;
       color: #171b22;
     }
-    .pet-bubble-confirm-description {
+    .shred-confirm-description {
       font-size: 12px;
       line-height: 18px;
       color: #7d8793;
-      .pet-bubble-confirm-emphasis {
+      .shred-confirm-emphasis {
         color: #f2555d;
       }
     }
   }
-  .pet-bubble-confirm-scrollbar {
+  .shred-confirm-scrollbar {
     overflow: hidden;
     max-height: 366px;
     margin: 10px 0 8px;
     background: #fafbfc;
     border: 1px solid #e5eaf1;
     border-radius: 12px;
-    &:deep(.pet-bubble-confirm-scrollbar-container) {
+    &:deep(.shred-confirm-scroll-container) {
       overflow-x: hidden;
       overflow-y: auto;
       max-height: 364px;
     }
-    .pet-bubble-confirm-target-list {
+    .shred-confirm-target-list {
       padding: 6px 10px 6px 6px;
       display: flex;
       flex-direction: column;
       gap: 5px;
-      .pet-bubble-confirm-target-card {
+      .shred-confirm-target-card {
         min-height: 46px;
         padding: 4px 6px;
         background: #fff;
@@ -56,7 +56,7 @@
           border-color: #b9d2f7;
           box-shadow: 0 3px 9px rgba(43, 91, 154, 0.09);
         }
-        .pet-bubble-confirm-target-icon-wrap {
+        .shred-confirm-target-icon {
           height: 30px;
           width: 30px;
           background: rgba(66, 133, 229, 0.1);
@@ -66,22 +66,22 @@
           flex-shrink: 0;
           align-items: center;
           justify-content: center;
-          &.pet-bubble-confirm-target-icon-wrap-directory {
+          &.shred-confirm-target-directory {
             background: rgba(25, 162, 118, 0.1);
             color: #19a276;
           }
-          .pet-bubble-confirm-target-icon {
+          .shred-confirm-target-symbol {
             font-size: 16px;
           }
         }
-        .pet-bubble-confirm-target-content {
+        .shred-confirm-target-content {
           overflow: hidden;
           min-width: 0;
           display: flex;
           flex: 1;
           flex-direction: column;
           gap: 1px;
-          .pet-bubble-confirm-target-path {
+          .shred-confirm-target-path {
             overflow: hidden;
             font-size: 12px;
             font-weight: 600;
@@ -91,13 +91,13 @@
             color: #252b34;
             display: block;
           }
-          .pet-bubble-confirm-target-size {
+          .shred-confirm-target-size {
             font-size: 10px;
             line-height: 16px;
             color: #89919d;
           }
         }
-        .pet-bubble-confirm-target-remove {
+        .shred-confirm-target-remove {
           height: 28px;
           width: 28px;
           min-width: 28px;
@@ -121,7 +121,7 @@
             align-items: center;
             justify-content: center;
           }
-          .pet-bubble-confirm-target-remove-icon {
+          .shred-confirm-remove-symbol {
             height: 14px;
             width: 14px;
             margin: 0;
@@ -138,7 +138,7 @@
       }
     }
   }
-  .pet-bubble-confirm-warning {
+  .shred-confirm-warning {
     padding: 4px 8px;
     background: rgba(242, 85, 93, 0.05);
     border: 1px solid rgba(242, 85, 93, 0.2);
@@ -149,12 +149,12 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    .pet-bubble-confirm-warning-icon {
+    .shred-confirm-warning-icon {
       font-size: 14px;
       flex-shrink: 0;
     }
   }
-  .pet-bubble-confirm-footer {
+  .shred-confirm-footer {
     margin-top: 10px;
     display: flex;
     justify-content: flex-end;

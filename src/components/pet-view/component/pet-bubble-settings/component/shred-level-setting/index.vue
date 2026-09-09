@@ -16,7 +16,7 @@
         role="radio"
         class="shred-level-setting-item"
         :class="{
-          'shred-level-setting-item-active': modelValue === item.value,
+          'shred-level-setting-active': modelValue === item.value,
         }"
         :aria-checked="modelValue === item.value"
         @click="emit('update-passes', item.value)"
@@ -29,7 +29,7 @@
             <span class="shred-level-setting-label">{{ item.title }}</span>
             <span class="shred-level-setting-badge">{{ item.badge }}</span>
           </span>
-          <span class="shred-level-setting-description">
+          <span class="shred-level-setting-desc">
             {{ item.description }}
           </span>
         </span>

@@ -1,17 +1,17 @@
 <template>
-  <div class="pet-bubble-actions-header">
+  <div class="shred-actions-header">
     <img
-      class="pet-bubble-actions-header-avatar"
+      class="shred-actions-header-avatar"
       :src="iconSource"
       :alt="title"
     />
-    <span class="pet-bubble-actions-header-heading">
-      <span class="pet-bubble-actions-header-title">{{ title }}</span>
-      <span class="pet-bubble-actions-header-description">
+    <span class="shred-actions-header-heading">
+      <span class="shred-actions-header-title">{{ title }}</span>
+      <span class="shred-actions-header-description">
         安全、彻底地清理文件
       </span>
     </span>
-    <span class="pet-bubble-actions-header-tools">
+    <span class="shred-actions-header-tools">
       <a-tooltip
         v-for="item in PET_HEADER_ACTION_OPTIONS"
         :key="item.key"
@@ -19,14 +19,14 @@
         position="top"
       >
         <button
-          class="pet-bubble-actions-header-button"
+          class="shred-actions-header-button"
           type="button"
           :title="item.title"
           :aria-label="item.title"
           @click="handleSelect(item.key)"
         >
           <svg-icon
-            class="pet-bubble-actions-header-icon"
+            class="shred-actions-header-icon"
             :name="item.icon"
           />
         </button>
@@ -47,13 +47,13 @@ function handleSelect(key: PetHeaderActionKey): void {
 }
 </script>
 <style lang="less" scoped>
-.pet-bubble-actions-header {
+.shred-actions-header {
   margin-bottom: 14px;
   padding: 2px 0 0;
   display: flex;
   align-items: center;
   gap: 12px;
-  .pet-bubble-actions-header-avatar {
+  .shred-actions-header-avatar {
     height: 48px;
     width: 48px;
     padding: 4px;
@@ -64,30 +64,30 @@ function handleSelect(key: PetHeaderActionKey): void {
     object-fit: cover;
     flex-shrink: 0;
   }
-  .pet-bubble-actions-header-heading {
+  .shred-actions-header-heading {
     overflow: hidden;
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: 2px;
-    .pet-bubble-actions-header-title {
+    .shred-actions-header-title {
       font-size: 14px;
       font-weight: 700;
       line-height: 20px;
       letter-spacing: 0;
       color: #151a21;
     }
-    .pet-bubble-actions-header-description {
+    .shred-actions-header-description {
       font-size: 12px;
       line-height: 18px;
       color: #7d8794;
     }
   }
-  .pet-bubble-actions-header-tools {
+  .shred-actions-header-tools {
     flex-shrink: 0;
     display: flex;
     gap: 8px;
-    .pet-bubble-actions-header-button {
+    .shred-actions-header-button {
       cursor: pointer;
       height: 34px;
       width: 34px;
@@ -107,7 +107,7 @@ function handleSelect(key: PetHeaderActionKey): void {
         box-shadow 0.18s ease,
         color 0.18s ease,
         transform 0.18s ease;
-      .pet-bubble-actions-header-icon {
+      .shred-actions-header-icon {
         height: 19px;
         width: 19px;
       }

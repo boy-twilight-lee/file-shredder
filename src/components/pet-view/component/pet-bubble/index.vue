@@ -1,6 +1,6 @@
 <template>
   <div
-    :class="['pet-view-bubble', `pet-view-bubble-${visibleBubbleMode}`]"
+    :class="['pet-bubble', `shred-${visibleBubbleMode}`]"
     ref="bubbleElement"
   >
     <transition

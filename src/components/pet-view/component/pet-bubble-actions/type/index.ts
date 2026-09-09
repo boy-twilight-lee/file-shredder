@@ -1,6 +1,6 @@
 export type PetActionKey = 'file' | 'directory' | 'settings' | 'close';
 export type PetHeaderActionKey = 'records';
-export type PetActionTone = 'blue' | 'green' | 'purple' | 'red';
+export type PetActionTone = 'primary' | 'success' | 'preference' | 'danger';
 export interface PetActionOption {
   key: PetActionKey;
   title: string;

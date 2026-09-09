@@ -1,7 +1,7 @@
 <template>
   <a-tooltip
     :content="message"
-    content-class="pet-bubble-records-result-tooltip"
+    content-class="shred-records-result-tooltip"
   >
     <span
       class="record-status-cell"

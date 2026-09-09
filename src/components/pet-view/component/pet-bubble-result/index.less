@@ -1,28 +1,28 @@
-.pet-bubble-result {
+.shred-result {
   width: 344px;
   padding: 14px;
-  .pet-bubble-result-title {
+  .shred-result-title {
     padding: 2px 2px 4px;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    .pet-bubble-result-title-text {
+    .shred-result-title-text {
       font-size: 14px;
       font-weight: 700;
       line-height: 20px;
       color: #1d2129;
     }
-    .pet-bubble-result-subtitle {
+    .shred-result-subtitle {
       font-size: 12px;
       line-height: 18px;
       color: #86909c;
     }
   }
-  .pet-bubble-result-metrics {
+  .shred-result-metrics {
     margin: 12px 0 10px;
     display: flex;
     gap: 8px;
-    .pet-bubble-result-metric {
+    .shred-result-metric {
       position: relative;
       overflow: hidden;
       min-height: 78px;
@@ -34,48 +34,48 @@
       flex: 1;
       flex-direction: column;
       gap: 8px;
-      &.pet-bubble-result-metric-success {
+      &.shred-result-metric-success {
         background: linear-gradient(145deg, #f8fdf9, #effaf3);
         border-color: rgba(0, 168, 84, 0.1);
         color: #00a854;
       }
-      &.pet-bubble-result-metric-failure {
+      &.shred-result-metric-failure {
         background: linear-gradient(145deg, #fffafa, #fff0f0);
         border-color: rgba(245, 63, 63, 0.1);
         color: #f53f3f;
       }
-      &.pet-bubble-result-metric-duration {
+      &.shred-result-metric-duration {
         background: linear-gradient(145deg, #f9fbff, #eef4ff);
         border-color: rgba(22, 93, 255, 0.1);
         color: #165dff;
       }
-      &.pet-bubble-result-metric-muted {
+      &.shred-result-metric-muted {
         background: #f7f8fa;
         border-color: #eef0f3;
         color: #86909c;
-        .pet-bubble-result-metric-heading {
-          .pet-bubble-result-metric-icon {
+        .shred-result-metric-heading {
+          .shred-result-metric-icon {
             filter: grayscale(1);
           }
         }
-        .pet-bubble-result-metric-background-icon {
+        .shred-result-metric-bg-icon {
           filter: grayscale(1);
         }
       }
-      .pet-bubble-result-metric-heading {
+      .shred-result-metric-heading {
         position: relative;
         z-index: 1;
         display: flex;
         align-items: center;
         gap: 4px;
-        .pet-bubble-result-metric-icon {
+        .shred-result-metric-icon {
           height: 15px;
           width: 15px;
           object-fit: contain;
           display: block;
           flex-shrink: 0;
         }
-        .pet-bubble-result-metric-label {
+        .shred-result-metric-label {
           overflow: hidden;
           font-size: 12px;
           line-height: 18px;
@@ -84,7 +84,7 @@
           color: #86909c;
         }
       }
-      .pet-bubble-result-metric-value {
+      .shred-result-metric-value {
         position: relative;
         z-index: 1;
         overflow: hidden;
@@ -97,7 +97,7 @@
         white-space: nowrap;
         color: #1d2129;
       }
-      .pet-bubble-result-metric-background-icon {
+      .shred-result-metric-bg-icon {
         position: absolute;
         right: -12px;
         bottom: -14px;
@@ -109,7 +109,7 @@
       }
     }
   }
-  .pet-bubble-result-tip {
+  .shred-result-tip {
     margin: 0 0 10px;
     padding: 6px 8px;
     border: 1px solid transparent;
@@ -119,31 +119,31 @@
     display: flex;
     align-items: center;
     gap: 5px;
-    .pet-bubble-result-tip-icon {
+    .shred-result-tip-icon {
       font-size: 14px;
       flex-shrink: 0;
     }
-    &.pet-bubble-result-tip-success {
+    &.shred-result-tip-success {
       background: #f2fbf5;
       border-color: rgba(0, 168, 84, 0.14);
       color: #008f49;
     }
-    &.pet-bubble-result-tip-failure {
+    &.shred-result-tip-failure {
       background: #fff3f3;
       border-color: rgba(245, 63, 63, 0.14);
       color: #d9363e;
     }
-    &.pet-bubble-result-tip-cancelled {
+    &.shred-result-tip-cancelled {
       background: #fff7e8;
       border-color: rgba(255, 125, 0, 0.16);
       color: #d46b08;
     }
   }
-  .pet-bubble-result-footer {
+  .shred-result-footer {
     margin-top: 2px;
     display: flex;
     justify-content: center;
-    .pet-bubble-result-link {
+    .shred-result-link {
       height: 26px;
       padding: 4px 8px;
       font-size: 12px;

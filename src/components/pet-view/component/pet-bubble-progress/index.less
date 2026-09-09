@@ -1,25 +1,25 @@
-.pet-bubble-progress {
+.shred-progress {
   width: 344px;
   padding: 14px;
-  .pet-bubble-progress-heading {
+  .shred-progress-heading {
     min-height: 28px;
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: 10px;
-    .pet-bubble-progress-title {
+    .shred-progress-title {
       font-size: 14px;
       font-weight: 700;
       line-height: 20px;
     }
-    .pet-bubble-progress-cancel {
+    .shred-progress-cancel {
       font-size: 12px;
       display: inline-flex;
       flex-shrink: 0;
       gap: 4px;
     }
   }
-  .pet-bubble-progress-panel {
+  .shred-progress-panel {
     margin-top: 12px;
     padding: 12px;
     background: linear-gradient(145deg, #fff, var(--progress-panel-color));
@@ -29,41 +29,41 @@
     transition:
       border-color 0.3s ease,
       box-shadow 0.3s ease;
-    &.pet-bubble-progress-panel-blue {
+    &.shred-progress-panel-start {
       --progress-color: #4096ff;
       --progress-soft-color: rgba(64, 150, 255, 0.12);
       --progress-panel-color: rgba(64, 150, 255, 0.05);
       border-color: rgba(64, 150, 255, 0.2);
     }
-    &.pet-bubble-progress-panel-purple {
+    &.shred-progress-panel-active {
       --progress-color: #722ed1;
       --progress-soft-color: rgba(114, 46, 209, 0.11);
       --progress-panel-color: rgba(114, 46, 209, 0.045);
       border-color: rgba(114, 46, 209, 0.2);
     }
-    &.pet-bubble-progress-panel-orange {
+    &.shred-progress-panel-final {
       --progress-color: #fa8c16;
       --progress-soft-color: rgba(250, 140, 22, 0.12);
       --progress-panel-color: rgba(250, 140, 22, 0.05);
       border-color: rgba(250, 140, 22, 0.22);
     }
-    &.pet-bubble-progress-panel-green {
+    &.shred-progress-panel-completed {
       --progress-color: #52c41a;
       --progress-soft-color: rgba(82, 196, 26, 0.12);
       --progress-panel-color: rgba(82, 196, 26, 0.05);
       border-color: rgba(82, 196, 26, 0.2);
     }
-    .pet-bubble-progress-summary {
+    .shred-progress-summary {
       margin-bottom: 10px;
       display: flex;
       align-items: center;
       justify-content: space-between;
       gap: 12px;
-      .pet-bubble-progress-status {
+      .shred-progress-status {
         display: flex;
         align-items: center;
         gap: 9px;
-        .pet-bubble-progress-status-icon {
+        .shred-progress-status-icon {
           height: 32px;
           width: 32px;
           background: var(--progress-soft-color);
@@ -77,20 +77,20 @@
             color 0.3s ease,
             background-color 0.3s ease;
         }
-        .pet-bubble-progress-status-label {
+        .shred-progress-status-label {
           font-size: 14px;
           font-weight: 600;
           color: #1d2129;
         }
       }
-      .pet-bubble-progress-count {
+      .shred-progress-count {
         font-size: 12px;
         white-space: nowrap;
         color: #86909c;
         display: inline-flex;
         align-items: baseline;
         gap: 3px;
-        .pet-bubble-progress-count-current {
+        .shred-progress-count-current {
           font-size: 16px;
           font-weight: 600;
           font-variant-numeric: tabular-nums;
@@ -99,7 +99,7 @@
         }
       }
     }
-    .pet-bubble-progress-current-file {
+    .shred-progress-current-file {
       overflow: hidden;
       height: 32px;
       margin-bottom: 10px;
@@ -111,7 +111,7 @@
       display: flex;
       align-items: center;
       gap: 6px;
-      .pet-bubble-progress-current-file-icon {
+      .shred-progress-file-icon {
         font-size: 14px;
         color: #86909c;
         display: inline-flex;
@@ -119,7 +119,7 @@
         align-items: center;
         justify-content: center;
       }
-      .pet-bubble-progress-current-file-name {
+      .shred-progress-file-name {
         overflow: hidden;
         font-size: 12px;
         font-weight: 500;
@@ -131,13 +131,13 @@
         flex: 1;
       }
     }
-    .pet-bubble-progress-track {
+    .shred-progress-track {
       overflow: hidden;
       height: 10px;
       background: #edf0f3;
       border-radius: 999px;
       box-shadow: inset 0 1px 2px rgba(29, 33, 41, 0.08);
-      .pet-bubble-progress-bar {
+      .shred-progress-bar {
         height: 100%;
         min-width: 2px;
         background: var(--progress-color);
@@ -148,21 +148,21 @@
           background-color 0.3s ease;
       }
     }
-    .pet-bubble-progress-meta {
+    .shred-progress-meta {
       height: 28px;
       font-size: 12px;
       color: #86909c;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      .pet-bubble-progress-percent {
+      .shred-progress-percent {
         font-size: 14px;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
         color: var(--progress-color);
       }
     }
-    .pet-bubble-progress-security {
+    .shred-progress-security {
       min-height: 28px;
       width: max-content;
       margin: 2px auto 0;
@@ -177,7 +177,7 @@
       align-items: center;
       justify-content: center;
       gap: 5px;
-      .pet-bubble-progress-security-icon {
+      .shred-progress-security-icon {
         font-size: 14px;
         flex-shrink: 0;
       }

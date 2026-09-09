@@ -1,9 +1,9 @@
 <template>
-  <div class="pet-bubble-progress">
-    <div class="pet-bubble-progress-heading">
-      <span class="pet-bubble-progress-title">正在粉碎，请稍候…</span>
+  <div class="shred-progress">
+    <div class="shred-progress-heading">
+      <span class="shred-progress-title">正在粉碎，请稍候…</span>
       <a-link
-        class="pet-bubble-progress-cancel"
+        class="shred-progress-cancel"
         status="danger"
         :loading="isCancelling"
         @click="cancelShred"
@@ -13,36 +13,36 @@
       </a-link>
     </div>
     <div
-      class="pet-bubble-progress-panel"
-      :class="`pet-bubble-progress-panel-${progressTone.tone}`"
+      class="shred-progress-panel"
+      :class="`shred-progress-panel-${progressStage.stage}`"
     >
-      <div class="pet-bubble-progress-summary">
-        <span class="pet-bubble-progress-status">
-          <span class="pet-bubble-progress-status-icon">
+      <div class="shred-progress-summary">
+        <span class="shred-progress-status">
+          <span class="shred-progress-status-icon">
             <svg-icon name="app-delete" />
           </span>
-          <span class="pet-bubble-progress-status-label">正在安全删除</span>
+          <span class="shred-progress-status-label">正在安全删除</span>
         </span>
-        <span class="pet-bubble-progress-count">
-          <span class="pet-bubble-progress-count-current">
+        <span class="shred-progress-count">
+          <span class="shred-progress-count-current">
             {{ displayedFileIndex }}
           </span>
           <span>/ {{ progress?.fileCount ?? 1 }} 个文件</span>
         </span>
       </div>
       <div
-        class="pet-bubble-progress-current-file"
+        class="shred-progress-current-file"
         :title="progress?.path"
       >
-        <span class="pet-bubble-progress-current-file-icon">
+        <span class="shred-progress-file-icon">
           <svg-icon name="app-file" />
         </span>
-        <span class="pet-bubble-progress-current-file-name">
+        <span class="shred-progress-file-name">
           {{ currentFileName }}
         </span>
       </div>
       <div
-        class="pet-bubble-progress-track"
+        class="shred-progress-track"
         role="progressbar"
         aria-label="整体删除进度"
         :aria-valuenow="progressPercent"
@@ -50,17 +50,17 @@
         aria-valuemax="100"
       >
         <span
-          class="pet-bubble-progress-bar"
+          class="shred-progress-bar"
           :style="{ width: `${progressPercent}%` }"
         />
       </div>
-      <div class="pet-bubble-progress-meta">
+      <div class="shred-progress-meta">
         <span>总体进度</span>
-        <span class="pet-bubble-progress-percent">{{ progressPercent }}%</span>
+        <span class="shred-progress-percent">{{ progressPercent }}%</span>
       </div>
-      <div class="pet-bubble-progress-security">
+      <div class="shred-progress-security">
         <svg-icon
-          class="pet-bubble-progress-security-icon"
+          class="shred-progress-security-icon"
           name="app-shield"
         />
         <span>安全粉碎 · 后台执行中</span>
@@ -71,7 +71,7 @@
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { getPathName } from '@/utils';
-import { PROGRESS_TONE_OPTIONS } from './constants';
+import { PROGRESS_STAGE_OPTIONS } from './constants';
 // 读取粉碎进度及任务取消能力。
 const {
   progress,
@@ -80,12 +80,12 @@ const {
   isCancelling,
   cancelShred,
 } = usePetViewContext().inject();
-// 根据总体进度选择对应的视觉状态。
-const progressTone = computed(
+// 根据总体进度选择对应的任务阶段。
+const progressStage = computed(
   () =>
-    PROGRESS_TONE_OPTIONS.find(
+    PROGRESS_STAGE_OPTIONS.find(
       (item) => progressPercent.value <= item.maximum,
-    ) ?? PROGRESS_TONE_OPTIONS[PROGRESS_TONE_OPTIONS.length - 1],
+    ) ?? PROGRESS_STAGE_OPTIONS[PROGRESS_STAGE_OPTIONS.length - 1],
 );
 // 提取当前处理目标的文件名用于进度展示。
 const currentFileName = computed(() =>

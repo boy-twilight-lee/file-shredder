@@ -11,87 +11,77 @@
       >
         <div
           ref="previewStageElement"
-          class="appearance-setting-preview-stage"
+          class="appearance-setting-stage"
           :style="previewSceneStyle"
         >
-          <div class="appearance-setting-preview-frame">
-            <div class="appearance-setting-preview-scene">
-              <div class="appearance-setting-preview-bubble">
-                <div class="appearance-setting-preview-bubble-header">
+          <div class="appearance-setting-frame">
+            <div class="appearance-setting-scene">
+              <div class="appearance-setting-bubble">
+                <div class="appearance-setting-header">
                   <img
-                    class="appearance-setting-preview-bubble-app-icon"
+                    class="appearance-setting-app-icon"
                     :src="appIconSource"
                     :alt="appTitle"
                   />
-                  <span class="appearance-setting-preview-bubble-heading">
-                    <span class="appearance-setting-preview-bubble-title">
+                  <span class="appearance-setting-header-info">
+                    <span class="appearance-setting-app-title">
                       {{ appTitle || '文件粉碎精灵' }}
                     </span>
-                    <span class="appearance-setting-preview-bubble-description">
+                    <span class="appearance-setting-app-desc">
                       安全、彻底地清理文件
                     </span>
                   </span>
                   <svg-icon
-                    class="appearance-setting-preview-bubble-history"
+                    class="appearance-setting-history"
                     name="app-history"
                   />
                 </div>
-                <div class="appearance-setting-preview-bubble-actions">
+                <div class="appearance-setting-actions">
                   <span
                     v-for="item in PET_ACTION_OPTIONS"
                     :key="item.key"
-                    class="appearance-setting-preview-bubble-action"
-                    :class="`appearance-setting-preview-bubble-action-${item.tone}`"
+                    class="appearance-setting-action"
+                    :class="`appearance-setting-action-${item.tone}`"
                   >
-                    <span class="appearance-setting-preview-bubble-action-icon">
+                    <span class="appearance-setting-action-icon">
                       <svg-icon :name="item.icon" />
                     </span>
-                    <span
-                      class="appearance-setting-preview-bubble-action-content"
-                    >
-                      <span
-                        class="appearance-setting-preview-bubble-action-title"
-                      >
-                        <span
-                          class="appearance-setting-preview-bubble-action-label"
-                        >
+                    <span class="appearance-setting-action-info">
+                      <span class="appearance-setting-action-meta">
+                        <span class="appearance-setting-action-name">
                           {{ item.title }}
                         </span>
-                        <span
-                          class="appearance-setting-preview-bubble-action-badge"
-                        >
+                        <span class="appearance-setting-action-tag">
                           {{ item.badge }}
                         </span>
                       </span>
-                      <span
-                        class="appearance-setting-preview-bubble-action-description"
-                      >
+                      <span class="appearance-setting-action-desc">
                         {{ item.description }}
                       </span>
                     </span>
                     <svg-icon
-                      class="appearance-setting-preview-bubble-action-arrow"
+                      class="appearance-setting-action-next"
                       name="app-arrow-right"
                     />
                   </span>
                 </div>
-                <div class="appearance-setting-preview-bubble-tip">
-                  <span class="appearance-setting-preview-bubble-tip-icon-wrap">
+                <div class="appearance-setting-tip">
+                  <span class="appearance-setting-tip-badge">
                     <svg-icon
-                      class="appearance-setting-preview-bubble-tip-icon"
+                      class="appearance-setting-tip-icon"
                       name="app-heart"
                     />
                   </span>
-                  <span class="appearance-setting-preview-bubble-tip-text">
+                  <span class="appearance-setting-tip-text">
                     小贴士：文件或文件夹也可以直接拖到我身上。
                   </span>
                 </div>
               </div>
-              <span class="appearance-setting-preview-drag">
+              <span class="appearance-setting-drag">
                 <svg-icon name="app-drag" />
               </span>
               <img
-                class="appearance-setting-preview-pet"
+                class="appearance-setting-pet"
                 :src="petImageSource"
                 alt="桌宠实时预览"
                 @load="handlePreviewPetLoad"
@@ -116,18 +106,18 @@
         </settings-layout-row>
         <settings-layout-row title="应用图标">
           <div
-            class="appearance-setting-image-item appearance-setting-icon-item"
+            class="appearance-setting-image-item appearance-setting-image-icon"
           >
-            <span class="appearance-setting-image-preview">
+            <span class="appearance-setting-image-view">
               <img
                 class="appearance-setting-image"
                 :src="appIconSource"
                 :alt="appTitle"
               />
             </span>
-            <div class="appearance-setting-image-actions">
+            <div class="appearance-setting-image-tools">
               <button
-                class="appearance-setting-image-action"
+                class="appearance-setting-image-tool"
                 type="button"
                 title="更换应用图标"
                 aria-label="更换应用图标"
@@ -141,18 +131,18 @@
         </settings-layout-row>
         <settings-layout-row title="桌宠形象">
           <div
-            class="appearance-setting-image-item appearance-setting-pet-item"
+            class="appearance-setting-image-item appearance-setting-image-pet"
           >
-            <span class="appearance-setting-image-preview">
+            <span class="appearance-setting-image-view">
               <img
                 class="appearance-setting-image"
                 :src="petImageSource"
                 alt="桌宠形象"
               />
             </span>
-            <div class="appearance-setting-image-actions">
+            <div class="appearance-setting-image-tools">
               <button
-                class="appearance-setting-image-action"
+                class="appearance-setting-image-tool"
                 type="button"
                 title="更换桌宠形象"
                 aria-label="更换桌宠形象"
@@ -163,7 +153,7 @@
               </button>
               <button
                 v-if="isCustomPetImage"
-                class="appearance-setting-image-action"
+                class="appearance-setting-image-tool"
                 type="button"
                 title="恢复默认桌宠形象"
                 aria-label="恢复默认桌宠形象"
@@ -185,11 +175,11 @@
             :max="PET_SIZE_MAX"
             :step="PET_SIZE_STEP"
             hide-button
-            class="pet-size-input"
+            class="appearance-setting-size-input"
             @change="updatePetSize"
           >
             <template #suffix>
-              <span class="pet-size-unit">px</span>
+              <span class="appearance-setting-size-unit">px</span>
             </template>
           </a-input-number>
         </settings-layout-row>

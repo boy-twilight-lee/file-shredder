@@ -15,7 +15,7 @@
         </span>
         <div class="system-setting-content">
           <span class="system-setting-label">{{ item.label }}</span>
-          <span class="system-setting-description">{{ item.description }}</span>
+          <span class="system-setting-desc">{{ item.description }}</span>
         </div>
         <a-switch
           :model-value="settings[item.key]"

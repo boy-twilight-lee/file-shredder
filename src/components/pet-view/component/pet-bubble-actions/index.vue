@@ -1,12 +1,12 @@
 <template>
-  <div class="pet-bubble-actions">
+  <div class="shred-actions">
     <pet-bubble-actions-header
       :title="bubbleAppTitle"
       :icon-source="bubbleAppIconSource"
       @select="handleAction"
     />
     <div
-      class="pet-bubble-actions-list"
+      class="shred-actions-list"
       role="menu"
     >
       <pet-bubble-action

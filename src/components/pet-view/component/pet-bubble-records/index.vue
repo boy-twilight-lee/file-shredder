@@ -1,7 +1,7 @@
 <template>
   <a-spin
     :loading="isLoading"
-    class="pet-bubble-records"
+    class="shred-records"
   >
     <record-empty-state
       v-if="emptyStateTitle"
@@ -11,25 +11,25 @@
       title="粉碎记录"
       @back="showBubble('actions')"
     />
-    <div class="pet-bubble-records-toolbar">
+    <div class="shred-records-toolbar">
       <a-input-search
         v-model="pathKeyword"
-        class="pet-bubble-records-search"
+        class="shred-records-search"
         allow-clear
         placeholder="筛选文件路径"
       />
-      <div class="pet-bubble-records-actions">
-        <div class="pet-bubble-records-summary-group">
-          <span class="pet-bubble-records-summary">
+      <div class="shred-records-actions">
+        <div class="shred-records-summary-group">
+          <span class="shred-records-summary">
             共
-            <span class="pet-bubble-records-summary-total">
+            <span class="shred-records-summary-total">
               {{ logs.length }}
             </span>
             条
           </span>
-          <span class="pet-bubble-records-summary">
+          <span class="shred-records-summary">
             ，已选
-            <span class="pet-bubble-records-summary-selected">
+            <span class="shred-records-summary-selected">
               {{ selectedLogIds.length }}
             </span>
             条
@@ -40,13 +40,13 @@
           :disabled="selectedLogIds.length === 0"
           :ok-button-props="MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS"
           :cancel-button-props="MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS"
-          content-class="pet-bubble-records-popconfirm"
+          content-class="shred-records-popconfirm"
           type="error"
           position="br"
           @ok="deleteSelectedLogs"
         >
           <a-button
-            class="pet-bubble-records-delete"
+            class="shred-records-delete"
             type="outline"
             size="small"
             :disabled="selectedLogIds.length === 0"
@@ -61,7 +61,7 @@
     </div>
     <a-table
       v-model:selected-keys="selectedLogIds"
-      class="pet-bubble-records-table"
+      class="shred-records-table"
       :data="pagedLogs"
       :pagination="false"
       :row-selection="{ type: 'checkbox', showCheckedAll: true }"
@@ -105,7 +105,7 @@
         </a-table-column>
       </template>
     </a-table>
-    <div class="pet-bubble-records-pagination">
+    <div class="shred-records-pagination">
       <a-pagination
         :current="currentPage"
         :page-size="pageSize"

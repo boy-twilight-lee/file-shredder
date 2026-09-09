@@ -13,7 +13,7 @@
         </span>
         <span
           v-if="description"
-          class="settings-card-description"
+          class="settings-card-desc"
         >
           {{ description }}
         </span>
@@ -54,7 +54,7 @@ withDefaults(
       line-height: 20px;
       display: block;
     }
-    .settings-card-description {
+    .settings-card-desc {
       overflow: hidden;
       margin: 4px 0 0;
       font-size: 12px;

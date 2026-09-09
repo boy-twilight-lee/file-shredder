@@ -1,48 +1,48 @@
 <template>
-  <div class="pet-bubble-result">
-    <div class="pet-bubble-result-title">
-      <span class="pet-bubble-result-title-text">{{ resultTitle }}</span>
-      <span class="pet-bubble-result-subtitle">{{ resultSubtitle }}</span>
+  <div class="shred-result">
+    <div class="shred-result-title">
+      <span class="shred-result-title-text">{{ resultTitle }}</span>
+      <span class="shred-result-subtitle">{{ resultSubtitle }}</span>
     </div>
-    <div class="pet-bubble-result-metrics">
+    <div class="shred-result-metrics">
       <div
         v-for="metric in resultMetrics"
         :key="metric.key"
-        class="pet-bubble-result-metric"
+        class="shred-result-metric"
         :class="metricClasses(metric.key, metric.tone, metric.value)"
       >
-        <span class="pet-bubble-result-metric-heading">
+        <span class="shred-result-metric-heading">
           <svg-icon
-            class="pet-bubble-result-metric-icon"
+            class="shred-result-metric-icon"
             :name="metric.icon"
           />
-          <span class="pet-bubble-result-metric-label">{{ metric.label }}</span>
+          <span class="shred-result-metric-label">{{ metric.label }}</span>
         </span>
         <span
-          class="pet-bubble-result-metric-value"
+          class="shred-result-metric-value"
           :title="String(metric.value)"
         >
           {{ metric.value }}
         </span>
         <svg-icon
-          class="pet-bubble-result-metric-background-icon"
+          class="shred-result-metric-bg-icon"
           :name="metric.backgroundIcon"
         />
       </div>
     </div>
     <div
-      class="pet-bubble-result-tip"
-      :class="`pet-bubble-result-tip-${resultTone}`"
+      class="shred-result-tip"
+      :class="`shred-result-tip-${resultTone}`"
     >
       <svg-icon
-        class="pet-bubble-result-tip-icon"
+        class="shred-result-tip-icon"
         name="app-information"
       />
       <span>{{ resultTip }}</span>
     </div>
-    <div class="pet-bubble-result-footer">
+    <div class="shred-result-footer">
       <a-link
-        class="pet-bubble-result-link"
+        class="shred-result-link"
         @click="closeBubble"
       >
         我知道了
@@ -103,9 +103,9 @@ function metricClasses(
   value: string | number,
 ): string[] {
   // 保存当前指标需要应用的状态类名。
-  const classes = [`pet-bubble-result-metric-${tone}`];
+  const classes = [`shred-result-metric-${tone}`];
   if (key === 'failed' && value === 0)
-    classes.push('pet-bubble-result-metric-muted');
+    classes.push('shred-result-metric-muted');
   return classes;
 }
 </script>

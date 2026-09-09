@@ -14,7 +14,7 @@
       :show-arrow="false"
       animation-name="fade-in"
       position="left"
-      content-class="pet-bubble-trigger"
+      content-class="pet-view-trigger"
       trigger="click"
       @popup-visible-change="handleBubbleVisibleChange"
     >

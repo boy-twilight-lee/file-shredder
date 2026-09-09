@@ -1,8 +1,8 @@
 <template>
-  <div class="pet-bubble-actions-tip">
-    <span class="pet-bubble-actions-tip-icon">
+  <div class="shred-actions-tip">
+    <span class="shred-actions-tip-icon">
       <svg-icon
-        class="pet-bubble-actions-tip-heart"
+        class="shred-actions-tip-heart"
         name="app-heart"
       />
     </span>
@@ -10,7 +10,7 @@
   </div>
 </template>
 <style lang="less" scoped>
-.pet-bubble-actions-tip {
+.shred-actions-tip {
   margin-top: 12px;
   font-size: 10px;
   line-height: 16px;
@@ -18,7 +18,7 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  .pet-bubble-actions-tip-icon {
+  .shred-actions-tip-icon {
     height: 18px;
     width: 18px;
     background: rgba(238, 109, 143, 0.1);
@@ -28,7 +28,7 @@
     flex-shrink: 0;
     align-items: center;
     justify-content: center;
-    .pet-bubble-actions-tip-heart {
+    .shred-actions-tip-heart {
       font-size: 12px;
     }
   }

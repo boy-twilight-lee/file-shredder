@@ -14,7 +14,7 @@ export const PET_ACTION_OPTIONS: PetActionOption[] = [
     title: '选择文件',
     description: '支持同时选择多个文件',
     badge: '常用',
-    tone: 'blue',
+    tone: 'primary',
     icon: 'app-file-add',
   },
   {
@@ -22,7 +22,7 @@ export const PET_ACTION_OPTIONS: PetActionOption[] = [
     title: '选择文件夹',
     description: '包含文件夹内的所有内容',
     badge: '递归清理',
-    tone: 'green',
+    tone: 'success',
     icon: 'app-folder-open',
   },
   {
@@ -30,7 +30,7 @@ export const PET_ACTION_OPTIONS: PetActionOption[] = [
     title: '设置',
     description: '调整桌宠与应用行为',
     badge: '偏好设置',
-    tone: 'purple',
+    tone: 'preference',
     icon: 'app-settings',
   },
   {
@@ -38,7 +38,7 @@ export const PET_ACTION_OPTIONS: PetActionOption[] = [
     title: '关闭桌宠',
     description: '退出文件粉碎精灵',
     badge: '谨慎操作',
-    tone: 'red',
+    tone: 'danger',
     icon: 'app-power',
   },
 ];

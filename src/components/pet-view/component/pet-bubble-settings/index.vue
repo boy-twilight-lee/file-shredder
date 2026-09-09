@@ -1,14 +1,14 @@
 <template>
   <a-spin
     :loading="isLoading"
-    class="pet-bubble-settings"
+    class="shred-settings"
   >
     <pet-bubble-page-header
       title="常规设置"
       @back="showBubble('actions')"
     />
     <a-scrollbar>
-      <div class="pet-bubble-settings-list">
+      <div class="shred-settings-list">
         <appearance-setting
           :app-title="settings.bubbleAppTitle"
           :app-icon-source="bubbleAppIconSource"

@@ -1,46 +1,46 @@
 <template>
-  <div class="pet-bubble-confirm">
-    <div class="pet-bubble-confirm-heading">
-      <span class="pet-bubble-confirm-title">确定永久粉碎吗？</span>
-      <span class="pet-bubble-confirm-description">
+  <div class="shred-confirm">
+    <div class="shred-confirm-heading">
+      <span class="shred-confirm-title">确定永久粉碎吗？</span>
+      <span class="shred-confirm-description">
         共 {{ selectedTargets.length }} 项，此操作
-        <span class="pet-bubble-confirm-emphasis">不可撤销</span>。
+        <span class="shred-confirm-emphasis">不可撤销</span>。
       </span>
     </div>
     <a-scrollbar
-      class="pet-bubble-confirm-scrollbar-container"
-      outer-class="pet-bubble-confirm-scrollbar"
+      class="shred-confirm-scroll-container"
+      outer-class="shred-confirm-scrollbar"
       outer-style="max-height: 366px"
       disable-horizontal
     >
-      <div class="pet-bubble-confirm-target-list">
+      <div class="shred-confirm-target-list">
         <div
           v-for="target in selectedTargets"
           :key="target.path"
-          class="pet-bubble-confirm-target-card"
+          class="shred-confirm-target-card"
         >
           <span
-            class="pet-bubble-confirm-target-icon-wrap"
-            :class="`pet-bubble-confirm-target-icon-wrap-${target.targetType}`"
+            class="shred-confirm-target-icon"
+            :class="`shred-confirm-target-${target.targetType}`"
           >
             <svg-icon
               :name="getTargetIconName(target)"
-              class="pet-bubble-confirm-target-icon"
+              class="shred-confirm-target-symbol"
             />
           </span>
-          <span class="pet-bubble-confirm-target-content">
+          <span class="shred-confirm-target-content">
             <span
-              class="pet-bubble-confirm-target-path"
+              class="shred-confirm-target-path"
               :title="target.path"
             >
               {{ getPathName(target.path) }}
             </span>
-            <span class="pet-bubble-confirm-target-size">
+            <span class="shred-confirm-target-size">
               {{ getTargetSizeText(target) }}
             </span>
           </span>
           <a-button
-            class="pet-bubble-confirm-target-remove"
+            class="shred-confirm-target-remove"
             type="text"
             size="small"
             status="danger"
@@ -50,7 +50,7 @@
           >
             <template #icon>
               <svg-icon
-                class="pet-bubble-confirm-target-remove-icon"
+                class="shred-confirm-remove-symbol"
                 name="app-delete"
               />
             </template>
@@ -58,14 +58,14 @@
         </div>
       </div>
     </a-scrollbar>
-    <div class="pet-bubble-confirm-warning">
+    <div class="shred-confirm-warning">
       <svg-icon
-        class="pet-bubble-confirm-warning-icon"
+        class="shred-confirm-warning-icon"
         name="app-warning"
       />
       <span>粉碎后将无法找回，请确认文件已备份。</span>
     </div>
-    <div class="pet-bubble-confirm-footer">
+    <div class="shred-confirm-footer">
       <a-button
         type="outline"
         size="small"
