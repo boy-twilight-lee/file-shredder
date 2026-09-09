@@ -1,15 +1,16 @@
 <template>
   <component
     :is="tag"
-    :class="['layout-row', `layout-row-${direction}`]"
+    :class="['settings-layout-row', `settings-layout-row-${direction}`]"
   >
-    <span class="layout-row-title">{{ title }}</span>
-    <div class="layout-row-content">
+    <span class="settings-layout-row-title">{{ title }}</span>
+    <div class="settings-layout-row-content">
       <slot />
     </div>
   </component>
 </template>
 <script setup lang="ts">
+// 定义设置表单行的标题、排列方向与可选标签容器。
 withDefaults(
   defineProps<{
     title: string;
@@ -23,39 +24,28 @@ withDefaults(
 );
 </script>
 <style lang="less" scoped>
-.layout-row {
-  min-width: 0;
+.settings-layout-row {
   display: flex;
-
-  .layout-row-title {
+  .settings-layout-row-title {
     font-size: 14px;
     font-weight: 600;
     line-height: 20px;
-    color: #0D1014;
+    color: #0d1014;
   }
-
-  .layout-row-content {
-    min-width: 0;
-  }
-
-  &.layout-row-vertical {
+  &.settings-layout-row-vertical {
     flex-direction: column;
     gap: 8px;
-
-    .layout-row-content {
+    .settings-layout-row-content {
       width: 100%;
     }
   }
-
-  &.layout-row-horizontal {
+  &.settings-layout-row-horizontal {
     align-items: center;
     gap: 16px;
-
-    .layout-row-title {
+    .settings-layout-row-title {
       flex-shrink: 0;
     }
-
-    .layout-row-content {
+    .settings-layout-row-content {
       display: flex;
       flex: 1;
       align-items: center;

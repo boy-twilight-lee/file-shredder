@@ -1,7 +1,7 @@
 <template>
-  <section class="pet-bubble-progress">
-    <header class="pet-bubble-progress-heading">
-      <strong>正在粉碎，请稍候…</strong>
+  <div class="pet-bubble-progress">
+    <div class="pet-bubble-progress-heading">
+      <span class="pet-bubble-progress-title">正在粉碎，请稍候…</span>
       <a-link
         class="pet-bubble-progress-cancel"
         status="danger"
@@ -11,7 +11,7 @@
         <svg-icon name="app-stop" />
         {{ isCancelling ? '正在终止' : '取消删除' }}
       </a-link>
-    </header>
+    </div>
     <div
       class="pet-bubble-progress-panel"
       :class="`pet-bubble-progress-panel-${progressTone.tone}`"
@@ -21,10 +21,12 @@
           <span class="pet-bubble-progress-status-icon">
             <svg-icon name="app-delete" />
           </span>
-          <strong>正在安全删除</strong>
+          <span class="pet-bubble-progress-status-label">正在安全删除</span>
         </span>
         <span class="pet-bubble-progress-count">
-          <strong>{{ displayedFileIndex }}</strong>
+          <span class="pet-bubble-progress-count-current">
+            {{ displayedFileIndex }}
+          </span>
           <span>/ {{ progress?.fileCount ?? 1 }} 个文件</span>
         </span>
       </div>
@@ -35,9 +37,9 @@
         <span class="pet-bubble-progress-current-file-icon">
           <svg-icon name="app-file" />
         </span>
-        <strong class="pet-bubble-progress-current-file-name">
+        <span class="pet-bubble-progress-current-file-name">
           {{ currentFileName }}
-        </strong>
+        </span>
       </div>
       <div
         class="pet-bubble-progress-track"
@@ -54,14 +56,17 @@
       </div>
       <div class="pet-bubble-progress-meta">
         <span>总体进度</span>
-        <strong>{{ progressPercent }}%</strong>
+        <span class="pet-bubble-progress-percent">{{ progressPercent }}%</span>
       </div>
       <div class="pet-bubble-progress-security">
-        <svg-icon name="app-shield" />
+        <svg-icon
+          class="pet-bubble-progress-security-icon"
+          name="app-shield"
+        />
         <span>安全粉碎 · 后台执行中</span>
       </div>
     </div>
-  </section>
+  </div>
 </template>
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';

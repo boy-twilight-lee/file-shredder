@@ -4,7 +4,7 @@
     title="外观设置"
   >
     <div class="appearance-setting-workspace">
-      <section
+      <div
         class="appearance-setting-preview"
         aria-label="桌宠与操作气泡实时预览"
       >
@@ -18,19 +18,28 @@
               <div class="appearance-setting-preview-bubble">
                 <div class="appearance-setting-preview-bubble-header">
                   <img
+                    class="appearance-setting-preview-bubble-app-icon"
                     :src="appIconSource"
                     :alt="appTitle"
                   />
-                  <span>
-                    <strong>{{ appTitle || '文件粉碎精灵' }}</strong>
-                    <small>安全、彻底地清理文件</small>
+                  <span class="appearance-setting-preview-bubble-heading">
+                    <span class="appearance-setting-preview-bubble-title">
+                      {{ appTitle || '文件粉碎精灵' }}
+                    </span>
+                    <span class="appearance-setting-preview-bubble-description">
+                      安全、彻底地清理文件
+                    </span>
                   </span>
-                  <svg-icon name="app-history" />
+                  <svg-icon
+                    class="appearance-setting-preview-bubble-history"
+                    name="app-history"
+                  />
                 </div>
                 <div class="appearance-setting-preview-bubble-actions">
                   <span
                     v-for="item in PET_ACTION_OPTIONS"
                     :key="item.key"
+                    class="appearance-setting-preview-bubble-action"
                     :class="`appearance-setting-preview-bubble-action-${item.tone}`"
                   >
                     <span class="appearance-setting-preview-bubble-action-icon">
@@ -42,20 +51,40 @@
                       <span
                         class="appearance-setting-preview-bubble-action-title"
                       >
-                        <strong>{{ item.title }}</strong>
-                        <small>{{ item.badge }}</small>
+                        <span
+                          class="appearance-setting-preview-bubble-action-label"
+                        >
+                          {{ item.title }}
+                        </span>
+                        <span
+                          class="appearance-setting-preview-bubble-action-badge"
+                        >
+                          {{ item.badge }}
+                        </span>
                       </span>
-                      <small>{{ item.description }}</small>
+                      <span
+                        class="appearance-setting-preview-bubble-action-description"
+                      >
+                        {{ item.description }}
+                      </span>
                     </span>
-                    <svg-icon name="app-arrow-right" />
+                    <svg-icon
+                      class="appearance-setting-preview-bubble-action-arrow"
+                      name="app-arrow-right"
+                    />
                   </span>
                 </div>
-                <footer class="appearance-setting-preview-bubble-tip">
-                  <span>
-                    <svg-icon name="app-heart" />
+                <div class="appearance-setting-preview-bubble-tip">
+                  <span class="appearance-setting-preview-bubble-tip-icon-wrap">
+                    <svg-icon
+                      class="appearance-setting-preview-bubble-tip-icon"
+                      name="app-heart"
+                    />
                   </span>
-                  <small>小贴士：文件或文件夹也可以直接拖到我身上。</small>
-                </footer>
+                  <span class="appearance-setting-preview-bubble-tip-text">
+                    小贴士：文件或文件夹也可以直接拖到我身上。
+                  </span>
+                </div>
               </div>
               <span class="appearance-setting-preview-drag">
                 <svg-icon name="app-drag" />
@@ -69,9 +98,9 @@
             </div>
           </div>
         </div>
-      </section>
+      </div>
       <div class="appearance-setting-content">
-        <layout-row
+        <settings-layout-row
           tag="label"
           title="应用名称"
         >
@@ -83,13 +112,14 @@
             @blur="emit('save-app-title')"
             @press-enter="blurTitleInput"
           />
-        </layout-row>
-        <layout-row title="应用图标">
+        </settings-layout-row>
+        <settings-layout-row title="应用图标">
           <div
             class="appearance-setting-image-item appearance-setting-icon-item"
           >
             <span class="appearance-setting-image-preview">
               <img
+                class="appearance-setting-image"
                 :src="appIconSource"
                 :alt="appTitle"
               />
@@ -107,13 +137,14 @@
               </button>
             </div>
           </div>
-        </layout-row>
-        <layout-row title="桌宠形象">
-          <article
+        </settings-layout-row>
+        <settings-layout-row title="桌宠形象">
+          <div
             class="appearance-setting-image-item appearance-setting-pet-item"
           >
             <span class="appearance-setting-image-preview">
               <img
+                class="appearance-setting-image"
                 :src="petImageSource"
                 alt="桌宠形象"
               />
@@ -141,9 +172,9 @@
                 <svg-icon name="app-restore" />
               </button>
             </div>
-          </article>
-        </layout-row>
-        <layout-row
+          </div>
+        </settings-layout-row>
+        <settings-layout-row
           tag="label"
           title="桌宠大小"
         >
@@ -160,13 +191,14 @@
               <span class="pet-size-unit">px</span>
             </template>
           </a-input-number>
-        </layout-row>
+        </settings-layout-row>
       </div>
     </div>
   </settings-card>
 </template>
 <script setup lang="ts">
 import { useResizeObserver } from '@vueuse/core';
+import { AppearanceSettingEmits, AppearanceSettingProps } from './type';
 import { BUBBLE_APP_TITLE_MAX_LENGTH } from '@/constants';
 import { clamp } from '@/utils';
 import {
@@ -179,10 +211,9 @@ import {
   PET_SIZE_MIN,
   PET_SIZE_STEP,
 } from './constants';
-import { AppearanceSettingEmits, AppearanceSettingProps } from './type';
 import { PET_ACTION_OPTIONS } from '@/components/pet-view/component/pet-bubble-actions/constants';
-import LayoutRow from '../layout-row.vue';
-import SettingsCard from '../settings-card.vue';
+import { SettingsCard } from '../settings-card';
+import { SettingsLayoutRow } from './component';
 // 接收并实时呈现当前外观设置。
 const props = defineProps<AppearanceSettingProps>();
 // 向设置页上报外观编辑、形象替换与桌宠尺寸调整操作。

@@ -1,5 +1,5 @@
 <template>
-  <section class="pet-bubble-actions">
+  <div class="pet-bubble-actions">
     <pet-bubble-actions-header
       :title="bubbleAppTitle"
       :icon-source="bubbleAppIconSource"
@@ -17,17 +17,19 @@
       />
     </div>
     <pet-bubble-actions-tip />
-  </section>
+  </div>
 </template>
 <script setup lang="ts">
+import { PetActionKey, PetHeaderActionKey } from './type';
 import appIconSource from '@/assets/app-icon.png';
 import { DEFAULT_BUBBLE_APP_TITLE } from '@/constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { PET_ACTION_OPTIONS } from './constants';
-import { PetActionKey, PetHeaderActionKey } from './type';
-import PetBubbleAction from './component/pet-bubble-action.vue';
-import PetBubbleActionsHeader from './component/pet-bubble-actions-header.vue';
-import PetBubbleActionsTip from './component/pet-bubble-actions-tip.vue';
+import {
+  PetBubbleAction,
+  PetBubbleActionsHeader,
+  PetBubbleActionsTip,
+} from './component';
 // 读取目标选择与气泡导航能力。
 const { chooseTargets, showBubble } = usePetViewContext().inject();
 // 保存操作气泡当前展示的应用标题。

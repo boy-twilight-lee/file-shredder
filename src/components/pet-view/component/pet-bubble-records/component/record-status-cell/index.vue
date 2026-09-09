@@ -22,19 +22,19 @@ defineProps<{
 <style lang="less" scoped>
 .record-status-cell {
   height: 20px;
-  padding: 0 7px;
+  padding: 0 8px;
   border-radius: 4px;
   font-size: 12px;
   font-weight: 500;
-  line-height: 20px;
+  line-height: 18px;
   white-space: nowrap;
   display: inline-flex;
   align-items: center;
-  &.pet-bubble-records-status-success {
+  &.record-status-cell-success {
     background: rgba(0, 168, 112, 0.1);
     color: #00a870;
   }
-  &.pet-bubble-records-status-failure {
+  &.record-status-cell-failure {
     background: rgba(245, 63, 63, 0.1);
     color: #f53f3f;
   }

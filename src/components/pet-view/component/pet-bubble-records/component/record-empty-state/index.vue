@@ -1,6 +1,10 @@
 <template>
   <div class="record-empty-state">
-    <img :src="emptyIllustration" />
+    <img
+      class="record-empty-state-image"
+      :src="emptyIllustration"
+      alt=""
+    />
     <span>{{ title }}</span>
   </div>
 </template>
@@ -25,7 +29,7 @@ defineProps<{ title: string }>();
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  & > img {
+  .record-empty-state-image {
     height: 116px;
     width: 124px;
     margin-bottom: 8px;

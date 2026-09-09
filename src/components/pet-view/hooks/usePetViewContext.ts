@@ -195,12 +195,12 @@ export function usePetViewContext() {
         await nextTick();
         reportBubbleBounds();
       }
-      // 点击气泡与传送浮层之外的区域时关闭气泡。
+      // 仅在操作菜单中点击气泡与传送浮层之外的区域时关闭气泡。
       function handleOutsidePointerDown(event: PointerEvent): void {
         if (
           event.button !== 0 ||
           bubbleMode.value === 'hidden' ||
-          bubbleMode.value === 'progress'
+          bubbleMode.value !== 'actions'
         )
           return;
         // 人物点击事件统一切换气泡，避免捕获阶段先关闭后又重新打开。
@@ -222,10 +222,10 @@ export function usePetViewContext() {
           return;
         closeBubble();
       }
-      // 窗口失焦时补充处理透明区域的外部点击。
+      // 操作菜单失焦时补充处理透明区域的外部点击。
       function handleWindowBlur(): void {
-        // 点击透明穿透区域会让窗口失焦，用失焦补足 DOM 外部点击的关闭行为。
-        closeBubble();
+        // 透明穿透区域导致失焦时，仅关闭操作菜单。
+        if (bubbleMode.value === 'actions') closeBubble();
       }
       // 将任务级错误转换为可展示的失败结果。
       function showErrorResult(message: string, failedCount: number): void {

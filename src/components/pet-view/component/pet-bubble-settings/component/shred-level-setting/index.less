@@ -7,7 +7,6 @@
       position: relative;
       cursor: pointer;
       height: 56px;
-      min-width: 0;
       width: 100%;
       padding: 8px 36px 8px 10px;
       background: #f8fafc;
@@ -52,7 +51,6 @@
           background-color 160ms ease;
       }
       .shred-level-setting-content {
-        min-width: 0;
         display: flex;
         flex: 1;
         flex-direction: column;
@@ -61,27 +59,25 @@
           display: flex;
           align-items: center;
           gap: 7px;
-          & > strong {
+          .shred-level-setting-label {
             font-size: 12px;
             font-weight: 600;
           }
-          & > em {
-            position: static;
-            padding: 1px 6px;
+          .shred-level-setting-badge {
+            padding: 2px 6px;
             background: #3564ff;
             border-radius: 999px;
-            font-size: 9px;
-            font-style: normal;
+            font-size: 10px;
             font-weight: 600;
-            line-height: 14px;
+            line-height: 16px;
             color: #fff;
           }
         }
-        & > small {
+        .shred-level-setting-description {
           overflow: hidden;
           height: 15px;
           font-size: 12px;
-          line-height: 1.5;
+          line-height: 18px;
           text-align: left;
           text-overflow: ellipsis;
           white-space: nowrap;

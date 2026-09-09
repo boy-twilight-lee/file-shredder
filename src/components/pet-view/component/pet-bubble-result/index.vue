@@ -1,9 +1,9 @@
 <template>
-  <section class="pet-bubble-result">
-    <header class="pet-bubble-result-title">
-      <strong>{{ resultTitle }}</strong>
-      <small>{{ resultSubtitle }}</small>
-    </header>
+  <div class="pet-bubble-result">
+    <div class="pet-bubble-result-title">
+      <span class="pet-bubble-result-title-text">{{ resultTitle }}</span>
+      <span class="pet-bubble-result-subtitle">{{ resultSubtitle }}</span>
+    </div>
     <div class="pet-bubble-result-metrics">
       <div
         v-for="metric in resultMetrics"
@@ -16,9 +16,14 @@
             class="pet-bubble-result-metric-icon"
             :name="metric.icon"
           />
-          <small>{{ metric.label }}</small>
+          <span class="pet-bubble-result-metric-label">{{ metric.label }}</span>
         </span>
-        <strong :title="String(metric.value)">{{ metric.value }}</strong>
+        <span
+          class="pet-bubble-result-metric-value"
+          :title="String(metric.value)"
+        >
+          {{ metric.value }}
+        </span>
         <svg-icon
           class="pet-bubble-result-metric-background-icon"
           :name="metric.backgroundIcon"
@@ -29,18 +34,21 @@
       class="pet-bubble-result-tip"
       :class="`pet-bubble-result-tip-${resultTone}`"
     >
-      <svg-icon name="app-information" />
+      <svg-icon
+        class="pet-bubble-result-tip-icon"
+        name="app-information"
+      />
       <span>{{ resultTip }}</span>
     </div>
-    <footer class="pet-bubble-result-footer">
+    <div class="pet-bubble-result-footer">
       <a-link
         class="pet-bubble-result-link"
         @click="closeBubble"
       >
         我知道了
       </a-link>
-    </footer>
-  </section>
+    </div>
+  </div>
 </template>
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';

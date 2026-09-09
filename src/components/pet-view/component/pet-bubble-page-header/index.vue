@@ -1,7 +1,7 @@
 <template>
-  <header class="page-header">
+  <div class="pet-bubble-page-header">
     <a-link
-      class="page-header-back"
+      class="pet-bubble-page-header-back"
       title="返回"
       aria-label="返回操作菜单"
       @click="handleBack"
@@ -11,10 +11,11 @@
         size="16"
       />
     </a-link>
-    <h1 class="page-header-title">{{ title }}</h1>
-  </header>
+    <span class="pet-bubble-page-header-title">{{ title }}</span>
+  </div>
 </template>
 <script setup lang="ts">
+// 定义气泡子页面展示的标题。
 defineProps<{ title: string }>();
 // 向所属页面发送返回操作。
 const emit = defineEmits<{ back: [] }>();
@@ -24,7 +25,7 @@ function handleBack(): void {
 }
 </script>
 <style lang="less" scoped>
-.page-header {
+.pet-bubble-page-header {
   height: 40px;
   padding: 8px 12px;
   background: #fff;
@@ -33,11 +34,11 @@ function handleBack(): void {
   flex-shrink: 0;
   align-items: center;
   gap: 8px;
-  .page-header-back {
+  .pet-bubble-page-header-back {
     cursor: pointer;
     padding: 0;
     font-size: 16px;
-    line-height: 1;
+    line-height: 22px;
     color: #79828f;
     display: inline-flex;
     flex-shrink: 0;
@@ -47,9 +48,7 @@ function handleBack(): void {
       color: #244fd6;
     }
   }
-  .page-header-title {
-    min-width: 0;
-    margin: 0;
+  .pet-bubble-page-header-title {
     font-size: 14px;
     font-weight: 600;
     line-height: 20px;

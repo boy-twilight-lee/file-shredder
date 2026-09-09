@@ -1,19 +1,19 @@
 <template>
   <button
-    class="drag-btn"
+    class="pet-character-drag"
     type="button"
     title="拖动桌宠"
     aria-label="拖动桌宠"
     @click.stop
   >
     <svg-icon
-      class="drag-btn-icon"
+      class="pet-character-drag-icon"
       name="app-drag"
     />
   </button>
 </template>
 <style lang="less" scoped>
-.drag-btn {
+.pet-character-drag {
   position: absolute;
   z-index: 3;
   top: 0;
@@ -35,7 +35,7 @@
   align-items: center;
   justify-content: center;
   transform: translate(50%, -50%);
-  .drag-btn-icon {
+  .pet-character-drag-icon {
     pointer-events: none;
     font-size: 20px;
   }

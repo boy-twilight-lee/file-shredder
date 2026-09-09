@@ -3,9 +3,9 @@ html {
     .arco-checkbox {
       padding-left: 0;
       .arco-checkbox-icon-hover {
-        background: url('./icons/checkbox-uncheck.svg') no-repeat;
-        width: 14px;
         height: 14px;
+        width: 14px;
+        background: url('./icons/checkbox-uncheck.svg') no-repeat;
         &::before {
           display: none;
         }
@@ -53,9 +53,9 @@ html {
     .arco-radio {
       padding-left: 0;
       .arco-radio-icon-hover {
-        background: url('./icons/radio-uncheck.svg') no-repeat;
-        width: 14px;
         height: 14px;
+        width: 14px;
+        background: url('./icons/radio-uncheck.svg') no-repeat;
         &::before {
           display: none;
         }
@@ -115,10 +115,10 @@ html {
     }
     .arco-input-wrapper,
     .arco-picker {
-      padding: 0 9px;
-      border-radius: 8px;
-      border: 1px solid #e1e5eb;
+      padding: 0 8px;
       background: #fff;
+      border: 1px solid #e1e5eb;
+      border-radius: 8px;
       &.arco-input-error,
       &.arco-picker-error {
         background: #fff;
@@ -156,10 +156,10 @@ html {
       }
       .arco-input-clear-btn,
       .arco-picker-clear-icon {
-        flex-shrink: 0;
-        width: 12px;
         height: 12px;
+        width: 12px;
         background: url('./icons/close-fill.svg') no-repeat;
+        flex-shrink: 0;
         svg,
         &::before {
           display: none;
@@ -171,7 +171,7 @@ html {
       .arco-input-suffix {
         padding-left: 4px;
         .arco-input-word-limit {
-          line-height: normal;
+          line-height: 18px;
           color: #79828f;
           font-family: 'PingFang SC';
           font-size: 12px;
@@ -181,10 +181,10 @@ html {
     }
     .arco-select,
     .arco-select-view {
-      padding: 0 9px 0 8px;
-      border-radius: 8px;
-      border: 1px solid #e1e5eb;
+      padding: 0 8px;
       background: #fff;
+      border: 1px solid #e1e5eb;
+      border-radius: 8px;
       &.arco-select-view-error {
         background: #fff;
         border-color: #e1e5eb;
@@ -215,17 +215,16 @@ html {
       }
       .arco-select-view-inner {
         .arco-tag {
-          min-height: 22px;
           height: 22px;
           padding: 0 8px;
-          border-radius: 4px;
           background: #f5f7fa;
           border: none;
+          border-radius: 4px;
           .arco-tag-close-btn {
-            flex-shrink: 0;
-            width: 12px;
             height: 12px;
+            width: 12px;
             background: url('./icons/close.svg') no-repeat;
+            flex-shrink: 0;
             svg {
               display: none;
             }
@@ -247,18 +246,18 @@ html {
       }
       .arco-select-view-suffix {
         .arco-select-view-clear-btn {
-          flex-shrink: 0;
-          width: 12px;
           height: 12px;
+          width: 12px;
           background: url('./icons/close-fill.svg') no-repeat;
+          flex-shrink: 0;
           svg,
           &::before {
             display: none;
           }
         }
         .arco-select-view-icon {
-          width: 12px;
           height: 12px;
+          width: 12px;
           background: url('./icons/select-arrow-down.svg') no-repeat;
           svg {
             display: none;
@@ -268,8 +267,8 @@ html {
       &.arco-select-view-focus {
         .arco-select-view-suffix {
           .arco-select-view-icon {
-            width: 12px;
             height: 12px;
+            width: 12px;
             background: url('./icons/select-arrow-up.svg') no-repeat;
             svg {
               display: none;
@@ -289,9 +288,9 @@ html {
       }
     }
     .arco-textarea-wrapper {
-      border-radius: 8px;
-      border: 1px solid #e1e5eb;
       background: #fff;
+      border: 1px solid #e1e5eb;
+      border-radius: 8px;
       &.arco-textarea-error {
         background: #fff;
         border-color: #e1e5eb;
@@ -311,7 +310,7 @@ html {
       }
       .arco-textarea,
       .arco-textarea-mirror {
-        padding: 6px 9px;
+        padding: 6px 8px;
         caret-color: #0065ff;
         color: #474f59;
         font-family: 'PingFang SC';
@@ -322,10 +321,10 @@ html {
         }
       }
       .arco-textarea-clear-btn {
-        flex-shrink: 0;
-        width: 12px;
         height: 12px;
+        width: 12px;
         background: url('./icons/close-fill.svg') no-repeat;
+        flex-shrink: 0;
         .arco-icon-hover {
           display: none;
         }
@@ -337,19 +336,19 @@ html {
           .arco-select-dropdown,
           .arco-dropdown {
             padding: 0;
-            border-radius: 8px;
             border: 1px solid #e1e5eb;
+            border-radius: 8px;
             box-shadow: 0px 0px 8px 0px rgba(0, 101, 255, 0.06);
             .arco-scrollbar {
               .arco-scrollbar-container {
                 .arco-select-dropdown-list,
                 .arco-dropdown-list {
-                  padding: 3px;
+                  padding: 4px;
                   .arco-select-option,
                   .arco-dropdown-option {
-                    margin-top: 2px;
                     height: 30px;
-                    padding: 5px 0 5px 8px;
+                    margin-top: 2px;
+                    padding: 4px 0 4px 8px;
                     border-radius: 6px;
                     display: flex;
                     align-items: center;
@@ -384,10 +383,10 @@ html {
     }
     .arco-cascader-panel {
       height: fit-content;
-      border-radius: 8px;
       border: 1px solid #e1e5eb;
+      border-radius: 8px;
       .arco-cascader-list {
-        padding: 3px;
+        padding: 4px;
       }
       .arco-cascader-option {
         border-radius: 6px;
@@ -410,9 +409,9 @@ html {
       }
     }
     .arco-picker-container {
-      border-radius: 8px;
-      border: 1px solid #e1e5eb;
       background: #fff;
+      border: 1px solid #e1e5eb;
+      border-radius: 8px;
       box-shadow: 0px 0px 8px 0px rgba(0, 101, 255, 0.06);
       .arco-picker-panel-wrapper {
         .arco-panel-date {
@@ -433,9 +432,9 @@ html {
                 align-items: center;
               }
               .arco-picker-header-icon {
+                background-color: transparent;
                 font-size: 18px;
                 color: #99a1ad;
-                background-color: transparent;
                 &:hover {
                   color: #557ca7;
                 }
@@ -445,7 +444,7 @@ html {
               padding: 8px 8px 0 8px;
               .arco-picker-week-list-item {
                 height: 24px;
-                line-height: 24px;
+                line-height: 20px;
                 color: #99a1ad;
                 font-family: 'PingFang SC';
                 font-size: 14px;
@@ -481,9 +480,9 @@ html {
                 &.arco-picker-cell-selected {
                   .arco-picker-date {
                     .arco-picker-date-value {
-                      color: #fff;
-                      border: none;
                       background-color: #0065ff;
+                      border: none;
+                      color: #fff;
                     }
                   }
                 }
@@ -491,8 +490,8 @@ html {
                   .arco-picker-date {
                     background-color: transparent;
                     .arco-picker-date-value {
-                      color: #c9ced6;
                       background-color: transparent;
+                      color: #c9ced6;
                     }
                   }
                 }
@@ -517,16 +516,16 @@ html {
                     font-weight: 400;
                     .arco-timepicker-cell-inner {
                       padding-left: 0;
-                      text-align: center;
                       border-radius: 6px;
+                      text-align: center;
                       &:hover {
                         background-color: #edf1f7;
                       }
                     }
                     &.arco-timepicker-cell-disabled {
                       .arco-timepicker-cell-inner {
-                        color: #c9ced6;
                         background-color: transparent;
+                        color: #c9ced6;
                       }
                     }
                     &.arco-timepicker-cell-selected {
@@ -580,9 +579,9 @@ html {
       }
       &.arco-btn-primary {
         &.arco-btn-status-normal {
-          color: #fff;
           background: #0065ff;
           box-shadow: 0px 2px 6px 0px rgba(0, 101, 255, 0.3);
+          color: #fff;
           &:not(.arco-btn-disabled):not(.arco-btn-loading) {
             &:hover {
               background: #3384ff;
@@ -595,45 +594,45 @@ html {
       }
       &.arco-btn-secondary {
         &.arco-btn-status-normal {
-          color: #0065ff;
           background: rgba(0, 101, 255, 0.08);
+          color: #0065ff;
           &:not(.arco-btn-disabled):not(.arco-btn-loading) {
             &:hover {
-              color: #0065ff;
               background: rgba(0, 101, 255, 0.16);
+              color: #0065ff;
             }
             &:active {
-              color: #0065ff;
               background: rgba(0, 101, 255, 0.04);
+              color: #0065ff;
             }
           }
         }
         &.arco-btn-status-danger {
-          color: #ff4c26;
           background: rgba(255, 76, 38, 0.08);
+          color: #ff4c26;
           &:not(.arco-btn-disabled):not(.arco-btn-loading) {
             &:hover {
-              color: #ff4c26;
               background-color: #fdcdc5;
+              color: #ff4c26;
             }
             &:active {
-              color: #ff4c26;
               background-color: rgba(255, 76, 38, 0.08);
+              color: #ff4c26;
             }
           }
         }
       }
       &.arco-btn-outline {
         &.arco-btn-status-normal {
-          color: #0d1014;
-          border-radius: 8px;
-          border: 1px solid #e1e5eb;
           background: #fff;
+          border: 1px solid #e1e5eb;
+          border-radius: 8px;
+          color: #0d1014;
           &:not(.arco-btn-disabled):not(.arco-btn-loading) {
             &:hover {
-              color: #0065ff;
-              border-color: #0065ff;
               background: #fff;
+              border-color: #0065ff;
+              color: #0065ff;
               .arco-btn-icon {
                 color: #0065ff;
               }
@@ -648,18 +647,18 @@ html {
           }
         }
         &.arco-btn-status-danger {
-          color: #ff4c26;
-          border: 1px solid rgba(255, 76, 38, 0.2);
           background-color: transparent;
+          border: 1px solid rgba(255, 76, 38, 0.2);
+          color: #ff4c26;
           &:not(.arco-btn-disabled):not(.arco-btn-loading) {
             &:hover {
-              color: #ff4c26;
               border-color: #ff4c26;
+              color: #ff4c26;
             }
             &:active {
-              color: #ff4c26;
-              border-color: #ff4c26;
               background-color: rgba(255, 76, 38, 0.08);
+              border-color: #ff4c26;
+              color: #ff4c26;
             }
           }
         }
@@ -736,9 +735,9 @@ html {
     .arco-pagination {
       .arco-pagination-list {
         .arco-pagination-item {
+          height: 28px;
           width: fit-content;
           min-width: 28px;
-          height: 28px;
           padding: 0 4px;
           border-radius: 8px;
           border: 1px solid transparent;
@@ -746,21 +745,21 @@ html {
           font-family: 'PingFang SC';
           font-size: 14px;
           font-weight: 400;
-          line-height: 28px;
+          line-height: 20px;
           &:hover:not(.arco-pagination-item-disabled) {
             background: #edf1f7;
           }
           &.arco-pagination-item-active {
-            font-weight: 500;
-            border-color: 1px solid #0065ff;
             background: rgba(0, 101, 255, 0.08);
+            border: 1px solid #0065ff;
+            font-weight: 500;
             color: #0065ff;
           }
           &.arco-pagination-item-previous,
           &.arco-pagination-item-next {
-            line-height: normal;
-            color: #99a1ad;
             position: relative;
+            line-height: 20px;
+            color: #99a1ad;
             svg {
               position: absolute;
               left: 50%;
@@ -774,19 +773,19 @@ html {
         }
       }
       .arco-pagination-options {
-        margin-left: 16px;
         max-width: 112px;
+        margin-left: 16px;
       }
       .arco-pagination-jumper {
         margin-left: 4px;
         &::before {
-          display: block;
-          content: '跳至';
           margin-right: 4px;
-          color: #474f59;
+          content: '跳至';
           font-family: 'PingFang SC';
           font-size: 14px;
           font-weight: 400;
+          color: #474f59;
+          display: block;
         }
         .arco-pagination-jumper-prepend {
           display: none;
@@ -825,11 +824,11 @@ html {
           }
           .arco-pagination-jumper-separator,
           .arco-pagination-jumper-total-page {
+            margin: 0;
             color: #474f59;
             font-family: 'PingFang SC';
             font-size: 14px;
             font-weight: 400;
-            margin: 0;
           }
         }
       }
@@ -859,12 +858,12 @@ html {
         -webkit-user-select: none;
         -ms-user-select: none;
         .arco-modal {
-          border-radius: 16px;
-          background: #fff;
           -webkit-user-modify: read-only;
           user-select: none;
           -webkit-user-select: none;
           -ms-user-select: none;
+          background: #fff;
+          border-radius: 16px;
           .arco-modal-header {
             height: 53px;
             padding: 0 24px;
@@ -872,16 +871,16 @@ html {
             .arco-modal-title {
               color: #0d1014;
               font-family: 'PingFang SC';
-              font-size: 15px;
+              font-size: 16px;
               font-weight: 500;
             }
             .arco-modal-close-btn {
               margin-left: -10px;
               .arco-icon-hover {
-                flex-shrink: 0;
-                width: 20px;
                 height: 20px;
+                width: 20px;
                 background: url('./icons/close-circle.svg') no-repeat;
+                flex-shrink: 0;
                 svg {
                   display: none;
                 }
@@ -892,8 +891,8 @@ html {
             }
           }
           .arco-modal-body {
-            padding: 24px 24px 0 24px;
             min-height: 268px;
+            padding: 24px 24px 0 24px;
           }
           .arco-modal-footer {
             height: 64px;
@@ -923,16 +922,16 @@ html {
           .arco-drawer-title {
             color: #0d1014;
             font-family: 'PingFang SC';
-            font-size: 15px;
+            font-size: 16px;
             font-weight: 500;
           }
           .arco-drawer-close-btn {
             margin-left: -10px;
             .arco-icon-hover {
-              flex-shrink: 0;
-              width: 20px;
               height: 20px;
+              width: 20px;
               background: url('./icons/close-circle.svg') no-repeat;
+              flex-shrink: 0;
               svg {
                 display: none;
               }
@@ -943,8 +942,8 @@ html {
           }
         }
         .arco-drawer-body {
-          padding: 24px 24px 0 17px;
           min-height: 268px;
+          padding: 24px 24px 0 18px;
         }
         .arco-drawer-footer {
           height: 64px;
@@ -972,15 +971,15 @@ html {
               position: relative;
               &::before {
                 position: absolute;
-                left: -8px;
                 top: 50%;
-                transform: translateY(-50%);
-                display: inline-block;
-                content: '*';
+                left: -8px;
                 width: 8px;
+                content: '*';
+                font-size: 14px;
                 text-align: center;
                 color: #ff4c26;
-                font-size: 14px;
+                display: inline-block;
+                transform: translateY(-50%);
               }
               svg {
                 display: none;
@@ -989,9 +988,9 @@ html {
           }
         }
         .arco-form-item-message {
-          margin-top: 4px;
           min-height: 16px;
-          line-height: 16px;
+          margin-top: 4px;
+          line-height: 20px;
           color: #ff4c26;
           font-family: 'PingFang SC';
           font-size: 14px;
@@ -1000,13 +999,13 @@ html {
       }
     }
     .arco-tag {
+      border-radius: 4px;
       font-family: 'PingFang SC';
       font-size: 12px;
       font-weight: 400;
-      border-radius: 4px;
       .colorBg(@color) {
-        color: @color;
         background-color: fade(@color, 8%);
+        color: @color;
       }
       &.correct {
         .colorBg(rgba(38, 165, 85, 1));
@@ -1018,24 +1017,24 @@ html {
         .colorBg(rgba(255, 76, 38, 1));
       }
       &.auxiliary {
-        color: rgba(85, 124, 167, 1);
         background: rgba(237, 241, 247, 1);
+        color: rgba(85, 124, 167, 1);
       }
       &.gray {
-        color: rgba(153, 161, 173, 1);
         background: rgba(237, 241, 247, 1);
+        color: rgba(153, 161, 173, 1);
       }
       &.purple {
         .colorBg(rgba(118, 102, 251, 1));
       }
       &.gradient {
-        font-size: 14px;
-        font-weight: 500;
         background: linear-gradient(
           107deg,
           rgba(142, 89, 255, 0.1) 8.33%,
           rgba(0, 117, 255, 0.1) 96.81%
         );
+        font-size: 14px;
+        font-weight: 500;
         span {
           background: linear-gradient(107deg, #c259ff 8.33%, #0065ff 96.81%);
           background-clip: text;
@@ -1050,44 +1049,43 @@ html {
       .arco-trigger-popup-wrapper {
         border-radius: 8px;
         .arco-tooltip-content {
-          border-radius: 8px;
           padding: 6px 8px;
+          border-radius: 8px;
         }
       }
     }
     .arco-message {
-      box-sizing: border-box;
       max-width: min(360px, calc(100vw - 32px));
-      border-radius: 8px;
-      background: rgba(13, 16, 20, 0.8);
-      backdrop-filter: blur(4px);
       padding: 8px 12px;
+      background: rgba(13, 16, 20, 0.8);
       border: none;
+      border-radius: 8px;
+      backdrop-filter: blur(4px);
       .arco-message-content {
-        min-width: 0;
         overflow: hidden;
-        color: rgba(255, 255, 255, 1);
+        min-width: 0;
         font-family: 'PingFang SC';
         font-size: 14px;
         font-weight: 400;
-        line-height: 1;
+        line-height: 20px;
         text-overflow: ellipsis;
         white-space: nowrap;
+        color: rgba(255, 255, 255, 1);
       }
       .arco-message-icon {
         position: relative;
-        flex-shrink: 0;
         margin-right: 4px;
+        flex-shrink: 0;
         &::after {
           position: absolute;
-          content: '';
+          z-index: -1;
           top: 50%;
           left: 50%;
-          transform: translate(-50%, -50%);
-          background: rgba(255, 255, 255, 1);
-          width: 0.5em;
           height: 0.5em;
-          z-index: -1;
+          width: 0.5em;
+          background: rgba(255, 255, 255, 1);
+          content: '';
+          transform: translate(-50%, -50%);
         }
       }
     }

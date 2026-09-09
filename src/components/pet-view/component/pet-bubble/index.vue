@@ -1,5 +1,5 @@
 <template>
-  <aside
+  <div
     :class="['pet-view-bubble', `pet-view-bubble-${visibleBubbleMode}`]"
     ref="bubbleElement"
   >
@@ -14,7 +14,7 @@
       <pet-bubble-progress v-else-if="visibleBubbleMode === 'progress'" />
       <pet-bubble-result v-else />
     </transition>
-  </aside>
+  </div>
 </template>
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';

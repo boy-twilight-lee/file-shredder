@@ -14,8 +14,8 @@
           <svg-icon :name="item.icon" />
         </span>
         <div class="system-setting-content">
-          <strong>{{ item.label }}</strong>
-          <span>{{ item.description }}</span>
+          <span class="system-setting-label">{{ item.label }}</span>
+          <span class="system-setting-description">{{ item.description }}</span>
         </div>
         <a-switch
           :model-value="settings[item.key]"
@@ -26,9 +26,10 @@
   </settings-card>
 </template>
 <script setup lang="ts">
-import type { SystemSettingProps } from './type';
+import { SystemSettingProps } from './type';
 import { SYSTEM_SETTING_OPTIONS } from './constants';
-import SettingsCard from '../settings-card.vue';
+import { SettingsCard } from '../settings-card';
+// 接收当前系统设置以及异步落盘方法。
 defineProps<SystemSettingProps>();
 </script>
 <style lang="less" scoped>

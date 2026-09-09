@@ -4,10 +4,10 @@
     class="pet-bubble-records"
   >
     <record-empty-state
-      v-if="!logs.length"
-      :title="!logs.length ? '暂无粉碎记录' : '未找到匹配的粉碎记录'"
+      v-if="emptyStateTitle"
+      :title="emptyStateTitle"
     />
-    <page-header
+    <pet-bubble-page-header
       title="粉碎记录"
       @back="showBubble('actions')"
     />
@@ -19,19 +19,19 @@
         placeholder="筛选文件路径"
       />
       <div class="pet-bubble-records-actions">
-        <div>
+        <div class="pet-bubble-records-summary-group">
           <span class="pet-bubble-records-summary">
             共
-            <strong class="pet-bubble-records-summary-total">
+            <span class="pet-bubble-records-summary-total">
               {{ logs.length }}
-            </strong>
+            </span>
             条
           </span>
           <span class="pet-bubble-records-summary">
             ，已选
-            <strong class="pet-bubble-records-summary-selected">
+            <span class="pet-bubble-records-summary-selected">
               {{ selectedLogIds.length }}
-            </strong>
+            </span>
             条
           </span>
         </div>
@@ -124,21 +124,23 @@ import Message from '@arco-design/web-vue/es/message';
 import '@arco-design/web-vue/es/message/style/css.js';
 import { RecordTableRow } from './type';
 import { ShredLog } from '@/type';
-import { formatRecordTime, getPathDirectory, getPathName } from '@/utils';
 import { usePetViewContext } from '@/components/pet-view/hooks';
+import {
+  MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
+  MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
+} from '@/components/pet-view/component/pet-bubble/constants';
+import { formatRecordTime, getPathDirectory, getPathName } from '@/utils';
 import {
   DEFAULT_RECORD_PAGE_SIZE,
   RECORD_PAGE_SIZE_OPTIONS,
   RECORD_TABLE_COLUMNS,
 } from './constants';
 import {
-  MEDIUM_POPCONFIRM_CANCEL_BUTTON_PROPS,
-  MEDIUM_POPCONFIRM_PRIMARY_BUTTON_PROPS,
-} from '@/components/pet-view/component/pet-bubble/constants';
-import { PageHeader } from '@/components/pet-view/component/pet-bubble-settings/component';
-import RecordEmptyState from './component/record-empty-state.vue';
-import RecordStatusCell from './component/record-status-cell.vue';
-import RecordTargetCell from './component/record-target-cell.vue';
+  RecordEmptyState,
+  RecordStatusCell,
+  RecordTargetCell,
+} from './component';
+import { PetBubblePageHeader } from '../pet-bubble-page-header';
 // 保存当前加载的粉碎记录。
 const logs = ref<RecordTableRow[]>([]);
 // 保存用户跨分页选中的记录标识。
@@ -165,6 +167,11 @@ const filteredLogs = computed(() => {
     log.path.toLocaleLowerCase().includes(normalizedKeyword),
   );
 });
+// 根据记录总量与筛选结果生成当前空状态文案。
+const emptyStateTitle = computed(() => {
+  if (!logs.value.length) return '暂无粉碎记录';
+  return filteredLogs.value.length ? '' : '未找到匹配的粉碎记录';
+});
 // 计算筛选结果对应的总页数，并确保空数据也存在第一页。
 const pageCount = computed(() =>
   Math.max(Math.ceil(filteredLogs.value.length / pageSize.value), 1),
@@ -187,8 +194,8 @@ function formatLogRows(records: ShredLog[]): RecordTableRow[] {
     displayName: getPathName(record.path),
     sourcePath: getPathDirectory(record.path) || '当前目录',
     statusClass: record.success
-      ? 'pet-bubble-records-status-success'
-      : 'pet-bubble-records-status-failure',
+      ? 'record-status-cell-success'
+      : 'record-status-cell-failure',
     statusLabel: record.success ? '成功' : '失败',
     targetIconName:
       record.targetType === 'directory' ? 'app-folder' : 'app-file',

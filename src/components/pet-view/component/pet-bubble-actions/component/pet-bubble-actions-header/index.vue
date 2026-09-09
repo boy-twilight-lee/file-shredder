@@ -1,13 +1,15 @@
 <template>
-  <header class="pet-bubble-actions-header">
+  <div class="pet-bubble-actions-header">
     <img
       class="pet-bubble-actions-header-avatar"
       :src="iconSource"
       :alt="title"
     />
     <span class="pet-bubble-actions-header-heading">
-      <strong>{{ title }}</strong>
-      <small>安全、彻底地清理文件</small>
+      <span class="pet-bubble-actions-header-title">{{ title }}</span>
+      <span class="pet-bubble-actions-header-description">
+        安全、彻底地清理文件
+      </span>
     </span>
     <span class="pet-bubble-actions-header-tools">
       <a-tooltip
@@ -30,11 +32,11 @@
         </button>
       </a-tooltip>
     </span>
-  </header>
+  </div>
 </template>
 <script setup lang="ts">
-import { PET_HEADER_ACTION_OPTIONS } from '../constants';
-import { PetHeaderActionKey } from '../type';
+import { PetHeaderActionKey } from '../../type';
+import { PET_HEADER_ACTION_OPTIONS } from '../../constants';
 // 定义操作面板头部展示的品牌信息。
 defineProps<{ title: string; iconSource: string }>();
 // 定义用户选择头部快捷操作时向父组件发送的事件。
@@ -54,7 +56,7 @@ function handleSelect(key: PetHeaderActionKey): void {
   .pet-bubble-actions-header-avatar {
     height: 48px;
     width: 48px;
-    padding: 3px;
+    padding: 4px;
     background: linear-gradient(145deg, #f3f8ff, #e8f1ff);
     border: 1px solid rgba(36, 117, 220, 0.16);
     border-radius: 15px;
@@ -64,21 +66,20 @@ function handleSelect(key: PetHeaderActionKey): void {
   }
   .pet-bubble-actions-header-heading {
     overflow: hidden;
-    min-width: 0;
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: 2px;
-    & > strong {
+    .pet-bubble-actions-header-title {
       font-size: 14px;
       font-weight: 700;
       line-height: 20px;
       letter-spacing: 0;
       color: #151a21;
     }
-    & > small {
+    .pet-bubble-actions-header-description {
       font-size: 12px;
-      line-height: 17px;
+      line-height: 18px;
       color: #7d8794;
     }
   }

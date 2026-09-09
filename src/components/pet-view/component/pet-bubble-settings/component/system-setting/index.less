@@ -26,18 +26,17 @@
         justify-content: center;
       }
       .system-setting-content {
-        min-width: 0;
         flex: 1;
-        & > strong {
+        display: flex;
+        flex-direction: column;
+        .system-setting-label {
           font-size: 12px;
           font-weight: 500;
-          display: block;
         }
-        & > span {
+        .system-setting-description {
           overflow: hidden;
-          margin-top: 3px;
           font-size: var(--system-setting-description-font-size, 12px);
-          line-height: 1.4;
+          line-height: 18px;
           text-overflow: ellipsis;
           white-space: nowrap;
           color: #99a1ad;

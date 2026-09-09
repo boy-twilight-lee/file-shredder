@@ -9,9 +9,9 @@
     />
   </svg>
 </template>
-<script lang="ts" setup>
-import { valueToPx } from '@/utils';
+<script setup lang="ts">
 import { isUndefined, isArray } from 'lodash-es';
+import { valueToPx } from '@/utils';
 defineOptions({
   name: 'PcSvgIcon',
 });
@@ -49,10 +49,10 @@ const height = computed(() => {
 </script>
 <style lang="less" scoped>
 .svg-icon {
-  display: inline-block;
   overflow: hidden;
-  width: v-bind(width);
   height: v-bind(height);
+  width: v-bind(width);
   color: v-bind(color);
+  display: inline-block;
 }
 </style>

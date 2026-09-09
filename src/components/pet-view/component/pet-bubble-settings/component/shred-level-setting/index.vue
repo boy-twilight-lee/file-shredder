@@ -26,10 +26,12 @@
         </span>
         <span class="shred-level-setting-content">
           <span class="shred-level-setting-title">
-            <strong>{{ item.title }}</strong>
-            <em>{{ item.badge }}</em>
+            <span class="shred-level-setting-label">{{ item.title }}</span>
+            <span class="shred-level-setting-badge">{{ item.badge }}</span>
           </span>
-          <small>{{ item.description }}</small>
+          <span class="shred-level-setting-description">
+            {{ item.description }}
+          </span>
         </span>
         <span
           v-if="modelValue === item.value"
@@ -42,9 +44,10 @@
   </settings-card>
 </template>
 <script setup lang="ts">
-import type { AppSettings } from '@/type';
+import { AppSettings } from '@/type';
 import { SHRED_LEVEL_ICONS, SHRED_LEVEL_OPTIONS } from './constants';
-import SettingsCard from '../settings-card.vue';
+import { SettingsCard } from '../settings-card';
+// 接收设置页当前保存的文件清理强度。
 defineProps<{ modelValue: AppSettings['passes'] }>();
 // 向设置页上报用户选择的清理强度。
 const emit = defineEmits<{

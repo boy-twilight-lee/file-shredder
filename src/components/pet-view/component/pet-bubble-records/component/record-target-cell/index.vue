@@ -7,9 +7,7 @@
       class="record-target-cell-icon"
       :name="iconName"
     />
-    <span class="record-target-cell-name">
-      {{ name }}
-    </span>
+    <span class="record-target-cell-name">{{ name }}</span>
   </span>
 </template>
 <script setup lang="ts">
@@ -19,7 +17,6 @@ defineProps<{ path: string; iconName: string; name: string }>();
 <style lang="less" scoped>
 .record-target-cell {
   overflow: hidden;
-  min-width: 0;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -31,7 +28,6 @@ defineProps<{ path: string; iconName: string; name: string }>();
   }
   .record-target-cell-name {
     overflow: hidden;
-    min-width: 0;
     text-overflow: ellipsis;
     white-space: nowrap;
   }

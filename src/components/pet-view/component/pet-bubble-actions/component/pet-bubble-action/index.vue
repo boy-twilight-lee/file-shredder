@@ -14,10 +14,10 @@
     </span>
     <span class="pet-bubble-action-content">
       <span class="pet-bubble-action-heading">
-        <strong>{{ item.title }}</strong>
-        <small class="pet-bubble-action-badge">{{ item.badge }}</small>
+        <span class="pet-bubble-action-title">{{ item.title }}</span>
+        <span class="pet-bubble-action-badge">{{ item.badge }}</span>
       </span>
-      <small>{{ item.description }}</small>
+      <span class="pet-bubble-action-description">{{ item.description }}</span>
     </span>
     <svg-icon
       class="pet-bubble-action-chevron"
@@ -26,7 +26,7 @@
   </button>
 </template>
 <script setup lang="ts">
-import { PetActionOption } from '../type';
+import { PetActionOption } from '../../type';
 // 定义当前操作项的展示信息。
 const props = defineProps<{ item: PetActionOption }>();
 // 定义用户选择操作项时向父组件发送的事件。
@@ -40,8 +40,7 @@ function handleSelect(): void {
 .pet-bubble-action {
   cursor: pointer;
   min-height: 62px;
-  min-width: 0;
-  padding: 9px 11px;
+  padding: 10px 12px;
   background: linear-gradient(135deg, #fbfdff 0%, #f3f7fd 100%);
   border: 1px solid rgba(36, 117, 220, 0.2);
   border-radius: 12px;
@@ -105,11 +104,11 @@ function handleSelect(): void {
   .pet-bubble-action-icon-wrap {
     height: 42px;
     width: 42px;
-    flex-shrink: 0;
     background: rgba(36, 117, 220, 0.1);
     border-radius: 12px;
     color: #2475dc;
     display: inline-flex;
+    flex-shrink: 0;
     align-items: center;
     justify-content: center;
     .pet-bubble-action-icon {
@@ -119,17 +118,15 @@ function handleSelect(): void {
   }
   .pet-bubble-action-content {
     overflow: hidden;
-    min-width: 0;
     display: flex;
     flex: 1;
     flex-direction: column;
     gap: 3px;
     .pet-bubble-action-heading {
-      min-width: 0;
       display: flex;
       align-items: center;
       gap: 8px;
-      & > strong {
+      .pet-bubble-action-title {
         overflow: hidden;
         font-size: 14px;
         font-weight: 600;
@@ -139,17 +136,17 @@ function handleSelect(): void {
       }
       .pet-bubble-action-badge {
         height: 20px;
-        flex-shrink: 0;
         padding: 0 6px;
         border-radius: 6px;
-        font-size: 9px;
-        line-height: 20px;
+        font-size: 10px;
+        line-height: 16px;
         white-space: nowrap;
         display: inline-flex;
+        flex-shrink: 0;
         align-items: center;
       }
     }
-    & > small {
+    .pet-bubble-action-description {
       overflow: hidden;
       font-size: 12px;
       line-height: 18px;
@@ -159,8 +156,8 @@ function handleSelect(): void {
     }
   }
   .pet-bubble-action-chevron {
-    flex-shrink: 0;
     font-size: 16px;
+    flex-shrink: 0;
   }
 }
 </style>

@@ -1,11 +1,12 @@
 <template>
-  <section class="pet-bubble-confirm">
-    <header class="pet-bubble-confirm-heading">
-      <strong>确定永久粉碎吗？</strong>
-      <small>
-        共 {{ selectedTargets.length }} 项，此操作<span>不可撤销</span>。
-      </small>
-    </header>
+  <div class="pet-bubble-confirm">
+    <div class="pet-bubble-confirm-heading">
+      <span class="pet-bubble-confirm-title">确定永久粉碎吗？</span>
+      <span class="pet-bubble-confirm-description">
+        共 {{ selectedTargets.length }} 项，此操作
+        <span class="pet-bubble-confirm-emphasis">不可撤销</span>。
+      </span>
+    </div>
     <a-scrollbar
       class="pet-bubble-confirm-scrollbar-container"
       outer-class="pet-bubble-confirm-scrollbar"
@@ -23,22 +24,20 @@
             :class="`pet-bubble-confirm-target-icon-wrap-${target.targetType}`"
           >
             <svg-icon
-              :name="
-                target.targetType === 'directory' ? 'app-folder' : 'app-file'
-              "
+              :name="getTargetIconName(target)"
               class="pet-bubble-confirm-target-icon"
             />
           </span>
           <span class="pet-bubble-confirm-target-content">
-            <strong
+            <span
               class="pet-bubble-confirm-target-path"
               :title="target.path"
             >
               {{ getPathName(target.path) }}
-            </strong>
-            <small>{{
-              target.size === null ? '未知' : formatByteSize(target.size)
-            }}</small>
+            </span>
+            <span class="pet-bubble-confirm-target-size">
+              {{ getTargetSizeText(target) }}
+            </span>
           </span>
           <a-button
             class="pet-bubble-confirm-target-remove"
@@ -60,10 +59,13 @@
       </div>
     </a-scrollbar>
     <div class="pet-bubble-confirm-warning">
-      <svg-icon name="app-warning" />
+      <svg-icon
+        class="pet-bubble-confirm-warning-icon"
+        name="app-warning"
+      />
       <span>粉碎后将无法找回，请确认文件已备份。</span>
     </div>
-    <footer class="pet-bubble-confirm-footer">
+    <div class="pet-bubble-confirm-footer">
       <a-button
         type="outline"
         size="small"
@@ -79,10 +81,11 @@
       >
         确定
       </a-button>
-    </footer>
-  </section>
+    </div>
+  </div>
 </template>
 <script setup lang="ts">
+import { ShredTarget } from '@/type';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { formatByteSize, getPathName } from '@/utils';
 // 读取待确认目标与粉碎任务控制能力。
@@ -93,6 +96,14 @@ const {
   closeBubble,
   confirmShred,
 } = usePetViewContext().inject();
+// 返回粉碎目标类型对应的业务图标名称。
+function getTargetIconName(target: ShredTarget): string {
+  return target.targetType === 'directory' ? 'app-folder' : 'app-file';
+}
+// 将粉碎目标大小转换为确认列表展示文本。
+function getTargetSizeText(target: ShredTarget): string {
+  return target.size === null ? '未知' : formatByteSize(target.size);
+}
 </script>
 <style lang="less" scoped>
 @import './index.less';

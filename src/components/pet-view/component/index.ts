@@ -1,5 +1,6 @@
 export { PetCharacter } from './pet-character';
 export { default as PetBubble } from './pet-bubble';
+export { PetBubblePageHeader } from './pet-bubble-page-header';
 export { default as PetBubbleActions } from './pet-bubble-actions';
 export { default as PetBubbleConfirm } from './pet-bubble-confirm';
 export { default as PetBubbleProgress } from './pet-bubble-progress';

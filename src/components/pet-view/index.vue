@@ -1,5 +1,5 @@
 <template>
-  <main
+  <div
     class="pet-view"
     :style="petAppearanceStyle"
     @dragover.prevent
@@ -23,7 +23,7 @@
         <pet-bubble />
       </template>
     </a-trigger>
-  </main>
+  </div>
 </template>
 <script setup lang="ts">
 import { usePetViewContext } from './hooks';

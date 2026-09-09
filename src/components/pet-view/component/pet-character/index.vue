@@ -15,13 +15,14 @@
       @load="handlePetImageLoad"
     />
     <transition name="fade-in">
-      <drag-btn v-if="dragButtonVisible" />
+      <pet-character-drag v-if="dragButtonVisible" />
     </transition>
   </div>
 </template>
 <script setup lang="ts">
 import { usePetViewContext } from '@/components/pet-view/hooks';
-import DragBtn from './component/drag-btn.vue';
+import { PetCharacterDrag } from './component';
+// 定义气泡打开时是否显示桌宠拖动入口。
 defineProps<{ dragButtonVisible: boolean }>();
 // 读取桌宠共享状态与人物交互能力。
 const {

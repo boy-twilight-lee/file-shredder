@@ -1,30 +1,31 @@
 <template>
-  <section class="settings-card">
-    <header
+  <div class="settings-card">
+    <div
       v-if="title || description || $slots.header"
       class="settings-card-header"
     >
       <slot name="header">
-        <h2
+        <span
           v-if="title"
           class="settings-card-title"
         >
           {{ title }}
-        </h2>
-        <p
+        </span>
+        <span
           v-if="description"
           class="settings-card-description"
         >
           {{ description }}
-        </p>
+        </span>
       </slot>
-    </header>
+    </div>
     <div class="settings-card-content">
       <slot />
     </div>
-  </section>
+  </div>
 </template>
 <script setup lang="ts">
+// 定义设置卡片可选的标题与辅助说明。
 withDefaults(
   defineProps<{
     title?: string;
@@ -38,7 +39,6 @@ withDefaults(
 </script>
 <style lang="less" scoped>
 .settings-card {
-  min-width: 0;
   padding: var(--settings-card-padding, 16px);
   background: #fff;
   border: 1px solid #e7ebf0;
@@ -48,25 +48,24 @@ withDefaults(
   flex-direction: column;
   gap: 16px;
   .settings-card-header {
-    min-width: 0;
     .settings-card-title {
-      margin: 0;
       font-size: 14px;
       font-weight: 600;
-      line-height: 22px;
+      line-height: 20px;
+      display: block;
     }
     .settings-card-description {
       overflow: hidden;
       margin: 4px 0 0;
       font-size: 12px;
-      line-height: 1.6;
+      line-height: 18px;
       text-overflow: ellipsis;
       white-space: nowrap;
       color: #79828f;
+      display: block;
     }
   }
   .settings-card-content {
-    min-width: 0;
     flex: 1;
   }
 }

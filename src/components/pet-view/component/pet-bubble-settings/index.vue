@@ -3,7 +3,7 @@
     :loading="isLoading"
     class="pet-bubble-settings"
   >
-    <page-header
+    <pet-bubble-page-header
       title="常规设置"
       @back="showBubble('actions')"
     />
@@ -49,10 +49,10 @@ import { normalizeBubbleAppTitle } from '@/utils';
 import { DEFAULT_APP_SETTINGS, PET_SIZE_SAVE_DELAY_MS } from './constants';
 import {
   AppearanceSetting,
-  PageHeader,
   ShredLevelSetting,
   SystemSetting,
 } from './component';
+import { PetBubblePageHeader } from '../pet-bubble-page-header';
 // 保存当前设置表单数据。
 const settings = ref<AppSettings>({ ...DEFAULT_APP_SETTINGS });
 // 保存最近一次成功落盘的应用名称，空值失焦时恢复该名称。
