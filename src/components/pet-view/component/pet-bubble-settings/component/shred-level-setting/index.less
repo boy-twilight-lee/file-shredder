@@ -1,23 +1,26 @@
 .shred-level-setting {
   .shred-level-setting-list {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
+    align-items: stretch;
+    gap: 6px;
     .shred-level-setting-item {
       position: relative;
       cursor: pointer;
-      height: 56px;
-      width: 100%;
-      padding: 8px 36px 8px 10px;
+      min-height: 152px;
+      min-width: 0;
+      padding: 8px 6px;
       background: #f8fafc;
       border: 1px solid #e7ebf0;
       border-radius: 12px;
       font: inherit;
-      text-align: left;
+      text-align: center;
       color: #474f59;
       display: flex;
+      flex: 1;
+      flex-direction: column;
       align-items: center;
-      gap: 10px;
+      justify-content: center;
+      gap: 6px;
       transition:
         border-color 160ms ease,
         background-color 160ms ease,
@@ -32,15 +35,19 @@
         box-shadow: 0 0 0 2px rgba(53, 100, 255, 0.09);
         .shred-level-setting-icon {
           background: #3564ff;
+          border-color: #3564ff;
+          box-shadow: 0 2px 6px rgba(53, 100, 255, 0.2);
           color: #fff;
         }
       }
       .shred-level-setting-icon {
-        height: 34px;
-        width: 34px;
-        background: #eef3ff;
-        border-radius: 10px;
-        font-size: 18px;
+        height: 28px;
+        width: 28px;
+        background: #dfeaff;
+        border: 1px solid #c8d8ff;
+        border-radius: 8px;
+        box-shadow: 0 2px 4px rgba(53, 100, 255, 0.12);
+        font-size: 16px;
         color: #3564ff;
         display: inline-flex;
         flex-shrink: 0;
@@ -51,45 +58,48 @@
           background-color 160ms ease;
       }
       .shred-level-setting-content {
+        width: 100%;
         display: flex;
-        flex: 1;
+        flex: 0 1 auto;
         flex-direction: column;
         gap: 2px;
+        align-items: center;
         .shred-level-setting-title {
+          width: 100%;
           display: flex;
+          flex-direction: column;
           align-items: center;
-          gap: 7px;
           .shred-level-setting-label {
-            font-size: 12px;
+            font-size: 14px;
             font-weight: 600;
+            line-height: 20px;
           }
           .shred-level-setting-badge {
-            padding: 2px 6px;
+            position: absolute;
+            top: 6px;
+            right: 6px;
+            padding: 2px 4px;
             background: #3564ff;
-            border-radius: 999px;
+            border-radius: 4px;
             font-size: 10px;
             font-weight: 600;
             line-height: 16px;
             color: #fff;
+            display: inline-flex;
           }
         }
         .shred-level-setting-description {
-          overflow: hidden;
-          height: 15px;
           font-size: 12px;
           line-height: 18px;
-          text-align: left;
-          text-overflow: ellipsis;
-          white-space: nowrap;
+          text-align: center;
           color: #86909c;
           display: block;
         }
       }
       .shred-level-setting-check {
         position: absolute;
-        top: 50%;
-        right: 10px;
-        left: auto;
+        top: 6px;
+        left: 6px;
         height: 16px;
         width: 16px;
         background: #3564ff;
@@ -99,7 +109,6 @@
         display: inline-flex;
         align-items: center;
         justify-content: center;
-        transform: translateY(-50%);
       }
     }
   }

@@ -1,7 +1,7 @@
 <template>
   <settings-card
     class="shred-level-setting"
-    title="选择文件清理强度"
+    title="清理设置"
     description="覆写次数越多越安全，处理时间也越长。"
   >
     <div

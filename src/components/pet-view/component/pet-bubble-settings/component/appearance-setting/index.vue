@@ -2,6 +2,7 @@
   <settings-card
     class="appearance-setting"
     title="外观设置"
+    description="自定义应用名称、图标和桌宠外观"
   >
     <div class="appearance-setting-workspace">
       <div
