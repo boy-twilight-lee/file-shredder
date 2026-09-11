@@ -1,0 +1,19 @@
+{
+  "success": true,
+  "fps": 24,
+  "frame_count": 212,
+  "texture": [
+    7680,
+    7680
+  ],
+  "bytes": 6240964,
+  "cycles": {
+    "idle": 48,
+    "right": 18,
+    "working": 24,
+    "success": 24,
+    "failure": 24,
+    "waiting": 24,
+    "review": 24
+  }
+}

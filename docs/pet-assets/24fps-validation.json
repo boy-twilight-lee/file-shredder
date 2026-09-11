@@ -1,0 +1,50 @@
+{
+  "idle": {
+    "frames": 48,
+    "unique": 48,
+    "fps": 24,
+    "waist_stable": true
+  },
+  "right": {
+    "frames": 18,
+    "unique": 18,
+    "fps": 24,
+    "waist_stable": true
+  },
+  "working": {
+    "frames": 24,
+    "unique": 24,
+    "fps": 24,
+    "waist_stable": true
+  },
+  "success": {
+    "frames": 24,
+    "unique": 24,
+    "fps": 24,
+    "waist_stable": true
+  },
+  "failure": {
+    "frames": 24,
+    "unique": 24,
+    "fps": 24,
+    "waist_stable": true
+  },
+  "waiting": {
+    "frames": 24,
+    "unique": 24,
+    "fps": 24,
+    "waist_stable": true
+  },
+  "review": {
+    "frames": 24,
+    "unique": 24,
+    "fps": 24,
+    "waist_stable": true
+  },
+  "left": {
+    "frames": 18,
+    "unique": 18,
+    "fps": 24,
+    "waist_stable": true
+  }
+}

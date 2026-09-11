@@ -14,29 +14,8 @@ export const PET_MOTION_TIMING = {
   rest: 650,
   direction: 70,
 };
-// 待机以睁眼为主，眨眼短暂停留；移动使用四张真实脚部动作帧。
-export const PET_ANIMATIONS: Record<string, PetAnimation> = {
-  idle: {
-    frames: [
-      0, 36, 32, 37, 33, 38, 34, 39, 35, 39, 34, 39, 35, 39, 34, 38, 33, 37, 32,
-      36, 0, 1, 2, 0,
-    ],
-    holdsMs: [
-      650, 90, 100, 100, 110, 100, 160, 90, 160, 90, 160, 90, 160, 90, 160, 100,
-      110, 100, 100, 90, 1600, 550, 130, 1500,
-    ],
-    durationMs: 6590,
-    loop: true,
-  },
-  right: { frames: [4, 5, 6, 7], durationMs: 640, loop: true },
-  left: { frames: [24, 25, 26, 27], durationMs: 640, loop: true },
-  'rest-right': { frames: [4], durationMs: 650, loop: false },
-  'rest-left': { frames: [24], durationMs: 650, loop: false },
-  working: { frames: [8, 9, 10, 11], durationMs: 1000, loop: true },
-  success: { frames: [12, 13, 13, 12], durationMs: 1400, loop: false },
-  failure: { frames: [14, 15, 14, 14], durationMs: 1800, loop: false },
-  waiting: { frames: [16, 17], durationMs: 1800, loop: true },
-  review: { frames: [18, 19], durationMs: 2200, loop: true },
-};
-// 顺时针八方向：右、右下、下、左下、左、左上、上、右上。
-export const PET_LOOK_FRAMES = [4, 23, 21, 31, 24, 30, 20, 22];
+// 24fps 动作定义由素材脚本生成，真实帧数和播放时长保持一致。
+export const PET_ANIMATIONS: Record<string, PetAnimation> =
+  atlasLayout.animations;
+// 方向静态姿势也读取同一图集元数据。
+export const PET_LOOK_FRAMES = atlasLayout.look_frames;
