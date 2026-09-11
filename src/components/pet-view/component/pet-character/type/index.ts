@@ -1,5 +1,6 @@
 export interface PetAnimation {
-  image: string;
+  frames: number[];
+  holdsMs?: number[];
   durationMs: number;
   loop: boolean;
 }

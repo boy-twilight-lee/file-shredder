@@ -18,12 +18,8 @@
       position: absolute;
       top: 0;
       left: 0;
-      height: 400%;
-      width: 400%;
       max-width: none;
       will-change: transform;
-      animation: pet-character-frames var(--pet-duration) step-end
-        var(--pet-repeat) forwards;
     }
   }
   &.pet-character-working,
@@ -81,57 +77,6 @@
     width: 100%;
     object-fit: contain;
     object-position: center bottom;
-  }
-}
-@keyframes pet-character-frames {
-  0% {
-    transform: translate(0, 0);
-  }
-  6.25% {
-    transform: translate(-25%, 0);
-  }
-  12.5% {
-    transform: translate(-50%, 0);
-  }
-  18.75% {
-    transform: translate(-75%, 0);
-  }
-  25% {
-    transform: translate(0, -25%);
-  }
-  31.25% {
-    transform: translate(-25%, -25%);
-  }
-  37.5% {
-    transform: translate(-50%, -25%);
-  }
-  43.75% {
-    transform: translate(-75%, -25%);
-  }
-  50% {
-    transform: translate(0, -50%);
-  }
-  56.25% {
-    transform: translate(-25%, -50%);
-  }
-  62.5% {
-    transform: translate(-50%, -50%);
-  }
-  68.75% {
-    transform: translate(-75%, -50%);
-  }
-  75% {
-    transform: translate(0, -75%);
-  }
-  81.25% {
-    transform: translate(-25%, -75%);
-  }
-  87.5% {
-    transform: translate(-50%, -75%);
-  }
-  93.75%,
-  100% {
-    transform: translate(-75%, -75%);
   }
 }
 @keyframes pet-character-ring-wave {
