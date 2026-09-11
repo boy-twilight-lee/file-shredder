@@ -7,6 +7,25 @@
   width: var(--pet-width);
   border-radius: 18px;
   transform: translateY(-50%);
+  .pet-character-sprite {
+    position: relative;
+    overflow: hidden;
+    z-index: 1;
+    pointer-events: none;
+    height: 100%;
+    width: 100%;
+    .pet-character-sheet {
+      position: absolute;
+      top: 0;
+      left: 0;
+      height: 400%;
+      width: 400%;
+      max-width: none;
+      will-change: transform;
+      animation: pet-character-frames var(--pet-duration) step-end
+        var(--pet-repeat) forwards;
+    }
+  }
   &.pet-character-working,
   &.pet-character-success,
   &.pet-character-failure {
@@ -60,19 +79,59 @@
     pointer-events: none;
     height: 100%;
     width: 100%;
-    filter: none;
     object-fit: contain;
     object-position: center bottom;
-    transition: filter 0.25s ease;
-    &.pet-character-image-working {
-      filter: saturate(1.12) drop-shadow(0 0 14px rgba(82, 133, 255, 0.44));
-    }
-    &.pet-character-image-success {
-      filter: drop-shadow(0 0 16px rgba(38, 165, 85, 0.72));
-    }
-    &.pet-character-image-failure {
-      filter: grayscale(0.55) drop-shadow(0 0 12px rgba(255, 76, 38, 0.5));
-    }
+  }
+}
+@keyframes pet-character-frames {
+  0% {
+    transform: translate(0, 0);
+  }
+  6.25% {
+    transform: translate(-25%, 0);
+  }
+  12.5% {
+    transform: translate(-50%, 0);
+  }
+  18.75% {
+    transform: translate(-75%, 0);
+  }
+  25% {
+    transform: translate(0, -25%);
+  }
+  31.25% {
+    transform: translate(-25%, -25%);
+  }
+  37.5% {
+    transform: translate(-50%, -25%);
+  }
+  43.75% {
+    transform: translate(-75%, -25%);
+  }
+  50% {
+    transform: translate(0, -50%);
+  }
+  56.25% {
+    transform: translate(-25%, -50%);
+  }
+  62.5% {
+    transform: translate(-50%, -50%);
+  }
+  68.75% {
+    transform: translate(-75%, -50%);
+  }
+  75% {
+    transform: translate(0, -75%);
+  }
+  81.25% {
+    transform: translate(-25%, -75%);
+  }
+  87.5% {
+    transform: translate(-50%, -75%);
+  }
+  93.75%,
+  100% {
+    transform: translate(-75%, -75%);
   }
 }
 @keyframes pet-character-ring-wave {

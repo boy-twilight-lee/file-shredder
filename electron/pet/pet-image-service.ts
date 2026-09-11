@@ -3,6 +3,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { copyFile, mkdir, readFile, rm, stat } from 'node:fs/promises';
 import { extname, join } from 'node:path';
 import { randomUUID } from 'node:crypto';
+import { PetAppearance } from '@/type';
 import type { AppSettings, AppStore, UploadedPetImage } from '../storage';
 export interface PetImageTemplate {
   image: string;
@@ -17,7 +18,7 @@ interface PetImageServiceDependencies {
 const BUILT_IN_PET_IMAGES = [
   {
     id: 'built-in-ao-yin',
-    fileName: 'ao-yin.webp',
+    fileName: 'default-pet-preview.png',
   },
 ] as const;
 // 限制设置页桌宠缩略图的传输宽度。
@@ -152,8 +153,16 @@ export class PetImageService {
     return this.getBuiltInImagePath(BUILT_IN_PET_IMAGES[0].fileName);
   }
   // 返回当前桌宠形象的完整数据地址。
-  getImageDataUrl(): string {
-    return this.imagePathToDataUrl(this.getActiveImagePath());
+  getImageDataUrl(): PetAppearance {
+    // 用实际生效路径判断默认形象，兼容自定义文件丢失时的回退。
+    const imagePath = this.getActiveImagePath();
+    // 默认预览供尺寸计算使用，动画图集只交给默认形象渲染器。
+    const isDefault =
+      imagePath === this.getBuiltInImagePath(BUILT_IN_PET_IMAGES[0].fileName);
+    return {
+      image: this.imagePathToDataUrl(imagePath),
+      isDefault,
+    };
   }
   // 返回设置页展示的唯一当前桌宠形象。
   getTemplates(): PetImageTemplate[] {

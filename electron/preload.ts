@@ -1,5 +1,5 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
-import { ShredTarget } from '../src/type';
+import { PetMotion, ShredTarget } from '../src/type';
 // 页面就绪后按动画帧向主进程同步指针位置。
 window.addEventListener('DOMContentLoaded', () => {
   // 保存本帧最近一次鼠标位置。
@@ -57,6 +57,17 @@ contextBridge.exposeInMainWorld('shredderApi', {
   resetBubbleAppIcon: () => ipcRenderer.invoke('bubble-app-icon:reset'),
   // 读取当前桌宠形象数据。
   getPetImage: () => ipcRenderer.invoke('pet-image:get'),
+  // 订阅原生窗口拖动方向并提供解绑入口。
+  onPetMotion: (callback: (motion: PetMotion | null) => void) => {
+    // 只向渲染页面转发位移数据。
+    const listener = (
+      _event: Electron.IpcRendererEvent,
+      motion: PetMotion | null,
+    ) => callback(motion);
+    ipcRenderer.on('pet:motion', listener);
+    // 页面卸载时移除方向监听。
+    return () => ipcRenderer.removeListener('pet:motion', listener);
+  },
   // 读取全部桌宠形象模板。
   getPetImageTemplates: () => ipcRenderer.invoke('pet-image:list'),
   // 选择并保存用户桌宠图片。

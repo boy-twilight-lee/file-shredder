@@ -54,6 +54,8 @@ export function createPetWindowManager(
   let bubbleBounds: Electron.Rectangle | null = null;
   // 保存本次拖动开始时的窗口位置。
   let dragStartPosition: Electron.Point | null = null;
+  // 保存上次原生拖动位置，用相邻位移识别中途转向。
+  let lastDragPosition: Electron.Point | null = null;
   // 缓存当前图片与桌宠宽度对应的人物尺寸。
   let characterSizeCache: {
     imagePath: string;
@@ -353,14 +355,30 @@ export function createPetWindowManager(
     updateMouseThrough();
   }
   // 窗口开始移动时进入拖拽状态并关闭鼠标穿透。
-  function handleWindowWillMove(): void {
-    if (!petWindow || petWindow.isDestroyed() || isDragging) return;
-    isDragging = true;
-    // 记录本次拖动开始前的窗口位置。
-    const [x, y] = petWindow.getPosition();
-    dragStartPosition = { x, y };
-    isMouseThrough = false;
-    petWindow.setIgnoreMouseEvents(false);
+  function handleWindowWillMove(
+    _event: Electron.Event,
+    bounds: Electron.Rectangle,
+  ): void {
+    if (!petWindow || petWindow.isDestroyed()) return;
+    if (!isDragging) {
+      // 只在起点读取窗口位置并关闭穿透，避免每次移动重复调用原生接口。
+      const [x, y] = petWindow.getPosition();
+      dragStartPosition = { x, y };
+      lastDragPosition = { x, y };
+      isDragging = true;
+      isMouseThrough = false;
+      petWindow.setIgnoreMouseEvents(false);
+    }
+    // 原生拖动区不会触发 DOM 指针事件，由主进程发送真实移动方向。
+    const previous = lastDragPosition;
+    if (!previous) return;
+    if (Math.hypot(bounds.x - previous.x, bounds.y - previous.y) >= 2) {
+      send('pet:motion', {
+        x: bounds.x - previous.x,
+        y: bounds.y - previous.y,
+      });
+      lastDragPosition = { x: bounds.x, y: bounds.y };
+    }
   }
   // 窗口移动结束后恢复交互并持久化变化位置。
   function handleWindowMoved(): void {
@@ -370,6 +388,8 @@ export function createPetWindowManager(
     // 标识窗口是否真正离开了拖动起点。
     const hasMoved = dragStartPosition.x !== x || dragStartPosition.y !== y;
     dragStartPosition = null;
+    lastDragPosition = null;
+    send('pet:motion', null);
     isDragging = false;
     updateMouseThrough();
     if (!hasMoved) return;

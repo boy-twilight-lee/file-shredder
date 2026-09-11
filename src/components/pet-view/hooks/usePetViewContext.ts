@@ -4,7 +4,7 @@ import {
   useResizeObserver,
 } from '@vueuse/core';
 import { PetBubbleMode, PetState, PetViewContext } from '../type';
-import { ShredProgress, ShredSummary, ShredTarget } from '@/type';
+import { PetMotion, ShredProgress, ShredSummary, ShredTarget } from '@/type';
 // 标识桌宠视图所属组件子树中的共享上下文。
 const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
   Symbol('pet-view-context');
@@ -59,6 +59,10 @@ export function usePetViewContext() {
       const isCancelling = ref<boolean>(PET_VIEW_DEFAULTS.isCancelling);
       // 保存当前桌宠形象的可加载地址。
       const petImageSource = ref<string>(PET_VIEW_DEFAULTS.petImageSource);
+      // 标识主进程实际选中的图片是否为内置动作图集。
+      const isDefaultPet = ref(false);
+      // 保存原生窗口移动方向，只驱动人物表情，不接管窗口拖动。
+      const petMotion = ref<PetMotion | null>(null);
       // 保存桌宠在界面中的目标宽度。
       const petSize = ref<number>(PET_VIEW_DEFAULTS.petSize);
       // 保存桌宠形象真实的高宽比。
@@ -356,7 +360,12 @@ export function usePetViewContext() {
         petSize.value = settings.petSize;
         presetPasses.value = settings.passes;
         // 主进程统一解析当前生效的内置或用户上传形象。
-        petImageSource.value = templateImage;
+        isDefaultPet.value = templateImage.isDefault;
+        petImageSource.value = templateImage.image;
+        if (templateImage.isDefault) {
+          petAspectRatio.value = 1;
+          window.shredderApi.setPetImageSize(640, 640);
+        }
       }
       // VueUse 负责观察目标切换和组件卸载，避免动态气泡重复绑定原生监听器。
       useResizeObserver(bubbleElement, reportBubbleBounds);
@@ -373,6 +382,10 @@ export function usePetViewContext() {
       // 组件挂载后订阅主进程事件并加载桌宠外观。
       onMounted(async () => {
         disposers.push(
+          // 原生拖拽事件直接同步姿态，松手通知立即恢复业务动画。
+          window.shredderApi.onPetMotion((motion) => {
+            petMotion.value = motion;
+          }),
           // 设置变化后刷新桌宠外观。
           window.shredderApi.onSettingsChanged(refreshPetAppearance),
           // 主进程请求时打开设置页面。
@@ -433,6 +446,8 @@ export function usePetViewContext() {
         petState,
         petAppearanceStyle,
         petImageSource,
+        isDefaultPet,
+        petMotion,
         bubbleElement,
         bubbleMode,
         selectedTargets,
@@ -463,6 +478,8 @@ export function usePetViewContext() {
         // 在上下文外提供空的外观样式。
         petAppearanceStyle: computed(() => ({})),
         petImageSource: ref(''),
+        isDefaultPet: ref(false),
+        petMotion: ref(null),
         bubbleElement: ref(null),
         bubbleMode: ref('hidden'),
         selectedTargets: ref([]),

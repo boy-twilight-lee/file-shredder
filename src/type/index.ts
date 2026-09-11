@@ -49,6 +49,14 @@ export interface UploadedPetImage {
 export interface PetImageTemplate {
   image: string;
 }
+export interface PetAppearance {
+  image: string;
+  isDefault: boolean;
+}
+export interface PetMotion {
+  x: number;
+  y: number;
+}
 export type SettingBooleanKey =
   | 'confirmBeforeShred'
   | 'alwaysOnTop'
@@ -80,7 +88,8 @@ export interface ShredderApi {
   getBubbleAppIcon: () => Promise<string>;
   chooseBubbleAppIcon: () => Promise<string | null>;
   resetBubbleAppIcon: () => Promise<string>;
-  getPetImage: () => Promise<string>;
+  getPetImage: () => Promise<PetAppearance>;
+  onPetMotion: (callback: (motion: PetMotion | null) => void) => () => void;
   getPetImageTemplates: () => Promise<PetImageTemplate[]>;
   choosePetImage: () => Promise<PetImageTemplate[] | null>;
   deletePetImage: (id: string) => Promise<PetImageTemplate[]>;
