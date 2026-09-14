@@ -10,6 +10,7 @@ from pet_image_utils import remove_chroma_key
 ROOT = Path(__file__).resolve().parents[1]
 DESTINATION = ROOT / 'src/assets/pet-templates/motions'
 DOCUMENTS = ROOT / 'docs/pet-assets'
+OUTPUT = ROOT / 'output/pet-assets'
 SIZE = 640
 LOADING_FRAMES = 120
 ANIMATION_DURATIONS = {'idle': 5000, 'working': 5000, 'success': 5000, 'failure': 5000, 'left': 720, 'right': 720}
@@ -184,6 +185,7 @@ def inspect_asset(path: Path) -> dict:
 def build() -> dict:
     """Create runtime assets, settings preview and a reviewable contact sheet."""
     DESTINATION.mkdir(parents=True, exist_ok=True)
+    OUTPUT.mkdir(parents=True, exist_ok=True)
     poses = load_poses()
     stills = {
         'actions': prepare_generated('actions-point'), 'waiting': prepare_generated('waiting-refined'), 'review': poses[18],
@@ -219,8 +221,8 @@ def build() -> dict:
     for index, pose in enumerate(contact_poses):
         thumb = pose.resize((220, 220), Image.Resampling.LANCZOS)
         contact.paste(thumb, (index % 4 * 220, index // 4 * 220), thumb)
-    contact.save(DOCUMENTS / 'webp-poses-preview.jpg', quality=94)
-    (DOCUMENTS / 'webp-validation.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
+    contact.save(OUTPUT / 'webp-poses-preview.jpg', quality=94)
+    (OUTPUT / 'webp-validation.json').write_text(json.dumps(report, indent=2) + '\n', encoding='utf-8')
     return {'success': True, 'assets': report, 'total_bytes': sum(item['bytes'] for item in report.values())}
 
 

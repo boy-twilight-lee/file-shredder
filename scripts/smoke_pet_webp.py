@@ -78,7 +78,7 @@ app.whenReady().then(async () => {
       win.webContents.invalidate();
       await wait(250);
       const image=await win.webContents.capturePage(bounds, {stayHidden:true,stayAwake:true});
-      if (name) fs.writeFileSync(path.join(process.env.PET_ROOT,'docs/pet-assets',name+'.png'),image.toPNG());
+      if (name) fs.writeFileSync(path.join(process.env.PET_ROOT,'output/pet-assets',name+'.png'),image.toPNG());
       return crypto.createHash('sha256').update(image.toBitmap()).digest('hex');
     };
     const actionsHash=await capture('webp-actions-400px');
@@ -168,6 +168,7 @@ app.whenReady().then(async () => {
 def main() -> None:
     """Run a hidden Electron fixture with bounded execution and structured results."""
     try:
+        (ROOT / 'output/pet-assets').mkdir(parents=True, exist_ok=True)
         with tempfile.TemporaryDirectory(prefix='pet-webp-smoke-') as directory:
             fixture = Path(directory)
             (fixture / 'preload.cjs').write_text(PRELOAD, encoding='utf-8')

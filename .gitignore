@@ -6,3 +6,4 @@ release/
 .vscode/
 *.log
 __pycache__/
+output/pet-assets/

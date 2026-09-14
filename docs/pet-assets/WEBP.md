@@ -1,6 +1,6 @@
 # 桌宠独立 WebP 动作
 
-当前实现使用 `src/assets/pet-templates/motions/` 下的透明 WebP。旧图集与 24fps 文档保留为历史记录，不再由角色组件加载。
+当前实现使用 `src/assets/pet-templates/motions/` 下的透明 WebP。资源目录只保留运行时图片和重建输入，废弃图集、旧源图及历史检查产物已清理。
 
 | 状态 | 画面 | 播放方式 |
 | --- | --- | --- |
@@ -32,9 +32,9 @@
 - 生成方式：内置 image_gen；采用洋红底，经现有去底流程转为透明图片。
 - 提示词要点：保持黄色小河马、橙色短裤、头顶橘子与绿叶和原有比例；action 伸出食指指向左侧；working 双手自然扶住奶油白与深青色迷你碎纸机，目光轻垂，机器有金属进纸口、指示灯和收集窗，源图不含纸张；waiting 轻微歪头、目光期待、双手放松交叠；背景均为纯 #FF00FF。
 - 重建：`python scripts/prepare_pet_webp.py`，依赖 Pillow、NumPy。
-- 素材检查报告：`webp-validation.json`；姿势预览：`webp-poses-preview.jpg`。
+- 生成的检查报告、姿势预览和 Electron 截图统一写入项目根目录下的 `output/pet-assets/`，由 Git 忽略，可随时重新生成。
 - Electron 回归：先执行 `npm run build:app`，再执行 `python scripts/smoke_pet_webp.py`。
 
-当前运行时只保留左右移动和左右收脚资源。旧八方向运行时图集、图集生成和旧回归脚本已移除；`key-atlas.webp` 是仍在使用的原始姿势来源，历史文档仅作溯源。去底公共函数集中在 `scripts/pet_image_utils.py`。
+当前移动状态只保留左右移动和左右收脚资源。`key-atlas.webp` 和上述三张新版源图是完整重建输入，需要保留。去底公共函数集中在 `scripts/pet_image_utils.py`。
 
 回归脚本在隔离的隐藏 Electron 窗口内模拟状态和原生方向事件，不执行真实文件粉碎，也不模拟物理鼠标拖窗。
