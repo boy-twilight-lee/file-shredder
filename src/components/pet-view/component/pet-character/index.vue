@@ -1,6 +1,6 @@
 <template>
   <div
-    class="pet-character"
+    :class="['pet-character', `pet-character-${pose}`]"
     @mousedown.right.stop
     @click.left="handleClick"
     @contextmenu.prevent
