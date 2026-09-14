@@ -75,7 +75,10 @@
       },
       {
         "from": "src/assets/pet-templates",
-        "to": "pet-templates"
+        "to": "pet-templates",
+        "filter": [
+          "default-pet-preview.png"
+        ]
       }
     ],
     "win": {

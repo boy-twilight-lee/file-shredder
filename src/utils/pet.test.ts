@@ -1,42 +1,38 @@
 import { describe, expect, it } from 'vitest';
-import { getPetDirection, getStablePetDirection } from './pet';
-// 验证屏幕坐标八方向和抖动过滤，防止左右或上下拖动显示反向姿势。
-describe('getPetDirection', () => {
-  // 顺时针验证右方开始的八个方向。
+import { getHorizontalPetDirection } from './pet';
+// 左右动画不能再被上下位移或斜向角度切换成其他姿势。
+describe('getHorizontalPetDirection', () => {
+  // 不论垂直速度多大，都按有效的水平位移决定左右方向。
   it.each([
-    [10, 0, 0],
-    [10, 10, 1],
-    [0, 10, 2],
-    [-10, 10, 3],
-    [-10, 0, 4],
-    [-10, -10, 5],
-    [0, -10, 6],
-    [10, -10, 7],
-  ])('maps (%s, %s) to %s', (x, y, expected) => {
-    expect(getPetDirection({ x, y })).toBe(expected);
+    [10, 0, 'right'],
+    [10, 100, 'right'],
+    [10, -100, 'right'],
+    [-10, 0, 'left'],
+    [-10, 100, 'left'],
+    [-10, -100, 'left'],
+  ])(
+    'maps (%s, %s) to %s',
+    // 验证横向符号与姿势一致，避免斜向移动显示错误动画。
+    (x, y, expected) => {
+      expect(
+        getHorizontalPetDirection({ x: Number(x), y: Number(y) }, null),
+      ).toBe(expected);
+    },
+  );
+  // 垂直拖动和水平噪声延续已选朝向，首次垂直拖动不凭空选择方向。
+  it('preserves the heading during vertical motion', () => {
+    expect(getHorizontalPetDirection({ x: 0, y: 10 }, null)).toBeNull();
+    expect(getHorizontalPetDirection({ x: 1, y: -10 }, 'left')).toBe('left');
+    expect(getHorizontalPetDirection({ x: -1, y: 10 }, 'right')).toBe('right');
   });
-  // 停止、微小抖动和非法位移不能覆盖清理状态。
-  it('ignores stopped, tiny and invalid motion', () => {
-    expect(getPetDirection(null)).toBeNull();
-    expect(getPetDirection({ x: 1, y: 1 })).toBeNull();
-    expect(getPetDirection({ x: NaN, y: 10 })).toBeNull();
-    expect(getPetDirection({ x: Infinity, y: 0 })).toBeNull();
-  });
-});
-// 复现横向与斜向边界反复跨越，确认视觉方向不会跟随微小噪声闪动。
-describe('getStablePetDirection', () => {
-  // 在原扇区边缘仍保留当前方向，明显改变角度后才切换。
-  it('holds the heading across the diagonal boundary', () => {
-    expect(getPetDirection({ x: 10, y: 5 })).toBe(1);
-    expect(getStablePetDirection({ x: 10, y: 5 }, 0)).toBe(0);
-    expect(getStablePetDirection({ x: 10, y: 8 }, 0)).toBe(1);
-    expect(getStablePetDirection({ x: 10, y: 5 }, 1)).toBe(1);
-  });
-  // 首次反馈和真正反向移动不被滞回延迟。
-  it('accepts the first direction and full reversals', () => {
-    expect(getStablePetDirection({ x: 8, y: 0 }, null)).toBe(0);
-    expect(getStablePetDirection({ x: -8, y: 0 }, 0)).toBe(4);
-    expect(getStablePetDirection({ x: -10, y: -1 }, 4)).toBe(4);
-    expect(getStablePetDirection(null, 4)).toBeNull();
+  // 有效反向移动立即响应，停止和非法事件释放方向。
+  it('handles reversals, release and invalid motion', () => {
+    expect(getHorizontalPetDirection({ x: -8, y: 0 }, 'right')).toBe('left');
+    expect(getHorizontalPetDirection(null, 'left')).toBeNull();
+    expect(getHorizontalPetDirection({ x: 1, y: 1 }, 'left')).toBeNull();
+    expect(getHorizontalPetDirection({ x: NaN, y: 10 }, 'left')).toBeNull();
+    expect(
+      getHorizontalPetDirection({ x: Infinity, y: 0 }, 'right'),
+    ).toBeNull();
   });
 });

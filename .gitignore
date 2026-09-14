@@ -5,3 +5,4 @@ dist-renderer/
 release/
 .vscode/
 *.log
+__pycache__/

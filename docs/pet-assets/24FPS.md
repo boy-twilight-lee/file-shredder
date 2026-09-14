@@ -1,5 +1,7 @@
 # 默认桌宠 24fps 图集
 
+> 历史方案。当前已改为 [独立 WebP 动作](WEBP.md)，本页的运行时图集、生成与检查脚本已移除，以下内容仅作历史记录。
+
 当前运行时素材为 `src/assets/pet-templates/default-pet-atlas.webp`，布局、动作帧号和时长统一从同目录 `default-pet-atlas.json` 读取。
 
 | 动作 | 时长 | 帧数 |
