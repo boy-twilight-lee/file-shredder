@@ -56,6 +56,7 @@
     "productName": "文件粉碎精灵",
     "asar": true,
     "afterPack": "scripts/after-pack.cjs",
+    "afterAllArtifactBuild": "scripts/after-all-artifact-build.cjs",
     "directories": {
       "output": "release"
     },
