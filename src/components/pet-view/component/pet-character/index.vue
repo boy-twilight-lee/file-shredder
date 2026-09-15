@@ -29,7 +29,11 @@
 <script setup lang="ts">
 import { PetPose } from './type';
 import { usePetMotion } from './hooks';
-import { DEFAULT_PET_PREVIEW, PET_POSE_IMAGES } from './constants';
+import {
+  DEFAULT_PET_PREVIEW,
+  MOVEMENT_PRELOAD_POSES,
+  PET_POSE_IMAGES,
+} from './constants';
 import { usePetViewContext } from '@/components/pet-view/hooks';
 import { PetCharacterDrag } from './component';
 // 定义气泡打开时是否显示原生桌宠拖动入口。
@@ -58,13 +62,13 @@ const pose = computed<PetPose>(() => {
   }
   if (bubbleMode.value === 'result') {
     if (errorMessage.value) return 'failure';
-    if (summary.value?.cancelled) return 'review';
+    if (summary.value?.cancelled) return 'idle';
     return summary.value?.failed ? 'failure' : 'success';
   }
   if (bubbleMode.value === 'progress') return 'working';
   if (bubbleMode.value === 'confirm') return 'waiting';
   if (bubbleMode.value === 'actions') return 'actions';
-  if (bubbleMode.value !== 'hidden') return 'review';
+  if (bubbleMode.value !== 'hidden') return 'idle';
   return petState.value === 'working' ? 'working' : 'idle';
 });
 // 解码下一张图片之前保留当前画面，避免快速切换出现空白。
@@ -96,6 +100,16 @@ async function loadImage(source: string): Promise<boolean> {
   if (!loaded) decodedImages.delete(source);
   return Boolean(loaded);
 }
+// 在桌宠挂载后预解码左右移动与收脚素材，减少首次拖动延迟。
+async function preloadMovementImages(): Promise<void> {
+  if (!isDefaultPet.value) return;
+  // 并行缓存全部移动素材，后续方向切换只需更新图片地址。
+  await Promise.all(
+    MOVEMENT_PRELOAD_POSES.map((movementPose) =>
+      loadImage(PET_POSE_IMAGES[movementPose]),
+    ),
+  );
+}
 // 更新同一个图片节点的地址，由 Chromium 自行推进 WebP 帧。
 async function updatePose(): Promise<void> {
   // 保存当前请求编号，切换自定义形象也使旧请求失效。
@@ -113,6 +127,8 @@ async function updatePose(): Promise<void> {
 }
 // 相同状态下的尺寸、进度和方向事件不会重启动画。
 watch([pose, isDefaultPet], updatePose, { immediate: true });
+// 页面就绪后开始预热移动素材，不阻塞首个静态待机画面。
+onMounted(preloadMovementImages);
 // 卸载时使尚未完成的解码回调失效。
 onBeforeUnmount(() => {
   imageRequest += 1;

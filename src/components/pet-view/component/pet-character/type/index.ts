@@ -3,7 +3,6 @@ export type PetPose =
   | 'actions'
   | 'working'
   | 'waiting'
-  | 'review'
   | 'success'
   | 'failure'
   | 'right'
