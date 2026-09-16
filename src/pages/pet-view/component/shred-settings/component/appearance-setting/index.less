@@ -1,6 +1,5 @@
 .appearance-setting {
   .appearance-setting-workspace {
-    height: var(--appearance-setting-preview-height);
     display: flex;
     align-items: stretch;
     gap: 12px;
@@ -36,33 +35,22 @@
         .appearance-setting-scene {
           position: relative;
           pointer-events: none;
-          height: var(--appearance-setting-preview-scene-height);
-          width: var(--appearance-setting-preview-scene-width);
           flex-shrink: 0;
           .appearance-setting-bubble {
             position: absolute;
-            top: var(--appearance-setting-preview-bubble-top);
-            left: var(--appearance-setting-preview-bubble-left);
             overflow: hidden;
-            height: var(--appearance-setting-preview-bubble-height);
-            width: var(--appearance-setting-preview-bubble-width);
             background: rgba(255, 255, 255, 0.97);
             border: 1px solid rgba(225, 229, 235, 0.82);
-            border-radius: var(--appearance-setting-preview-bubble-radius);
-            box-shadow: 0 calc(14px * var(--appearance-setting-preview-scale))
-              calc(36px * var(--appearance-setting-preview-scale))
-              rgba(30, 55, 90, 0.13);
           }
         }
       }
     }
     .appearance-setting-content {
-      width: 180px;
-      padding: 4px 0;
+      width: 160px;
       display: flex;
       flex-shrink: 0;
       flex-direction: column;
-      gap: 10px;
+      gap: 12px;
       .appearance-setting-size-input {
         width: 88px;
         .appearance-setting-size-unit {

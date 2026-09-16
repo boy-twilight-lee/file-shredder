@@ -63,6 +63,10 @@ export function createPetWindowManager(
   let dragStartPosition: Electron.Point | null = null;
   // 保存上次原生拖动位置，用相邻位移识别中途转向。
   let lastDragPosition: Electron.Point | null = null;
+  // 保存本模块写入窗口的画布尺寸，作为布局变化判断与锚点换算的稳定基准。
+  let appliedWindowSize: Electron.Size | null = null;
+  // 保存最近一次写入窗口后系统读出的画布尺寸，作为布局换算的观测基准。
+  let observedWindowSize: Electron.Size | null = null;
   // 缓存当前图片与桌宠宽度对应的人物尺寸。
   let characterSizeCache: {
     imagePath: string;
@@ -219,17 +223,32 @@ export function createPetWindowManager(
       y: characterBounds.y,
     };
   }
+  // 读取本模块写入窗口的画布尺寸，尚未写入时回退到系统读数。
+  function getAppliedWindowSize(): Electron.Size {
+    return appliedWindowSize ?? getWindowSize();
+  }
+  // 读取最近一次写入后系统读出的画布尺寸，尚未写入时回退到系统读数。
+  function getObservedWindowSize(): Electron.Size {
+    return observedWindowSize ?? getWindowSize();
+  }
+  // 按观测尺寸换算人物局部边界，避免改动窗口位置时系统读出的尺寸变化影响同一次布局换算。
+  function getObservedLocalCharacterBounds(): Electron.Rectangle {
+    return calculateLocalCharacterBounds(
+      getObservedWindowSize(),
+      getCharacterSize(),
+    );
+  }
   // 读取人物当前在屏幕坐标系中的位置锚点。
   function getCharacterScreenAnchor(): Electron.Point {
     // 窗口尚未创建时以原点作为兜底锚点。
     if (!petWindow || petWindow.isDestroyed()) return { x: 0, y: 0 };
-    // 读取窗口在屏幕坐标系中的边界。
-    const windowBounds = petWindow.getBounds();
+    // 使用窗口实时位置与观测尺寸换算屏幕锚点，让布局变化前后使用同一套基准。
+    const [x, y] = petWindow.getPosition();
     // 将人物局部锚点换算为屏幕坐标。
-    const localAnchor = getPositionAnchor(getLocalCharacterBounds());
+    const localAnchor = getPositionAnchor(getObservedLocalCharacterBounds());
     return {
-      x: windowBounds.x + localAnchor.x,
-      y: windowBounds.y + localAnchor.y,
+      x: x + localAnchor.x,
+      y: y + localAnchor.y,
     };
   }
   // 按人物屏幕锚点重新摆放窗口，使尺寸或气泡方位变化后人物在屏幕上保持原位。
@@ -237,18 +256,35 @@ export function createPetWindowManager(
     if (!petWindow || petWindow.isDestroyed() || isDragging) return;
     // 外观变化后按人物真实高度收缩或扩展透明画布。
     const requiredWindowSize = getRequiredWindowSize(getCharacterSize());
-    const currentWindowSize = getWindowSize();
+    // 只与本模块写入的尺寸比较：非整数缩放下系统读数会差 1~2px，用它判断会反复触发窗口调整。
+    const appliedSize = getAppliedWindowSize();
     if (
-      currentWindowSize.width !== requiredWindowSize.width ||
-      currentWindowSize.height !== requiredWindowSize.height
-    )
+      appliedSize.width !== requiredWindowSize.width ||
+      appliedSize.height !== requiredWindowSize.height
+    ) {
       petWindow.setContentSize(
         requiredWindowSize.width,
         requiredWindowSize.height,
       );
+      appliedWindowSize = {
+        width: requiredWindowSize.width,
+        height: requiredWindowSize.height,
+      };
+      // 画布尺寸写入后重新读取系统确认的尺寸，后续布局换算都以这次观测为准。
+      observedWindowSize = getWindowSize();
+    }
     // 读取当前布局下人物锚点在窗口内容区域中的位置。
-    const localAnchor = getPositionAnchor(getLocalCharacterBounds());
-    petWindow.setPosition(anchor.x - localAnchor.x, anchor.y - localAnchor.y);
+    const localAnchor = getPositionAnchor(getObservedLocalCharacterBounds());
+    const nextPosition = {
+      x: anchor.x - localAnchor.x,
+      y: anchor.y - localAnchor.y,
+    };
+    const [currentX, currentY] = petWindow.getPosition();
+    // 布局没有真实变化时不再调用原生接口，避免窗口在相邻 1~2px 之间来回跳动。
+    if (nextPosition.x === currentX && nextPosition.y === currentY) return;
+    petWindow.setPosition(nextPosition.x, nextPosition.y);
+    // 位置变化同样会让系统读出的画布尺寸发生变化，写入后刷新观测基准。
+    observedWindowSize = getWindowSize();
   }
   // 返回拖拽按钮在窗口内容区域中的交互边界，按钮随气泡方位镜像到人物另一侧。
   function getLocalDragHandleBounds(): Electron.Rectangle {
@@ -325,14 +361,14 @@ export function createPetWindowManager(
   // 将当前桌宠位置锚点持久化为显示器相对位置。
   async function recordPosition(): Promise<void> {
     if (!petWindow || petWindow.isDestroyed() || isDragging) return;
-    // 读取当前窗口在屏幕坐标系中的边界。
-    const windowBounds = petWindow.getBounds();
+    // 使用窗口实时位置换算锚点，保证持久化位置与屏幕上的实际位置一致。
+    const [windowX, windowY] = petWindow.getPosition();
     // 读取位置锚点在窗口内容区域中的位置。
-    const localAnchor = getPositionAnchor(getLocalCharacterBounds());
+    const localAnchor = getPositionAnchor(getObservedLocalCharacterBounds());
     // 将位置锚点转换为屏幕坐标。
     const anchor = {
-      x: windowBounds.x + localAnchor.x,
-      y: windowBounds.y + localAnchor.y,
+      x: windowX + localAnchor.x,
+      y: windowY + localAnchor.y,
     };
     // 查找当前锚点所在或最近的显示器。
     const display = screen.getDisplayNearestPoint(anchor);
@@ -358,6 +394,8 @@ export function createPetWindowManager(
     // 计算当前显示器环境下应恢复的窗口位置。
     const position = getRestoredPosition(getCharacterSize(), { width, height });
     petWindow.setPosition(position.x, position.y);
+    // 位置变化会让系统读出的画布尺寸随之变化，恢复后刷新观测基准。
+    observedWindowSize = getWindowSize();
   }
   // 按气泡对齐方式计算气泡相对人物的纵向起点。
   function getAlignedBubbleTop(character: Electron.Rectangle): number {
@@ -465,6 +503,8 @@ export function createPetWindowManager(
     if (!petWindow || petWindow.isDestroyed() || !dragStartPosition) return;
     // 读取拖动结束后的窗口位置。
     const [x, y] = petWindow.getPosition();
+    // 拖动会改变系统读出的画布尺寸，结束后刷新观测基准。
+    observedWindowSize = getWindowSize();
     // 标识窗口是否真正离开了拖动起点。
     const hasMoved = dragStartPosition.x !== x || dragStartPosition.y !== y;
     dragStartPosition = null;
@@ -511,6 +551,11 @@ export function createPetWindowManager(
     });
     // 系统会把初始窗口限制在显示器工作区内，创建后显式恢复固定画布尺寸以保证人物与气泡布局完整。
     petWindow.setContentSize(initialWindowSize.width, initialWindowSize.height);
+    // 记录本模块写入窗口的画布尺寸，后续按该尺寸判断画布是否需要调整，避免系统 DIP 取整反复触发。
+    appliedWindowSize = {
+      width: initialWindowSize.width,
+      height: initialWindowSize.height,
+    };
     // 读取窗口创建后由系统确认的实际尺寸。
     const actualWindowSize = petWindow.getSize();
     // 根据实际窗口尺寸重新校准恢复位置。
@@ -519,6 +564,8 @@ export function createPetWindowManager(
       height: actualWindowSize[1],
     });
     petWindow.setPosition(actualPosition.x, actualPosition.y);
+    // 记录窗口创建完成后的观测尺寸，后续布局换算都以这次观测为准。
+    observedWindowSize = getWindowSize();
     petWindow.on('will-move', handleWindowWillMove);
     petWindow.on('moved', handleWindowMoved);
     // 页面加载完成后再次确保透明背景生效。
@@ -622,11 +669,20 @@ export function createPetWindowManager(
     // 规范化图片实际高度为整数。
     const height = Math.round(candidate.height as number);
     if (width <= 0 || height <= 0) return;
+    // 读取当前生效的桌宠图片路径。
+    const imagePath = dependencies.getActiveImagePath();
+    // 同一形象重复上报相同尺寸时窗口布局没有变化，直接忽略，避免设置变更反复重算布局并写入位置。
+    if (
+      imageNaturalSize?.imagePath === imagePath &&
+      imageNaturalSize.width === width &&
+      imageNaturalSize.height === height
+    )
+      return;
     // 保存形象尺寸变化前人物的屏幕位置，校准后据此保持人物不动。
     const characterAnchor = getCharacterScreenAnchor();
     // 动态 WebP 无法由 nativeImage 解码，使用 Chromium 实际渲染尺寸校准点击热区。
     imageNaturalSize = {
-      imagePath: dependencies.getActiveImagePath(),
+      imagePath,
       width,
       height,
     };

@@ -2,6 +2,7 @@
   <cx-layout
     class="shred-confirm"
     title="确定永久粉碎吗？"
+    emphasis
   >
     <template #description>
       共 {{ selectedTargets.length }} 项，此操作

@@ -49,20 +49,17 @@ export const PET_PREVIEW_BUBBLE_RADIUS = 18;
 export const SETTINGS_PAGE_HEADER_HEIGHT = 40;
 // 定义设置页列表的上下内边距，与 shred-settings 保持一致。
 export const SETTINGS_PAGE_LIST_PADDING = 10;
-// 定义设置卡片内边距，与列表下发的卡片内边距保持一致。
-export const SETTINGS_CARD_PADDING = 12;
-// 定义设置卡片标题区高度，由标题 20、间距 4 与说明 18 组成。
-export const SETTINGS_CARD_TITLE_HEIGHT = 42;
-// 定义设置卡片标题区与内容之间的间距。
-export const SETTINGS_CARD_GAP = 16;
-// 按设置页固定高度扣除页头、列表内边距、卡片内边距、卡片标题区与卡片间距得到预览面板高度。
+// 定义设置卡片标题区与内容区的下内边距，与 cx-card 保持一致。
+export const SETTINGS_CARD_PADDING = 16;
+// 定义设置卡片标题区高度，由标题行高 20 组成。
+export const SETTINGS_CARD_TITLE_HEIGHT = 20;
+// 按设置页固定高度扣除页头、列表内边距、卡片标题区与上下两段卡片下内边距得到预览面板高度。
 export const PET_PREVIEW_HEIGHT =
   PET_BUBBLE_MAX_SIZE.height -
   SETTINGS_PAGE_HEADER_HEIGHT -
   SETTINGS_PAGE_LIST_PADDING * 2 -
-  SETTINGS_CARD_PADDING * 2 -
   SETTINGS_CARD_TITLE_HEIGHT -
-  SETTINGS_CARD_GAP;
+  SETTINGS_CARD_PADDING * 2;
 // 定义操作气泡相对桌宠的方位可选项。
 export const BUBBLE_DIRECTION_OPTIONS: SettingOption<BubbleDirection>[] = [
   { label: '居左', value: 'left', icon: 'icon-align-left' },
@@ -119,30 +116,26 @@ export const SHRED_LEVEL_TIP_LINES: string[] = [
   '深度清理：覆写 35 次',
   '覆写次数越多越难恢复，清理耗时也越长。',
 ];
-// 定义系统设置开关及其展示信息。
+// 定义系统设置开关及其展示文案。
 export const SYSTEM_SETTING_OPTIONS: SystemSettingOption[] = [
   {
     key: 'alwaysOnTop',
     label: '桌宠始终置顶',
     description: '保持桌宠显示在其他窗口上方',
-    icon: 'icon-pin',
   },
   {
     key: 'launchAtLogin',
     label: '开机自动启动',
     description: '登录 Windows 后自动运行',
-    icon: 'icon-power',
   },
   {
     key: 'systemNotifications',
     label: '开启系统通知',
     description: '清理完成后发送结果通知',
-    icon: 'icon-notification',
   },
   {
     key: 'contextMenuInstalled',
     label: '资源管理器右键菜单',
     description: '添加文件和文件夹右键菜单',
-    icon: 'icon-menu',
   },
 ];

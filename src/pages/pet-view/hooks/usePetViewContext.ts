@@ -4,13 +4,7 @@ import {
   useResizeObserver,
 } from '@vueuse/core';
 import { PetBubbleMode, PetState, PetViewContext } from '../type';
-import {
-  DEFAULT_BUBBLE_ALIGN,
-  DEFAULT_BUBBLE_DIRECTION,
-  PET_BUBBLE_GAP,
-  PET_BUBBLE_MAX_SIZE,
-  PET_WINDOW_PADDING,
-} from '@/constants';
+import { DEFAULT_BUBBLE_ALIGN, DEFAULT_BUBBLE_DIRECTION } from '@/constants';
 import {
   BubbleAlign,
   BubbleDirection,
@@ -103,14 +97,10 @@ export function usePetViewContext() {
       let bubbleBoundsFrame = 0;
       // 收集组件销毁时需要执行的 IPC 清理器。
       const disposers: Array<() => void> = [];
-      // 根据桌宠尺寸与形象比例生成外观样式变量。
-      const petAppearanceStyle = computed(() => ({
-        '--pet-width': `${petSize.value}px`,
-        '--pet-height': `${Math.round(petSize.value * petAspectRatio.value)}px`,
-        '--pet-window-padding': `${PET_WINDOW_PADDING}px`,
-        '--pet-bubble-gap': `${PET_BUBBLE_GAP}px`,
-        '--pet-bubble-max-width': `${PET_BUBBLE_MAX_SIZE.width}px`,
-        '--pet-bubble-max-height': `${PET_BUBBLE_MAX_SIZE.height}px`,
+      // 按桌宠宽度与形象高宽比换算人物在窗口中的展示尺寸。
+      const petDisplaySize = computed(() => ({
+        width: petSize.value,
+        height: Math.max(1, Math.round(petSize.value * petAspectRatio.value)),
       }));
       // 将单文件进度换算为整个任务的单调百分比。
       function calculateProgressPercent(value: ShredProgress): number {
@@ -475,7 +465,7 @@ export function usePetViewContext() {
       // 定义拥有者与后代组件共享的桌宠上下文。
       const context = {
         petState,
-        petAppearanceStyle,
+        petDisplaySize,
         petImageSource,
         isDefaultPet,
         petAspectRatio,
@@ -509,8 +499,13 @@ export function usePetViewContext() {
     inject(): PetViewContext {
       return inject(PET_VIEW_CONTEXT_KEY, {
         petState: ref('idle'),
-        // 在上下文外提供空的外观样式。
-        petAppearanceStyle: computed(() => ({})),
+        // 在上下文外回退到默认桌宠展示尺寸。
+        petDisplaySize: computed(() => ({
+          width: PET_VIEW_DEFAULTS.petSize,
+          height: Math.round(
+            PET_VIEW_DEFAULTS.petSize * PET_VIEW_DEFAULTS.petAspectRatio,
+          ),
+        })),
         petImageSource: ref(''),
         isDefaultPet: ref(false),
         // 在上下文外回退到内置形象的真实高宽比。

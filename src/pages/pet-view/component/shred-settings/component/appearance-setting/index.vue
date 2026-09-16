@@ -1,8 +1,7 @@
 <template>
   <cx-card
-    class="appearance-setting"
     title="外观设置"
-    description="调整桌宠形象、大小与操作气泡的展示位置"
+    class="appearance-setting"
   >
     <div
       class="appearance-setting-workspace"
@@ -20,13 +19,18 @@
             class="appearance-setting-scene"
             :style="previewSceneStyle"
           >
-            <div class="appearance-setting-bubble">
+            <div
+              class="appearance-setting-bubble"
+              :style="previewBubbleStyle"
+            >
               <pet-bubble-actions
                 ref="previewActionsElement"
                 :scale="previewScale"
               />
             </div>
             <pet-character
+              :pet-width="previewMetrics.petWidth"
+              :pet-height="previewMetrics.petHeight"
               :scale="previewScale"
               :drag-button-visible="false"
             />
@@ -34,7 +38,10 @@
         </div>
       </div>
       <div class="appearance-setting-content">
-        <cx-layout title="桌宠形象">
+        <cx-layout
+          title="桌宠形象"
+          size="compact"
+        >
           <div
             class="appearance-setting-image-item appearance-setting-image-pet"
           >
@@ -73,6 +80,7 @@
         <cx-layout
           tag="label"
           title="桌宠大小"
+          size="compact"
         >
           <a-input-number
             :model-value="settings.petSize"
@@ -88,7 +96,10 @@
             </template>
           </a-input-number>
         </cx-layout>
-        <cx-layout title="气泡方向">
+        <cx-layout
+          title="气泡方向"
+          size="compact"
+        >
           <a-radio-group
             :model-value="settings.bubbleDirection"
             :options="BUBBLE_DIRECTION_OPTIONS"
@@ -104,7 +115,10 @@
             </template>
           </a-radio-group>
         </cx-layout>
-        <cx-layout title="气泡对齐">
+        <cx-layout
+          title="气泡对齐"
+          size="compact"
+        >
           <a-radio-group
             :model-value="settings.bubbleAlign"
             :options="BUBBLE_ALIGN_OPTIONS"
@@ -168,9 +182,9 @@ const previewActionsElement = ref<InstanceType<typeof PetBubbleActions> | null>(
 const previewStageSize = ref({ width: 0, height: 0 });
 // 保存操作气泡在未缩放状态下的真实外框尺寸。
 const previewBubbleSize = ref({ width: 0, height: 0 });
-// 把由设置页高度推算的预览面板高度交给样式表使用。
-const workspaceStyle = {
-  '--appearance-setting-preview-height': `${PET_PREVIEW_HEIGHT}px`,
+// 定义预览面板高度，与设置页卡片内容区保持一致。
+const workspaceStyle: Record<string, string> = {
+  height: `${PET_PREVIEW_HEIGHT}px`,
 };
 // 汇总预览场景在未缩放状态下的尺寸与坐标，与主进程窗口布局保持一致。
 const previewMetrics = computed(() => {
@@ -228,33 +242,30 @@ const previewScale = computed(() => {
     previewStageSize.value.height / previewMetrics.value.sceneHeight,
   );
 });
-// 生成场景、气泡与桌宠按缩放系数换算后的样式变量。
+// 生成按缩放系数换算后的预览场景尺寸。
 const previewSceneStyle = computed<Record<string, string>>(() => {
-  // 读取未缩放场景尺寸与当前缩放系数。
-  const {
-    petWidth,
-    petHeight,
-    bubbleWidth,
-    bubbleHeight,
-    sceneWidth,
-    sceneHeight,
-    bubbleLeft,
-    bubbleTop,
-  } = previewMetrics.value;
+  // 读取未缩放的场景尺寸与当前缩放系数。
+  const { sceneWidth, sceneHeight } = previewMetrics.value;
   const scale = previewScale.value;
   return {
-    '--appearance-setting-preview-scale': `${scale}`,
-    '--appearance-setting-preview-scene-height': `${Math.round(sceneHeight * scale)}px`,
-    '--appearance-setting-preview-scene-width': `${Math.round(sceneWidth * scale)}px`,
-    '--appearance-setting-preview-bubble-height': `${Math.round(bubbleHeight * scale)}px`,
-    '--appearance-setting-preview-bubble-width': `${Math.round(bubbleWidth * scale)}px`,
-    '--appearance-setting-preview-bubble-top': `${Math.round(bubbleTop * scale)}px`,
-    '--appearance-setting-preview-bubble-left': `${Math.round(bubbleLeft * scale)}px`,
-    '--appearance-setting-preview-bubble-radius': `${Math.round(PET_PREVIEW_BUBBLE_RADIUS * scale)}px`,
-    // 桌宠由组件内部按缩放系数换算，这里只提供基准尺寸与窗口留白。
-    '--pet-width': `${petWidth}px`,
-    '--pet-height': `${petHeight}px`,
-    '--pet-window-padding': `${Math.round(PET_WINDOW_PADDING * scale)}px`,
+    height: `${Math.round(sceneHeight * scale)}px`,
+    width: `${Math.round(sceneWidth * scale)}px`,
+  };
+});
+// 生成按缩放系数换算后的预览气泡尺寸、坐标与投影。
+const previewBubbleStyle = computed<Record<string, string>>(() => {
+  // 读取未缩放的气泡尺寸与坐标。
+  const { bubbleWidth, bubbleHeight, bubbleLeft, bubbleTop } =
+    previewMetrics.value;
+  const scale = previewScale.value;
+  return {
+    top: `${Math.round(bubbleTop * scale)}px`,
+    left: `${Math.round(bubbleLeft * scale)}px`,
+    height: `${Math.round(bubbleHeight * scale)}px`,
+    width: `${Math.round(bubbleWidth * scale)}px`,
+    borderRadius: `${Math.round(PET_PREVIEW_BUBBLE_RADIUS * scale)}px`,
+    // 预览气泡沿用真实气泡的投影参数，并按缩放系数换算偏移与模糊半径。
+    boxShadow: `0 ${Math.round(14 * scale)}px ${Math.round(36 * scale)}px rgba(30, 55, 90, 0.13)`,
   };
 });
 // 按当前对齐方式计算元素相对参照区域顶部的偏移。

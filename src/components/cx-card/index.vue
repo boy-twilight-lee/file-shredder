@@ -11,12 +11,6 @@
         >
           {{ title }}
         </span>
-        <span
-          v-if="description"
-          class="cx-card-desc"
-        >
-          {{ description }}
-        </span>
       </slot>
     </div>
     <div class="cx-card-content">

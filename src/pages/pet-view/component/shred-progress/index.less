@@ -1,5 +1,25 @@
+.shred-progress-stage(@color, @soft-color, @panel-color, @border-color) {
+  background: linear-gradient(145deg, #fff, @panel-color);
+  border-color: @border-color;
+  .shred-progress-status-icon {
+    background: @soft-color;
+    color: @color;
+  }
+  .shred-progress-count-current {
+    color: @color;
+  }
+  .shred-progress-bar {
+    background: @color;
+  }
+  .shred-progress-percent {
+    color: @color;
+  }
+  .shred-progress-security {
+    border: 1px solid @soft-color;
+    color: @color;
+  }
+}
 .shred-progress {
-  --cx-layout-title-font-weight: 700;
   width: 344px;
   padding: 14px;
   .shred-progress-heading {
@@ -14,7 +34,6 @@
   .shred-progress-panel {
     margin-top: 12px;
     padding: 12px;
-    background: linear-gradient(145deg, #fff, var(--progress-panel-color));
     border: 1px solid #e5e8ed;
     border-radius: 16px;
     box-shadow: 0 8px 24px rgba(29, 33, 41, 0.05);
@@ -22,28 +41,36 @@
       border-color 0.3s ease,
       box-shadow 0.3s ease;
     &.shred-progress-panel-start {
-      --progress-color: #4096ff;
-      --progress-soft-color: rgba(64, 150, 255, 0.12);
-      --progress-panel-color: rgba(64, 150, 255, 0.05);
-      border-color: rgba(64, 150, 255, 0.2);
+      .shred-progress-stage(
+        #4096ff,
+        rgba(64, 150, 255, 0.12),
+        rgba(64, 150, 255, 0.05),
+        rgba(64, 150, 255, 0.2)
+      );
     }
     &.shred-progress-panel-active {
-      --progress-color: #722ed1;
-      --progress-soft-color: rgba(114, 46, 209, 0.11);
-      --progress-panel-color: rgba(114, 46, 209, 0.045);
-      border-color: rgba(114, 46, 209, 0.2);
+      .shred-progress-stage(
+        #722ed1,
+        rgba(114, 46, 209, 0.11),
+        rgba(114, 46, 209, 0.045),
+        rgba(114, 46, 209, 0.2)
+      );
     }
     &.shred-progress-panel-final {
-      --progress-color: #fa8c16;
-      --progress-soft-color: rgba(250, 140, 22, 0.12);
-      --progress-panel-color: rgba(250, 140, 22, 0.05);
-      border-color: rgba(250, 140, 22, 0.22);
+      .shred-progress-stage(
+        #fa8c16,
+        rgba(250, 140, 22, 0.12),
+        rgba(250, 140, 22, 0.05),
+        rgba(250, 140, 22, 0.22)
+      );
     }
     &.shred-progress-panel-completed {
-      --progress-color: #52c41a;
-      --progress-soft-color: rgba(82, 196, 26, 0.12);
-      --progress-panel-color: rgba(82, 196, 26, 0.05);
-      border-color: rgba(82, 196, 26, 0.2);
+      .shred-progress-stage(
+        #52c41a,
+        rgba(82, 196, 26, 0.12),
+        rgba(82, 196, 26, 0.05),
+        rgba(82, 196, 26, 0.2)
+      );
     }
     .shred-progress-summary {
       margin-bottom: 10px;
@@ -58,10 +85,8 @@
         .shred-progress-status-icon {
           height: 32px;
           width: 32px;
-          background: var(--progress-soft-color);
           border-radius: 10px;
           font-size: 16px;
-          color: var(--progress-color);
           display: inline-flex;
           align-items: center;
           justify-content: center;
@@ -86,7 +111,6 @@
           font-size: 16px;
           font-weight: 600;
           font-variant-numeric: tabular-nums;
-          color: var(--progress-color);
           transition: color 0.3s ease;
         }
       }
@@ -132,7 +156,6 @@
       .shred-progress-bar {
         height: 100%;
         min-width: 2px;
-        background: var(--progress-color);
         border-radius: inherit;
         display: block;
         transition:
@@ -151,7 +174,6 @@
         font-size: 14px;
         font-weight: 600;
         font-variant-numeric: tabular-nums;
-        color: var(--progress-color);
       }
     }
     .shred-progress-security {
@@ -160,11 +182,9 @@
       margin: 2px auto 0;
       padding: 4px 10px;
       background: rgba(255, 255, 255, 0.7);
-      border: 1px solid var(--progress-soft-color);
       border-radius: 999px;
       font-size: 10px;
       line-height: 16px;
-      color: var(--progress-color);
       display: flex;
       align-items: center;
       justify-content: center;

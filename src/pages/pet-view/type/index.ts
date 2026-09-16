@@ -15,9 +15,14 @@ export type PetBubbleMode =
   | 'confirm'
   | 'progress'
   | 'result';
+// 定义人物在窗口中按形象高宽比换算后的展示尺寸。
+export interface PetDisplaySize {
+  width: number;
+  height: number;
+}
 export interface PetViewContext {
   petState: Ref<PetState>;
-  petAppearanceStyle: ComputedRef<Record<string, string>>;
+  petDisplaySize: ComputedRef<PetDisplaySize>;
   petImageSource: Ref<string>;
   isDefaultPet: Ref<boolean>;
   petAspectRatio: Ref<number>;

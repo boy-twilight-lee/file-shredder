@@ -1,37 +1,10 @@
 .system-setting {
   .system-setting-list {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    .system-setting-row {
-      padding: var(--system-setting-row-padding, 8px 10px);
-      background: #f8fafc;
-      border: 1px solid #edf1f5;
-      border-radius: 10px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      .system-setting-icon {
-        height: 32px;
-        width: 32px;
-        margin-top: 0;
-        background: #eef3ff;
-        border-radius: 10px;
-        font-size: 18px;
-        color: #3564ff;
-        display: inline-flex;
-        flex-shrink: 0;
-        align-items: center;
-        justify-content: center;
-      }
-      .system-setting-content {
-        overflow: hidden;
-        flex: 1;
-        &:deep(.cx-layout-desc) {
-          overflow: hidden;
-          text-overflow: ellipsis;
-          white-space: nowrap;
-        }
+    .system-setting-item {
+      padding: 8px 0;
+      border-bottom: 1px solid #f2f5fa;
+      &:first-child {
+        padding-top: 0;
       }
     }
   }

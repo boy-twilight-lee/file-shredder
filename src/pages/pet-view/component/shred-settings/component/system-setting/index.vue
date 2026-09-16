@@ -1,30 +1,24 @@
 <template>
   <cx-card
-    class="system-setting"
     title="系统设置"
-    description="管理置顶、开机启动和右键菜单。"
+    class="system-setting"
   >
     <div class="system-setting-list">
-      <div
+      <cx-layout
         v-for="item in SYSTEM_SETTING_OPTIONS"
         :key="item.key"
-        class="system-setting-row"
+        class="system-setting-item"
+        direction="horizontal"
+        :title="item.label"
+        :description="item.description"
+        size="compact"
       >
-        <span class="system-setting-icon">
-          <svg-icon :name="item.icon" />
-        </span>
-        <cx-layout
-          class="system-setting-content"
-          direction="horizontal"
-          :title="item.label"
-          :description="item.description"
-        >
-          <a-switch
-            :model-value="settings[item.key]"
-            :before-change="(value) => updateBooleanSetting(item.key, value)"
-          />
-        </cx-layout>
-      </div>
+        <a-switch
+          :model-value="settings[item.key]"
+          :before-change="(value) => updateBooleanSetting(item.key, value)"
+          size="small"
+        />
+      </cx-layout>
     </div>
   </cx-card>
 </template>
@@ -32,6 +26,7 @@
 import { useShredSettingsContext } from '../../hooks';
 import { SYSTEM_SETTING_OPTIONS } from '../../constants';
 import CxCard from '@/components/cx-card';
+import CxLayout from '@/components/cx-layout';
 // 读取设置页共享的系统设置状态与保存操作。
 const { settings, updateBooleanSetting } = useShredSettingsContext().inject();
 </script>

@@ -1,7 +1,7 @@
 <template>
   <div
     class="shred-actions"
-    :style="scaleStyle"
+    :style="actionsStyle"
   >
     <pet-bubble-actions-header @select="handleAction" />
     <div
@@ -29,9 +29,9 @@ import {
 } from './component';
 // 接收外部缩放系数，默认按真实尺寸展示。
 const props = withDefaults(defineProps<ShredActionsProps>(), { scale: 1 });
-// 把缩放系数转成样式变量，缩放只作用于视觉尺寸。
-const scaleStyle = computed<Record<string, string>>(() => ({
-  '--shred-actions-scale': `${props.scale}`,
+// 把缩放系数转成内联变换，缩放只作用于视觉尺寸。
+const actionsStyle = computed<Record<string, string>>(() => ({
+  transform: `scale(${props.scale})`,
 }));
 // 读取目标选择与气泡导航能力。
 const { chooseTargets, showBubble } = usePetViewContext().inject();

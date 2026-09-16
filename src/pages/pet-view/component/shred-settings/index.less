@@ -1,12 +1,6 @@
 .shred-settings {
-  height: var(--pet-bubble-max-height);
-  width: min(
-    var(--pet-bubble-max-width),
-    calc(
-      100vw - var(--pet-width) - var(--pet-window-padding) * 2 -
-        var(--pet-bubble-gap)
-    )
-  );
+  height: 100%;
+  width: 100%;
   color: #0d1014;
   display: flex;
   flex-direction: column;
@@ -17,18 +11,10 @@
       overflow: auto;
       height: 100%;
       .shred-settings-list {
-        --cx-card-padding: 12px;
-        --system-setting-row-padding: 10px;
         padding: 10px;
         display: flex;
         flex-direction: column;
         gap: 16px;
-        .cx-card {
-          --cx-layout-desc-font-size: 10px;
-          --cx-layout-desc-line-height: 14px;
-          --cx-layout-title-font-size: 12px;
-          --cx-layout-title-line-height: 16px;
-        }
       }
     }
   }

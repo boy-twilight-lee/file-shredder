@@ -1,27 +1,7 @@
 .pet-character {
   position: absolute;
-  top: 50%;
-  left: calc(
-    100% - var(--pet-window-padding) - var(--pet-width) *
-      var(--pet-character-scale, 1)
-  );
   -webkit-app-region: no-drag;
-  height: calc(var(--pet-height) * var(--pet-character-scale, 1));
-  width: calc(var(--pet-width) * var(--pet-character-scale, 1));
   border-radius: 18px;
-  transform: translateY(-50%);
-  &.pet-character-aligned-top {
-    top: var(--pet-window-padding);
-    transform: none;
-  }
-  &.pet-character-aligned-bottom {
-    top: auto;
-    bottom: var(--pet-window-padding);
-    transform: none;
-  }
-  &.pet-character-aligned-left {
-    left: var(--pet-window-padding);
-  }
   .pet-character-image {
     position: relative;
     z-index: 1;

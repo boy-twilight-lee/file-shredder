@@ -1,28 +1,22 @@
 <template>
   <cx-card
-    class="shred-level-setting"
     title="清理设置"
-    description="设置文件清理强度与清理行为"
+    class="shred-level-setting"
   >
     <div class="shred-level-setting-list">
-      <cx-layout title="清理强度">
-        <template #title-extra>
-          <a-tooltip
-            content-class="shred-level-setting-tooltip"
-            position="top"
-          >
-            <span class="shred-level-setting-tip">
-              <svg-icon name="icon-information" />
+      <cx-layout
+        title="清理强度"
+        size="compact"
+      >
+        <template #tooltip>
+          <span class="shred-level-setting-tooltip">
+            <span
+              v-for="line in SHRED_LEVEL_TIP_LINES"
+              :key="line"
+            >
+              {{ line }}
             </span>
-            <template #content>
-              <span
-                v-for="line in SHRED_LEVEL_TIP_LINES"
-                :key="line"
-              >
-                {{ line }}
-              </span>
-            </template>
-          </a-tooltip>
+          </span>
         </template>
         <a-radio-group
           :model-value="settings.passes"
@@ -43,7 +37,10 @@
           </template>
         </a-radio-group>
       </cx-layout>
-      <cx-layout title="清理行为">
+      <cx-layout
+        title="清理行为"
+        size="compact"
+      >
         <a-radio-group
           :model-value="cleanupBehavior"
           :options="CLEANUP_BEHAVIOR_OPTIONS"

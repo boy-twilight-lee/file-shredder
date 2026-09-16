@@ -2,19 +2,7 @@
   .shred-level-setting-list {
     display: flex;
     flex-direction: column;
-    gap: 12px;
-
-    .shred-level-setting-tip {
-      cursor: pointer;
-      font-size: 12px;
-      color: #86909c;
-      display: inline-flex;
-      align-items: center;
-      &:hover {
-        color: #0065ff;
-      }
-    }
-
+    gap: 16px;
     &:deep(.arco-radio-group-button) {
       .arco-radio-button-content {
         height: 28px;
@@ -23,7 +11,6 @@
         align-items: center;
       }
     }
-
     .shred-level-setting-option {
       display: flex;
       align-items: center;
@@ -32,7 +19,8 @@
   }
 }
 
-:global(.shred-level-setting-tooltip) {
+// 说明浮层内容渲染在 body 上，脱离组件根选择器单独声明作用域样式。
+.shred-level-setting-tooltip {
   max-width: 320px;
   white-space: normal;
   display: flex;

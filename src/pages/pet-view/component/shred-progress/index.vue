@@ -4,6 +4,7 @@
       class="shred-progress-heading"
       direction="horizontal"
       title="正在粉碎，请稍候…"
+      emphasis
     >
       <a-link
         class="shred-progress-cancel"

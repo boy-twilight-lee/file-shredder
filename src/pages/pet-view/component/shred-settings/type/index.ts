@@ -24,7 +24,6 @@ export interface SystemSettingOption {
   key: SettingBooleanKey;
   label: string;
   description: string;
-  icon: string;
 }
 // 定义设置页与全部子组件共享的状态与保存操作。
 export interface ShredSettingsContext {

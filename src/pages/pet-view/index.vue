@@ -1,7 +1,6 @@
 <template>
   <div
     class="pet-view"
-    :style="petAppearanceStyle"
     @dragover.prevent
     @drop.prevent="handleDrop"
   >
@@ -10,7 +9,6 @@
       :click-to-close="false"
       :prevent-focus="false"
       :auto-fit-position="false"
-      :content-style="petAppearanceStyle"
       :show-arrow="false"
       animation-name="fade-in"
       :position="bubbleTriggerPosition"
@@ -18,7 +16,11 @@
       trigger="click"
       @popup-visible-change="handleBubbleVisibleChange"
     >
-      <pet-character :drag-button-visible="bubbleVisible" />
+      <pet-character
+        :pet-width="petDisplaySize.width"
+        :pet-height="petDisplaySize.height"
+        :drag-button-visible="bubbleVisible"
+      />
       <template #content>
         <pet-bubble />
       </template>
@@ -31,7 +33,7 @@ import { usePetViewContext } from './hooks';
 import { PetBubble, PetCharacter } from './component';
 // 组件只消费 context，默认值、状态、派生数据和生命周期统一由 context 管理。
 const {
-  petAppearanceStyle,
+  petDisplaySize,
   bubbleMode,
   bubbleDirection,
   bubbleAlign,

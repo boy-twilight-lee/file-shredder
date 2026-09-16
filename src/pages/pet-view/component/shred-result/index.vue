@@ -3,6 +3,7 @@
     class="shred-result"
     :title="resultTitle"
     :description="resultSubtitle"
+    emphasis
   >
     <div class="shred-result-metrics">
       <div

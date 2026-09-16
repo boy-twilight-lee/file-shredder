@@ -10,6 +10,7 @@
       direction="horizontal"
       :title="APP_NAME"
       description="安全、彻底地清理文件"
+      emphasis
     >
       <span class="shred-actions-header-tools">
         <a-tooltip
@@ -49,8 +50,6 @@ function handleSelect(key: PetHeaderActionKey): void {
 </script>
 <style lang="less" scoped>
 .shred-actions-header {
-  --cx-layout-desc-line-height: 18px;
-  --cx-layout-title-font-weight: 700;
   margin-bottom: 14px;
   padding: 2px 0 0;
   display: flex;
