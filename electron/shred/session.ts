@@ -85,12 +85,16 @@ export function createShredSession(
         );
     }
     try {
+      // 本次任务是否连同用户选中的顶层文件夹一起清理由当前设置决定。
+      const removeRootDirectory =
+        dependencies.getSettings().removeRootDirectory;
       // 执行粉碎流程并收集每个目标的结果。
       const results = await shredPaths(
         targets,
         passes,
         reportProgress,
         controller.signal,
+        removeRootDirectory,
       );
       dispatchProgress();
       // 计算正常完成任务的总耗时。

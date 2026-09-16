@@ -1,0 +1,77 @@
+.shred-level-setting {
+  .shred-level-setting-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .shred-level-setting-options {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    &:deep(.arco-radio-button-content) {
+      height: 28px;
+      display: flex;
+      align-items: center;
+    }
+    .shred-level-setting-option {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .shred-level-setting-tip {
+      cursor: pointer;
+      font-size: 14px;
+      color: #86909c;
+      display: inline-flex;
+      align-items: center;
+      &:hover {
+        color: #0065ff;
+      }
+    }
+  }
+  .shred-level-setting-folder {
+    padding: var(--system-setting-row-padding, 8px 10px);
+    background: #f8fafc;
+    border: 1px solid #edf1f5;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    .shred-level-setting-folder-icon {
+      height: 32px;
+      width: 32px;
+      background: #eef3ff;
+      border-radius: 10px;
+      font-size: 18px;
+      color: #3564ff;
+      display: inline-flex;
+      flex-shrink: 0;
+      align-items: center;
+      justify-content: center;
+    }
+    .shred-level-setting-folder-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      .shred-level-setting-folder-label {
+        font-size: 12px;
+        font-weight: 600;
+        line-height: 18px;
+      }
+      .shred-level-setting-folder-desc {
+        overflow: hidden;
+        font-size: 10px;
+        line-height: 16px;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+        color: #99a1ad;
+        display: block;
+      }
+    }
+  }
+}
+:global(.shred-level-setting-tooltip) {
+  max-width: 260px;
+  word-break: break-all;
+  white-space: normal;
+}

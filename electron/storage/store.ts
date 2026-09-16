@@ -8,6 +8,7 @@ import { clamp, normalizeBubbleAlign, normalizeBubbleDirection } from '@/utils';
 import { readJsonFile, writeJsonFile } from '../utils';
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
+  removeRootDirectory: boolean;
   confirmBeforeShred: boolean;
   alwaysOnTop: boolean;
   launchAtLogin: boolean;
@@ -43,6 +44,8 @@ export interface ShredLog {
 const DEFAULT_SETTINGS: AppSettings = {
   // 新用户默认使用不覆写数据的极速删除模式。
   passes: 0,
+  // 默认在清理文件夹时一并删除用户选中的根目录。
+  removeRootDirectory: true,
   confirmBeforeShred: true,
   alwaysOnTop: true,
   launchAtLogin: false,
@@ -105,6 +108,8 @@ export class AppStore {
       storedSettings.bubbleDirection,
     );
     settings.bubbleAlign = normalizeBubbleAlign(storedSettings.bubbleAlign);
+    // 旧设置缺少该字段或字段无效时保持清理文件夹包含根目录的默认行为。
+    settings.removeRootDirectory = storedSettings.removeRootDirectory !== false;
     // 将旧版本或手动修改的桌宠尺寸收敛到当前允许范围。
     settings.petSize = clamp(
       Math.round(

@@ -28,6 +28,7 @@ export type BubbleDirection = 'left' | 'right';
 export type BubbleAlign = 'top' | 'center' | 'bottom';
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
+  removeRootDirectory: boolean;
   confirmBeforeShred: boolean;
   alwaysOnTop: boolean;
   launchAtLogin: boolean;
@@ -60,6 +61,7 @@ export interface PetMotion {
   y: number;
 }
 export type SettingBooleanKey =
+  | 'removeRootDirectory'
   | 'confirmBeforeShred'
   | 'alwaysOnTop'
   | 'launchAtLogin'

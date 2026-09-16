@@ -1,0 +1,43 @@
+.shred-settings {
+  height: var(--pet-bubble-max-height);
+  width: min(
+    var(--pet-bubble-max-width),
+    calc(
+      100vw - var(--pet-width) - var(--pet-window-padding) * 2 -
+        var(--pet-bubble-gap)
+    )
+  );
+  color: #0d1014;
+  display: flex;
+  flex-direction: column;
+  &:deep(.arco-scrollbar) {
+    overflow: hidden;
+    flex: 1;
+    .arco-scrollbar-container {
+      overflow: auto;
+      height: 100%;
+      .shred-settings-list {
+        --cx-card-padding: 12px;
+        --system-setting-row-padding: 10px;
+        padding: 10px;
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+    }
+  }
+}
+:global(.shred-settings-popconfirm) {
+  min-width: 272px;
+  padding: 18px;
+  border-radius: 12px;
+  .arco-popconfirm-body {
+    margin-bottom: 18px;
+  }
+  .arco-popconfirm-footer {
+    & > button {
+      min-width: 72px;
+      margin-left: 10px;
+    }
+  }
+}

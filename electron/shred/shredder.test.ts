@@ -3,6 +3,7 @@ import {
   mkdir,
   mkdtemp,
   readFile,
+  readdir,
   rm,
   writeFile,
 } from 'node:fs/promises';
@@ -310,5 +311,33 @@ describe('shredPaths', () => {
       deletedFileCount: 0,
       error: '拒绝粉碎磁盘根目录',
     });
+  });
+  // 验证关闭根目录清理后仅移除文件夹内容。
+  it('keeps the selected directory when root removal is disabled', async () => {
+    // 创建保留根目录测试工作区。
+    const workspace = await mkdtemp(join(tmpdir(), 'file-shredder-keep-root-'));
+    // 生成需要保留自身的顶层目录路径。
+    const targetDirectory = join(workspace, 'keep-root');
+    await mkdir(join(targetDirectory, 'nested'), { recursive: true });
+    await writeFile(join(targetDirectory, 'one.txt'), 'one', 'utf8');
+    await writeFile(join(targetDirectory, 'nested', 'two.txt'), 'two', 'utf8');
+    try {
+      // 关闭根目录删除后执行极速删除。
+      const result = await shredPaths(
+        [targetDirectory],
+        0,
+        () => undefined,
+        undefined,
+        false,
+      );
+      expect(result).toEqual([
+        { path: targetDirectory, success: true, deletedFileCount: 2 },
+      ]);
+      // 验证根目录保留且其内容与子目录全部清除。
+      await expect(lstat(targetDirectory)).resolves.toBeDefined();
+      await expect(readdir(targetDirectory)).resolves.toEqual([]);
+    } finally {
+      await rm(workspace, { recursive: true, force: true });
+    }
   });
 });

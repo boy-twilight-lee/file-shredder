@@ -116,6 +116,8 @@ function assertSafeTarget(targetPath: string): string {
 }
 interface ShredContext {
   passes: 0 | 3 | 7 | 35;
+  // 标识用户选中的顶层文件夹清空内容后是否连同根目录一起删除。
+  removeRootDirectory: boolean;
   fileIndex: number;
   fileCount: number;
   deletedFileCount: number;
@@ -240,6 +242,7 @@ async function overwriteFile(
 async function shredEntry(
   targetPath: string,
   context: ShredContext,
+  removeDirectory: boolean,
 ): Promise<ShredResult[]> {
   throwIfCancelled(context.signal);
   // 读取当前目标自身文件状态。
@@ -273,7 +276,7 @@ async function shredEntry(
       : SECURE_FILE_CONCURRENCY,
     async (entryPath) => {
       try {
-        return await shredEntry(entryPath, context);
+        return await shredEntry(entryPath, context, true);
       } catch (error) {
         if (error instanceof ShredCancelledError) throw error;
         // 目录粉碎不中断其余项目，并将真正失败的文件路径交给日志展示。
@@ -292,7 +295,7 @@ async function shredEntry(
   // 顺序递归处理子目录以便在内容清空后移除目录。
   for (const entryPath of directoryEntries) {
     try {
-      failures.push(...(await shredEntry(entryPath, context)));
+      failures.push(...(await shredEntry(entryPath, context, true)));
     } catch (error) {
       if (error instanceof ShredCancelledError) throw error;
       failures.push({
@@ -304,7 +307,8 @@ async function shredEntry(
     }
   }
   throwIfCancelled(context.signal);
-  if (failures.length === 0) {
+  // 子目录始终在内容清空后移除，只有用户选中的顶层文件夹可以保留。
+  if (failures.length === 0 && removeDirectory) {
     await chmod(targetPath, 0o700);
     // 文件已逐个安全覆写并删除，此处使用目录专用 API 移除已经清空的目录。
     await rmdir(targetPath);
@@ -358,6 +362,7 @@ export async function shredPaths(
   passes: 0 | 3 | 7 | 35,
   report: (progress: ShredProgress) => void,
   signal?: AbortSignal,
+  removeRootDirectory = true,
 ): Promise<ShredResult[]> {
   // 规范化并消除输入中的父子路径重复项。
   const uniquePaths = normalizeTargetPaths(paths);
@@ -382,6 +387,7 @@ export async function shredPaths(
   // 创建贯穿本次任务的进度与统计上下文。
   const context: ShredContext = {
     passes,
+    removeRootDirectory,
     fileIndex: 0,
     fileCount: Math.max(
       1,
@@ -405,7 +411,12 @@ export async function shredPaths(
       // 记录处理当前目标前的进度文件序号。
       const startingFileIndex = context.fileIndex;
       // 收集当前目标递归处理产生的失败结果。
-      const failures = await shredEntry(targetPath, context);
+      // 顶层文件夹按当前文件夹清理行为决定是否删除根目录。
+      const failures = await shredEntry(
+        targetPath,
+        context,
+        context.removeRootDirectory,
+      );
       if (context.fileIndex === startingFileIndex) context.fileIndex += 1;
       emitProgress(context, targetPath, 1, 1, 'done');
       // 计算当前顶层目标实际删除的文件数量。
