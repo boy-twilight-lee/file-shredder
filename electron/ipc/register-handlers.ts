@@ -118,10 +118,11 @@ export function registerIpcHandlers(
         await dependencies.setContextMenuEnabled(
           safePatch.contextMenuInstalled,
         );
-      // 保存桌宠尺寸或气泡方位变化前人物的屏幕位置，布局变化后据此保持桌宠不动。
+      // 保存桌宠尺寸或气泡布局变化前人物的屏幕位置，布局变化后据此保持桌宠不动。
       const characterAnchor =
         typeof safePatch.petSize === 'number' ||
-        safePatch.bubbleDirection !== undefined
+        safePatch.bubbleDirection !== undefined ||
+        safePatch.bubbleAlign !== undefined
           ? dependencies.windowManager.getCharacterScreenAnchor()
           : null;
       // 保存经过校验与规范化的设置更新。

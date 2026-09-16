@@ -7,6 +7,15 @@
   width: var(--pet-width);
   border-radius: 18px;
   transform: translateY(-50%);
+  &.pet-character-aligned-top {
+    top: var(--pet-window-padding);
+    transform: none;
+  }
+  &.pet-character-aligned-bottom {
+    top: auto;
+    bottom: var(--pet-window-padding);
+    transform: none;
+  }
   &.pet-character-aligned-left {
     left: var(--pet-window-padding);
   }

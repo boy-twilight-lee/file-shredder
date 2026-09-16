@@ -1,12 +1,13 @@
 .appearance-setting {
   .appearance-setting-workspace {
-    min-height: var(--appearance-setting-preview-height);
+    height: var(--appearance-setting-preview-height);
     display: flex;
     align-items: stretch;
-    gap: 16px;
+    gap: 12px;
     .appearance-setting-preview {
       position: relative;
       overflow: hidden;
+      min-width: 0;
       background: #f5f8fc;
       border: 1px solid #dce6f5;
       border-radius: 14px;
@@ -285,7 +286,7 @@
       }
     }
     .appearance-setting-content {
-      width: 248px;
+      width: 180px;
       padding: 4px 0;
       display: flex;
       flex-shrink: 0;
@@ -301,10 +302,15 @@
           color: #79828f;
         }
       }
-      .appearance-setting-direction {
-        display: inline-flex;
-        align-items: center;
-        gap: 4px;
+      .appearance-setting-option-group {
+        &:deep(.arco-radio-button-content) {
+          height: 28px;
+          // width: 32px;
+          // padding: 0;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
       }
       .appearance-setting-image-item {
         position: relative;
@@ -403,11 +409,12 @@
           }
         }
         &.appearance-setting-image-pet {
-          height: 112px;
+          height: 116px;
+          width: 144px;
           .appearance-setting-image-view {
             .appearance-setting-image {
-              height: 88%;
-              width: 88%;
+              height: 96%;
+              width: 96%;
             }
           }
         }

@@ -33,16 +33,12 @@ const PET_DRAG_HANDLE_SIZE = 36;
 const PET_SIZE_MIN = 50;
 // 限制桌宠支持的最大人物宽度。
 const PET_SIZE_MAX = 400;
-// 固定画布在气泡所在侧容纳一份最大气泡，人物贴向另一侧，切换气泡方位只需重新摆放窗口。
-const PET_WINDOW_SIZE = {
-  width:
-    PET_WINDOW_PADDING * 2 +
-    PET_BUBBLE_GAP +
-    PET_BUBBLE_MAX_SIZE.width +
-    PET_SIZE_MAX,
-  // 高度保证气泡上下对齐且桌宠最小时仍完整可见。
-  height: (PET_WINDOW_PADDING + PET_BUBBLE_MAX_SIZE.height) * 2 - PET_SIZE_MIN,
-};
+// 固定画布横向容纳一份最大气泡与最大人物。
+const PET_WINDOW_WIDTH =
+  PET_WINDOW_PADDING * 2 +
+  PET_BUBBLE_GAP +
+  PET_BUBBLE_MAX_SIZE.width +
+  PET_SIZE_MAX;
 // 定义桌宠窗口淡入动画的持续时间。
 const PET_FADE_DURATION_MS = 180;
 // 创建桌宠窗口及其布局、位置与交互控制器。
@@ -169,26 +165,42 @@ export function createPetWindowManager(
     characterSizeCache = { imagePath, width, size };
     return size;
   }
+  // 根据最大气泡与人物实际高度返回紧凑窗口尺寸。
+  function getRequiredWindowSize(characterSize: Electron.Size): Electron.Size {
+    return {
+      width: PET_WINDOW_WIDTH,
+      height:
+        PET_WINDOW_PADDING * 2 +
+        Math.max(PET_BUBBLE_MAX_SIZE.height, characterSize.height),
+    };
+  }
   // 返回桌宠窗口当前内容区域尺寸。
   function getWindowSize(): Electron.Size {
-    if (!petWindow) return PET_WINDOW_SIZE;
+    if (!petWindow) return getRequiredWindowSize(getCharacterSize());
     // 读取窗口实际内容边界以兼容系统缩放差异。
     const bounds = petWindow.getContentBounds();
     return { width: bounds.width, height: bounds.height };
   }
-  // 计算桌宠在固定内容区内的边界：纵向居中，横向贴向气泡反方向的一侧。
+  // 计算桌宠在固定内容区内的边界：纵向跟随气泡对齐，横向贴向气泡反方向的一侧。
   function calculateLocalCharacterBounds(
     windowSize: Electron.Size,
     characterSize: Electron.Size,
   ): Electron.Rectangle {
-    // 读取气泡相对人物的方位设置。
-    const { bubbleDirection } = dependencies.getSettings();
+    // 读取气泡相对人物的方位与纵向对齐设置。
+    const { bubbleDirection, bubbleAlign } = dependencies.getSettings();
+    // 按气泡对齐方式计算人物纵向位置，让单份气泡高度覆盖全部布局。
+    const y =
+      bubbleAlign === 'top'
+        ? PET_WINDOW_PADDING
+        : bubbleAlign === 'bottom'
+          ? windowSize.height - PET_WINDOW_PADDING - characterSize.height
+          : Math.round((windowSize.height - characterSize.height) / 2);
     return {
       x:
         bubbleDirection === 'right'
           ? PET_WINDOW_PADDING
           : windowSize.width - PET_WINDOW_PADDING - characterSize.width,
-      y: Math.round((windowSize.height - characterSize.height) / 2),
+      y,
       ...characterSize,
     };
   }
@@ -221,6 +233,17 @@ export function createPetWindowManager(
   // 按人物屏幕锚点重新摆放窗口，使尺寸或气泡方位变化后人物在屏幕上保持原位。
   function alignWindowToCharacterAnchor(anchor: Electron.Point): void {
     if (!petWindow || petWindow.isDestroyed() || isDragging) return;
+    // 外观变化后按人物真实高度收缩或扩展透明画布。
+    const requiredWindowSize = getRequiredWindowSize(getCharacterSize());
+    const currentWindowSize = getWindowSize();
+    if (
+      currentWindowSize.width !== requiredWindowSize.width ||
+      currentWindowSize.height !== requiredWindowSize.height
+    )
+      petWindow.setContentSize(
+        requiredWindowSize.width,
+        requiredWindowSize.height,
+      );
     // 读取当前布局下人物锚点在窗口内容区域中的位置。
     const localAnchor = getPositionAnchor(getLocalCharacterBounds());
     petWindow.setPosition(anchor.x - localAnchor.x, anchor.y - localAnchor.y);
@@ -459,10 +482,15 @@ export function createPetWindowManager(
     const settings = dependencies.getSettings();
     // 计算当前桌宠人物实际尺寸。
     const characterSize = getCharacterSize();
+    // 计算当前人物与最大气泡所需的紧凑窗口尺寸。
+    const initialWindowSize = getRequiredWindowSize(characterSize);
     // 根据保存的位置锚点反算固定窗口的初始位置。
-    const initialPosition = getRestoredPosition(characterSize, PET_WINDOW_SIZE);
+    const initialPosition = getRestoredPosition(
+      characterSize,
+      initialWindowSize,
+    );
     petWindow = new BrowserWindow({
-      ...PET_WINDOW_SIZE,
+      ...initialWindowSize,
       ...initialPosition,
       transparent: true,
       backgroundColor: '#00000000',
@@ -480,7 +508,7 @@ export function createPetWindowManager(
       },
     });
     // 系统会把初始窗口限制在显示器工作区内，创建后显式恢复固定画布尺寸以保证人物与气泡布局完整。
-    petWindow.setContentSize(PET_WINDOW_SIZE.width, PET_WINDOW_SIZE.height);
+    petWindow.setContentSize(initialWindowSize.width, initialWindowSize.height);
     // 读取窗口创建后由系统确认的实际尺寸。
     const actualWindowSize = petWindow.getSize();
     // 根据实际窗口尺寸重新校准恢复位置。

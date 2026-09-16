@@ -46,7 +46,7 @@ export const BUBBLE_DIRECTION_OPTIONS: SettingOption<BubbleDirection>[] = [
 ];
 // 定义操作气泡相对桌宠的对齐方式可选项。
 export const BUBBLE_ALIGN_OPTIONS: SettingOption<BubbleAlign>[] = [
-  { label: '顶部', value: 'top' },
-  { label: '居中', value: 'center' },
-  { label: '底部', value: 'bottom' },
+  { label: '顶部', value: 'top', icon: 'app-align-top' },
+  { label: '居中', value: 'center', icon: 'app-align-center' },
+  { label: '底部', value: 'bottom', icon: 'app-align-bottom' },
 ];

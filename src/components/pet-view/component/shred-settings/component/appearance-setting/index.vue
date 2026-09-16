@@ -152,17 +152,15 @@
           <a-radio-group
             :model-value="bubbleDirection"
             :options="BUBBLE_DIRECTION_OPTIONS"
+            class="appearance-setting-option-group"
             type="button"
             @change="updateBubbleDirection"
           >
             <template #label="{ data }">
-              <span class="appearance-setting-direction">
-                <svg-icon
-                  :name="data.icon"
-                  :size="14"
-                />
-                {{ data.label }}
-              </span>
+              <svg-icon
+                :name="data.icon"
+                :size="16"
+              />
             </template>
           </a-radio-group>
         </settings-layout-row>
@@ -170,9 +168,17 @@
           <a-radio-group
             :model-value="bubbleAlign"
             :options="BUBBLE_ALIGN_OPTIONS"
+            class="appearance-setting-option-group"
             type="button"
             @change="updateBubbleAlign"
-          />
+          >
+            <template #label="{ data }">
+              <svg-icon
+                :name="data.icon"
+                :size="16"
+              />
+            </template>
+          </a-radio-group>
         </settings-layout-row>
       </div>
     </div>

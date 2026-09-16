@@ -19,5 +19,5 @@ export interface AppearanceSettingEmits {
 export interface SettingOption<T extends string> {
   label: string;
   value: T;
-  icon?: string;
+  icon: string;
 }

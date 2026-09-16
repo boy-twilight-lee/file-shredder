@@ -3,6 +3,7 @@
     :class="[
       'pet-character',
       `pet-character-${pose}`,
+      `pet-character-aligned-${bubbleAlign}`,
       { 'pet-character-aligned-left': isBubbleOnRight },
     ]"
     @mousedown.right.stop
@@ -52,6 +53,7 @@ const {
   isDefaultPet,
   petMotion,
   bubbleDirection,
+  bubbleAlign,
   openActions,
   closeBubble,
   handlePetImageLoad,
