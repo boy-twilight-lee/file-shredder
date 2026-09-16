@@ -41,6 +41,8 @@ const PET_WINDOW_WIDTH =
   PET_SIZE_MAX;
 // 定义桌宠窗口淡入动画的持续时间。
 const PET_FADE_DURATION_MS = 180;
+// 内置桌宠图集为 640×640 正方形，图片无法解码时按该比例估算人物尺寸。
+const PET_FALLBACK_IMAGE_SIZE: Electron.Size = { width: 640, height: 640 };
 // 创建桌宠窗口及其布局、位置与交互控制器。
 export function createPetWindowManager(
   dependencies: PetWindowManagerDependencies,
@@ -156,7 +158,7 @@ export function createPetWindowManager(
         ? imageNaturalSize
         : !activeImage.isEmpty()
           ? activeImage.getSize()
-          : { width: 594, height: 840 };
+          : PET_FALLBACK_IMAGE_SIZE;
     // 根据目标宽度与图片比例计算人物展示尺寸。
     const size = {
       width,

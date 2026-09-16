@@ -10,7 +10,6 @@
       border-radius: 10px;
       display: flex;
       align-items: center;
-      justify-content: space-between;
       gap: 10px;
       .system-setting-icon {
         height: 32px;
@@ -26,21 +25,12 @@
         justify-content: center;
       }
       .system-setting-content {
+        overflow: hidden;
         flex: 1;
-        display: flex;
-        flex-direction: column;
-        .system-setting-label {
-          font-size: 12px;
-          line-height: 18px;
-        }
-        .system-setting-desc {
+        &:deep(.cx-layout-desc) {
           overflow: hidden;
-          font-size: 10px;
-          line-height: 16px;
           text-overflow: ellipsis;
           white-space: nowrap;
-          color: #99a1ad;
-          display: block;
         }
       }
     }

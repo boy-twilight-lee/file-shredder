@@ -1,29 +1,17 @@
 .shred-confirm {
+  --cx-layout-desc-line-height: 18px;
+  --cx-layout-title-font-weight: 700;
   width: 344px;
   padding: 14px;
-  .shred-confirm-heading {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-    .shred-confirm-title {
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 20px;
-      color: #171b22;
-    }
-    .shred-confirm-description {
-      font-size: 12px;
-      line-height: 18px;
-      color: #7d8793;
-      .shred-confirm-emphasis {
-        color: #f2555d;
-      }
+  &:deep(.cx-layout-desc) {
+    .shred-confirm-emphasis {
+      color: #f2555d;
     }
   }
   .shred-confirm-scrollbar {
     overflow: hidden;
     max-height: 366px;
-    margin: 10px 0 8px;
+    margin: 2px 0 8px;
     background: #fafbfc;
     border: 1px solid #e5eaf1;
     border-radius: 12px;
@@ -112,15 +100,6 @@
           align-items: center;
           justify-content: center;
           transition: background 0.1s cubic-bezier(0, 0, 1, 1);
-          &:deep(.arco-btn-icon) {
-            height: 100%;
-            width: 100%;
-            margin: 0;
-            line-height: 20px;
-            display: inline-flex;
-            align-items: center;
-            justify-content: center;
-          }
           .shred-confirm-remove-symbol {
             height: 14px;
             width: 14px;

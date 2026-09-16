@@ -11,3 +11,7 @@ export const PET_WINDOW_PADDING = 30;
 export const PET_BUBBLE_GAP = 14;
 // 定义操作气泡支持的最大外框尺寸，窗口在气泡所在侧按一份该尺寸预留空间。
 export const PET_BUBBLE_MAX_SIZE = { width: 750, height: 500 };
+// 定义气泡对齐变化时气泡位置过渡的时长。
+export const PET_ALIGN_TRANSITION_DURATION_MS = 220;
+// 定义气泡对齐过渡使用的缓出曲线，桌宠气泡与设置预览共用同一节奏。
+export const PET_ALIGN_TRANSITION_EASING = 'cubic-bezier(0.33, 1, 0.68, 1)';

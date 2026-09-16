@@ -13,14 +13,17 @@
         <span class="system-setting-icon">
           <svg-icon :name="item.icon" />
         </span>
-        <div class="system-setting-content">
-          <span class="system-setting-label">{{ item.label }}</span>
-          <span class="system-setting-desc">{{ item.description }}</span>
-        </div>
-        <a-switch
-          :model-value="settings[item.key]"
-          :before-change="(value) => updateBooleanSetting(item.key, value)"
-        />
+        <cx-layout
+          class="system-setting-content"
+          direction="horizontal"
+          :title="item.label"
+          :description="item.description"
+        >
+          <a-switch
+            :model-value="settings[item.key]"
+            :before-change="(value) => updateBooleanSetting(item.key, value)"
+          />
+        </cx-layout>
       </div>
     </div>
   </cx-card>

@@ -11,6 +11,14 @@ export interface ShredLevelOption {
   label: string;
   icon: string;
 }
+// 定义清理文件夹根目录时可选的处理方式。
+export type CleanupBehavior = 'delete' | 'keep';
+// 定义文件夹清理行为可选项的展示结构。
+export interface CleanupBehaviorOption {
+  value: CleanupBehavior;
+  label: string;
+  icon: string;
+}
 // 定义系统设置开关的展示结构。
 export interface SystemSettingOption {
   key: SettingBooleanKey;

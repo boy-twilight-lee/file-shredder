@@ -1,4 +1,9 @@
-import { SettingOption, ShredLevelOption, SystemSettingOption } from '../type';
+import {
+  CleanupBehaviorOption,
+  SettingOption,
+  ShredLevelOption,
+  SystemSettingOption,
+} from '../type';
 import { AppSettings, BubbleAlign, BubbleDirection } from '@/type';
 import {
   DEFAULT_BUBBLE_ALIGN,
@@ -92,9 +97,28 @@ export const SHRED_LEVEL_OPTIONS: ShredLevelOption[] = [
     icon: 'icon-storage',
   },
 ];
-// 说明清理强度对覆写次数与清理耗时的影响，供强度选项后的说明图标展示。
-export const SHRED_LEVEL_TIP =
-  '清理强度决定每个文件被随机数据覆写的次数：极速删除不覆写数据，日常清理覆写 3 次，加强清理覆写 7 次，深度清理覆写 35 次；覆写次数越多越难恢复，清理耗时也越长。';
+// 定义清理文件夹根目录处理方式可选项及其业务图标，删除对应删除根目录，保留对应仅清理文件夹内容。
+export const CLEANUP_BEHAVIOR_OPTIONS: CleanupBehaviorOption[] = [
+  {
+    value: 'delete',
+    label: '删除',
+    icon: 'icon-delete',
+  },
+  {
+    value: 'keep',
+    label: '保留',
+    icon: 'icon-folder-open',
+  },
+];
+// 按功能拆分清理强度说明，依次说明强度作用、各强度覆写次数与清理代价，供强度选项后的说明图标逐行展示。
+export const SHRED_LEVEL_TIP_LINES: string[] = [
+  '清理强度决定每个文件被随机数据覆写的次数：',
+  '极速删除：不覆写数据',
+  '日常清理：覆写 3 次',
+  '加强清理：覆写 7 次',
+  '深度清理：覆写 35 次',
+  '覆写次数越多越难恢复，清理耗时也越长。',
+];
 // 定义系统设置开关及其展示信息。
 export const SYSTEM_SETTING_OPTIONS: SystemSettingOption[] = [
   {

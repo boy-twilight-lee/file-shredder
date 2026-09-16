@@ -1,12 +1,12 @@
 <template>
-  <div class="shred-confirm">
-    <div class="shred-confirm-heading">
-      <span class="shred-confirm-title">确定永久粉碎吗？</span>
-      <span class="shred-confirm-description">
-        共 {{ selectedTargets.length }} 项，此操作
-        <span class="shred-confirm-emphasis">不可撤销</span>。
-      </span>
-    </div>
+  <cx-layout
+    class="shred-confirm"
+    title="确定永久粉碎吗？"
+  >
+    <template #description>
+      共 {{ selectedTargets.length }} 项，此操作
+      <span class="shred-confirm-emphasis">不可撤销</span>。
+    </template>
     <a-scrollbar
       class="shred-confirm-scroll-container"
       outer-class="shred-confirm-scrollbar"
@@ -48,12 +48,10 @@
             :aria-label="`移除 ${target.path}`"
             @click.stop="removeTarget(target.path)"
           >
-            <template #icon>
-              <svg-icon
-                class="shred-confirm-remove-symbol"
-                name="icon-delete"
-              />
-            </template>
+            <svg-icon
+              class="shred-confirm-remove-symbol"
+              name="icon-delete"
+            />
           </a-button>
         </div>
       </div>
@@ -82,7 +80,7 @@
         确定
       </a-button>
     </div>
-  </div>
+  </cx-layout>
 </template>
 <script setup lang="ts">
 import { ShredTarget } from '@/type';

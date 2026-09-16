@@ -1,9 +1,9 @@
 <template>
-  <div class="shred-result">
-    <div class="shred-result-title">
-      <span class="shred-result-title-text">{{ resultTitle }}</span>
-      <span class="shred-result-subtitle">{{ resultSubtitle }}</span>
-    </div>
+  <cx-layout
+    class="shred-result"
+    :title="resultTitle"
+    :description="resultSubtitle"
+  >
     <div class="shred-result-metrics">
       <div
         v-for="metric in resultMetrics"
@@ -48,7 +48,7 @@
         我知道了
       </a-link>
     </div>
-  </div>
+  </cx-layout>
 </template>
 <script setup lang="ts">
 import { usePetViewContext } from '@/pages/pet-view/hooks';

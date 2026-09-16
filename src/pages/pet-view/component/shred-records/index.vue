@@ -19,22 +19,15 @@
         placeholder="筛选文件路径"
       />
       <div class="shred-records-actions">
-        <div class="shred-records-summary-group">
-          <span class="shred-records-summary">
-            共
-            <span class="shred-records-summary-total">
-              {{ logs.length }}
-            </span>
-            条
+        <span class="shred-records-summary">
+          共
+          <span class="shred-records-summary-total">{{ logs.length }}</span>
+          条，已选
+          <span class="shred-records-summary-selected">
+            {{ selectedLogIds.length }}
           </span>
-          <span class="shred-records-summary">
-            ，已选
-            <span class="shred-records-summary-selected">
-              {{ selectedLogIds.length }}
-            </span>
-            条
-          </span>
-        </div>
+          条
+        </span>
         <a-popconfirm
           :content="`确定删除选中的 ${selectedLogIds.length} 条粉碎记录吗？`"
           :disabled="selectedLogIds.length === 0"

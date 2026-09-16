@@ -14,11 +14,11 @@ interface PetImageServiceDependencies {
   notifyAppearanceChanged: () => void;
   restoreSettingsBubble: () => void;
 }
-// 定义随应用发布的内置桌宠形象。
+// 定义随应用发布的内置桌宠形象，直接复用扁平化后的待机动作图集。
 const BUILT_IN_PET_IMAGES = [
   {
     id: 'built-in-ao-yin',
-    fileName: 'default-pet-preview.png',
+    fileName: 'idle.webp',
   },
 ] as const;
 // 限制设置页桌宠缩略图的传输宽度。
@@ -89,6 +89,7 @@ export class PetImageService {
     if (cachedImage) return cachedImage;
     // 使用 Electron 原生图片 API 解码静态图片。
     const image = nativeImage.createFromPath(imagePath);
+    // nativeImage 无法解码动画 WebP，内置图集回退到原始图片数据地址。
     if (image.isEmpty()) return this.imagePathToDataUrl(imagePath);
     // 设置页只传输小尺寸预览，避免通过 IPC 反复传递完整图片。
     // 将图片缩放为设置页需要的缩略图。

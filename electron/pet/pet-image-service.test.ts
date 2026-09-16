@@ -38,15 +38,13 @@ describe('PetImageService appearance', () => {
       // 本测试不打开原生文件选择器。
       restoreSettingsBubble: () => {},
     });
-    files.add(
-      join('/app', 'src', 'assets', 'imgs', 'default-pet-preview.png'),
-    );
+    files.add(join('/app', 'src', 'assets', 'imgs', 'idle.webp'));
   });
   // 首次启动必须返回真实存在的默认图集。
   it('uses the default atlas without an upload', () => {
     expect(service.getImageDataUrl()).toEqual({
       isDefault: true,
-      image: expect.stringContaining('data:image/png;base64,'),
+      image: expect.stringContaining('data:image/webp;base64,'),
     });
   });
   // 上传的动态图片必须保留原始数据格式且不启用帧裁剪。

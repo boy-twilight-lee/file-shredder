@@ -78,7 +78,7 @@
         "from": "src/assets/imgs",
         "to": "imgs",
         "filter": [
-          "default-pet-preview.png"
+          "idle.webp"
         ]
       }
     ],

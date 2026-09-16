@@ -8,15 +8,15 @@
     ]"
   >
     <span class="cx-layout-heading">
-      <span class="cx-layout-title-row">
-        <span class="cx-layout-title">{{ title }}</span>
+      <span class="cx-layout-title">
+        {{ title }}
         <slot name="title-extra" />
       </span>
       <span
-        v-if="description"
+        v-if="description || $slots.description"
         class="cx-layout-desc"
       >
-        {{ description }}
+        <slot name="description">{{ description }}</slot>
       </span>
     </span>
     <div class="cx-layout-content">

@@ -5,33 +5,34 @@
       :src="appIconSource"
       :alt="APP_NAME"
     />
-    <span class="shred-actions-header-heading">
-      <span class="shred-actions-header-title">{{ APP_NAME }}</span>
-      <span class="shred-actions-header-description">
-        安全、彻底地清理文件
-      </span>
-    </span>
-    <span class="shred-actions-header-tools">
-      <a-tooltip
-        v-for="item in PET_HEADER_ACTION_OPTIONS"
-        :key="item.key"
-        :content="item.title"
-        position="top"
-      >
-        <button
-          class="shred-actions-header-button"
-          type="button"
-          :title="item.title"
-          :aria-label="item.title"
-          @click="handleSelect(item.key)"
+    <cx-layout
+      class="shred-actions-header-main"
+      direction="horizontal"
+      :title="APP_NAME"
+      description="安全、彻底地清理文件"
+    >
+      <span class="shred-actions-header-tools">
+        <a-tooltip
+          v-for="item in PET_HEADER_ACTION_OPTIONS"
+          :key="item.key"
+          :content="item.title"
+          position="top"
         >
-          <svg-icon
-            class="shred-actions-header-icon"
-            :name="item.icon"
-          />
-        </button>
-      </a-tooltip>
-    </span>
+          <button
+            class="shred-actions-header-button"
+            type="button"
+            :title="item.title"
+            :aria-label="item.title"
+            @click="handleSelect(item.key)"
+          >
+            <svg-icon
+              class="shred-actions-header-icon"
+              :name="item.icon"
+            />
+          </button>
+        </a-tooltip>
+      </span>
+    </cx-layout>
   </div>
 </template>
 <script setup lang="ts">
@@ -48,6 +49,8 @@ function handleSelect(key: PetHeaderActionKey): void {
 </script>
 <style lang="less" scoped>
 .shred-actions-header {
+  --cx-layout-desc-line-height: 18px;
+  --cx-layout-title-font-weight: 700;
   margin-bottom: 14px;
   padding: 2px 0 0;
   display: flex;
@@ -64,63 +67,45 @@ function handleSelect(key: PetHeaderActionKey): void {
     object-fit: cover;
     flex-shrink: 0;
   }
-  .shred-actions-header-heading {
-    overflow: hidden;
-    display: flex;
+  .shred-actions-header-main {
     flex: 1;
-    flex-direction: column;
-    gap: 2px;
-    .shred-actions-header-title {
-      font-size: 14px;
-      font-weight: 700;
-      line-height: 20px;
-      letter-spacing: 0;
-      color: #151a21;
-    }
-    .shred-actions-header-description {
-      font-size: 12px;
-      line-height: 18px;
-      color: #7d8794;
-    }
-  }
-  .shred-actions-header-tools {
-    flex-shrink: 0;
-    display: flex;
-    gap: 8px;
-    .shred-actions-header-button {
-      cursor: pointer;
-      height: 34px;
-      width: 34px;
-      padding: 0;
-      background: rgba(255, 255, 255, 0.82);
-      border: 1px solid rgba(121, 130, 143, 0.16);
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(30, 55, 90, 0.08);
-      font-size: 18px;
-      color: #68727f;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      transition:
-        background 0.18s ease,
-        border-color 0.18s ease,
-        box-shadow 0.18s ease,
-        color 0.18s ease,
-        transform 0.18s ease;
-      .shred-actions-header-icon {
-        height: 19px;
-        width: 19px;
-      }
-      &:hover {
-        background: #f1f6fd;
-        border-color: rgba(36, 117, 220, 0.3);
-        box-shadow: 0 5px 14px rgba(55, 108, 184, 0.12);
-        color: #2475dc;
-        transform: translateY(-1px);
-      }
-      &:focus-visible {
-        outline: 2px solid rgba(36, 117, 220, 0.28);
-        outline-offset: 2px;
+    .shred-actions-header-tools {
+      gap: 8px;
+      .shred-actions-header-button {
+        cursor: pointer;
+        height: 34px;
+        width: 34px;
+        padding: 0;
+        background: rgba(255, 255, 255, 0.82);
+        border: 1px solid rgba(121, 130, 143, 0.16);
+        border-radius: 10px;
+        box-shadow: 0 4px 12px rgba(30, 55, 90, 0.08);
+        font-size: 18px;
+        color: #68727f;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        transition:
+          background 0.18s ease,
+          border-color 0.18s ease,
+          box-shadow 0.18s ease,
+          color 0.18s ease,
+          transform 0.18s ease;
+        .shred-actions-header-icon {
+          height: 19px;
+          width: 19px;
+        }
+        &:hover {
+          background: #f1f6fd;
+          border-color: rgba(36, 117, 220, 0.3);
+          box-shadow: 0 5px 14px rgba(55, 108, 184, 0.12);
+          color: #2475dc;
+          transform: translateY(-1px);
+        }
+        &:focus-visible {
+          outline: 2px solid rgba(36, 117, 220, 0.28);
+          outline-offset: 2px;
+        }
       }
     }
   }

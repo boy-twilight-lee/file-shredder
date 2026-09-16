@@ -1,17 +1,15 @@
 import { PetPose } from '../type';
-import idleImage from '@/assets/imgs/motions/idle.webp';
-import actionsImage from '@/assets/imgs/motions/actions.webp';
-import workingImage from '@/assets/imgs/motions/working.webp';
-import waitingImage from '@/assets/imgs/motions/waiting.webp';
-import successImage from '@/assets/imgs/motions/success.webp';
-import failureImage from '@/assets/imgs/motions/failure.webp';
-import rightImage from '@/assets/imgs/motions/right.webp';
-import leftImage from '@/assets/imgs/motions/left.webp';
-import restRightImage from '@/assets/imgs/motions/rest-right.webp';
-import restLeftImage from '@/assets/imgs/motions/rest-left.webp';
-import previewImage from '@/assets/imgs/default-pet-preview.png';
-// 首次解码和素材加载失败时使用稳定的微笑姿势。
-export const DEFAULT_PET_PREVIEW = previewImage;
+import { PetBubbleMode } from '@/pages/pet-view/type';
+import idleImage from '@/assets/imgs/idle.webp';
+import actionsImage from '@/assets/imgs/actions.webp';
+import workingImage from '@/assets/imgs/working.webp';
+import waitingImage from '@/assets/imgs/waiting.webp';
+import successImage from '@/assets/imgs/success.webp';
+import failureImage from '@/assets/imgs/failure.webp';
+import rightImage from '@/assets/imgs/right.webp';
+import leftImage from '@/assets/imgs/left.webp';
+import restRightImage from '@/assets/imgs/rest-right.webp';
+import restLeftImage from '@/assets/imgs/rest-left.webp';
 // 待机、工作、步行与结果表情使用动态 WebP，操作和等待保持固定姿势。
 export const PET_POSE_IMAGES: Record<PetPose, string> = {
   idle: idleImage,
@@ -25,6 +23,12 @@ export const PET_POSE_IMAGES: Record<PetPose, string> = {
   restRight: restRightImage,
   restLeft: restLeftImage,
 };
+// 操作、设置与记录面板都展示同一张手指指向气泡的动作形象。
+export const ACTION_BUBBLE_MODES: ReadonlyArray<PetBubbleMode> = [
+  'actions',
+  'settings',
+  'records',
+];
 // 提前解码移动相关素材，降低首次左右拖动时的切换等待。
 export const MOVEMENT_PRELOAD_POSES: ReadonlyArray<PetPose> = [
   'left',

@@ -4,7 +4,10 @@
       'pet-character',
       `pet-character-${pose}`,
       `pet-character-aligned-${bubbleAlign}`,
-      { 'pet-character-aligned-left': isBubbleOnRight },
+      {
+        'pet-character-aligned-left': isBubbleOnRight,
+        'pet-character-mirrored': isMirrored,
+      },
     ]"
     :style="scaleStyle"
     @mousedown.right.stop
@@ -36,7 +39,7 @@
 import { PetCharacterProps, PetPose } from './type';
 import { usePetMotion } from './hooks';
 import {
-  DEFAULT_PET_PREVIEW,
+  ACTION_BUBBLE_MODES,
   MOVEMENT_PRELOAD_POSES,
   PET_POSE_IMAGES,
 } from './constants';
@@ -81,19 +84,24 @@ const pose = computed<PetPose>(() => {
   }
   if (bubbleMode.value === 'progress') return 'working';
   if (bubbleMode.value === 'confirm') return 'waiting';
-  if (bubbleMode.value === 'actions') return 'actions';
+  // 操作、设置与记录面板统一展示手指指向气泡的动作形象。
+  if (ACTION_BUBBLE_MODES.includes(bubbleMode.value)) return 'actions';
   if (bubbleMode.value !== 'hidden') return 'idle';
   return petState.value === 'working' ? 'working' : 'idle';
 });
-// 解码下一张图片之前保留当前画面，避免快速切换出现空白。
-const displayedSource = ref(DEFAULT_PET_PREVIEW);
+// 手指要指向气泡：默认形象的气泡位于人物右侧时镜像翻转动作素材，素材本身朝左。
+const isMirrored = computed(
+  () => isDefaultPet.value && pose.value === 'actions' && isBubbleOnRight.value,
+);
+// 解码下一张图片之前保留待机画面，避免快速切换出现空白。
+const displayedSource = ref(PET_POSE_IMAGES.idle);
 // 姿势标识与已经解码并提交的图片保持一致。
 const displayedPose = ref<PetPose>('idle');
 // 每个组件缓存解码中的图片，避免同方向事件重复加载。
 const decodedImages = new Map<string, Promise<boolean>>();
 // 递增请求版本，阻止较慢的旧图片覆盖新的业务状态。
 let imageRequest = 0;
-// 在浏览器完成首帧解码后才允许切换图片，错误时保留静态预览。
+// 在浏览器完成首帧解码后才允许切换图片，错误时保留待机动画。
 async function decodeImage(source: string): Promise<boolean> {
   try {
     // 临时图片用于预解码，不会插入 DOM 或接管原生拖动。
@@ -136,7 +144,7 @@ async function updatePose(): Promise<void> {
   // 等待图片可展示后再提交最新请求。
   const loaded = await loadImage(source);
   if (request !== imageRequest) return;
-  displayedSource.value = loaded ? source : DEFAULT_PET_PREVIEW;
+  displayedSource.value = loaded ? source : PET_POSE_IMAGES.idle;
   displayedPose.value = loaded ? nextPose : 'idle';
 }
 // 相同状态下的尺寸、进度和方向事件不会重启动画。
