@@ -21,7 +21,7 @@
     </span>
     <svg-icon
       class="shred-action-chevron"
-      name="app-arrow-right"
+      name="icon-arrow-right"
     />
   </button>
 </template>

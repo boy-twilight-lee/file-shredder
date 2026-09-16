@@ -7,7 +7,7 @@
       @click="handleBack"
     >
       <svg-icon
-        name="app-back"
+        name="icon-back"
         size="16"
       />
     </a-link>

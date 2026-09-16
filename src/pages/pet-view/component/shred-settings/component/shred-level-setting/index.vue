@@ -6,39 +6,39 @@
   >
     <div class="shred-level-setting-list">
       <cx-layout title="清理强度">
-        <div class="shred-level-setting-options">
-          <a-radio-group
-            :model-value="settings.passes"
-            :options="SHRED_LEVEL_OPTIONS"
-            type="button"
-            @change="handlePassesChange"
-          >
-            <template #label="{ data }">
-              <span class="shred-level-setting-option">
-                <svg-icon
-                  :name="data.icon"
-                  :size="16"
-                />
-                <span>
-                  {{ data.label }}
-                </span>
-              </span>
-            </template>
-          </a-radio-group>
+        <template #title-extra>
           <a-tooltip
             :content="SHRED_LEVEL_TIP"
             content-class="shred-level-setting-tooltip"
             position="top"
           >
             <span class="shred-level-setting-tip">
-              <svg-icon name="app-information" />
+              <svg-icon name="icon-information" />
             </span>
           </a-tooltip>
-        </div>
+        </template>
+        <a-radio-group
+          :model-value="settings.passes"
+          :options="SHRED_LEVEL_OPTIONS"
+          type="button"
+          @change="handlePassesChange"
+        >
+          <template #label="{ data }">
+            <span class="shred-level-setting-option">
+              <svg-icon
+                :name="data.icon"
+                :size="16"
+              />
+              <span>
+                {{ data.label }}
+              </span>
+            </span>
+          </template>
+        </a-radio-group>
       </cx-layout>
       <div class="shred-level-setting-folder">
         <span class="shred-level-setting-folder-icon">
-          <svg-icon name="app-folder-open" />
+          <svg-icon name="icon-folder-open" />
         </span>
         <div class="shred-level-setting-folder-content">
           <span class="shred-level-setting-folder-label">文件夹清理行为</span>

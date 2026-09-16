@@ -51,7 +51,7 @@
             <template #icon>
               <svg-icon
                 class="shred-confirm-remove-symbol"
-                name="app-delete"
+                name="icon-delete"
               />
             </template>
           </a-button>
@@ -61,7 +61,7 @@
     <div class="shred-confirm-warning">
       <svg-icon
         class="shred-confirm-warning-icon"
-        name="app-warning"
+        name="icon-warning"
       />
       <span>粉碎后将无法找回，请确认文件已备份。</span>
     </div>
@@ -98,7 +98,7 @@ const {
 } = usePetViewContext().inject();
 // 返回粉碎目标类型对应的业务图标名称。
 function getTargetIconName(target: ShredTarget): string {
-  return target.targetType === 'directory' ? 'app-folder' : 'app-file';
+  return target.targetType === 'directory' ? 'icon-folder' : 'icon-file';
 }
 // 将粉碎目标大小转换为确认列表展示文本。
 function getTargetSizeText(target: ShredTarget): string {

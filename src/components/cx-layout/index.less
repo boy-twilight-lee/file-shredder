@@ -3,10 +3,15 @@
   .cx-layout-heading {
     display: flex;
     flex-direction: column;
-    .cx-layout-title {
-      font-size: 12px;
-      line-height: 18px;
-      color: #0d1014;
+    .cx-layout-title-row {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      .cx-layout-title {
+        font-size: 12px;
+        line-height: 18px;
+        color: #0d1014;
+      }
     }
     .cx-layout-desc {
       font-size: 10px;
@@ -18,8 +23,10 @@
     flex-direction: column;
     gap: 8px;
     .cx-layout-heading {
-      .cx-layout-title {
-        font-weight: 600;
+      .cx-layout-title-row {
+        .cx-layout-title {
+          font-weight: 600;
+        }
       }
     }
     .cx-layout-content {
@@ -41,8 +48,10 @@
   }
   &.cx-layout-emphasis {
     .cx-layout-heading {
-      .cx-layout-title {
-        font-weight: 600;
+      .cx-layout-title-row {
+        .cx-layout-title {
+          font-weight: 600;
+        }
       }
     }
   }

@@ -60,36 +60,36 @@ export const PET_PREVIEW_HEIGHT =
   SETTINGS_CARD_GAP;
 // 定义操作气泡相对桌宠的方位可选项。
 export const BUBBLE_DIRECTION_OPTIONS: SettingOption<BubbleDirection>[] = [
-  { label: '居左', value: 'left', icon: 'app-align-left' },
-  { label: '居右', value: 'right', icon: 'app-align-right' },
+  { label: '居左', value: 'left', icon: 'icon-align-left' },
+  { label: '居右', value: 'right', icon: 'icon-align-right' },
 ];
 // 定义操作气泡相对桌宠的对齐方式可选项。
 export const BUBBLE_ALIGN_OPTIONS: SettingOption<BubbleAlign>[] = [
-  { label: '顶部', value: 'top', icon: 'app-align-top' },
-  { label: '居中', value: 'center', icon: 'app-align-center' },
-  { label: '底部', value: 'bottom', icon: 'app-align-bottom' },
+  { label: '顶部', value: 'top', icon: 'icon-align-top' },
+  { label: '居中', value: 'center', icon: 'icon-align-center' },
+  { label: '底部', value: 'bottom', icon: 'icon-align-bottom' },
 ];
 // 定义文件清理强度可选项及其业务图标。
 export const SHRED_LEVEL_OPTIONS: ShredLevelOption[] = [
   {
     value: 0,
     label: '极速删除',
-    icon: 'app-delete',
+    icon: 'icon-delete',
   },
   {
     value: 3,
     label: '日常清理',
-    icon: 'app-lightning',
+    icon: 'icon-lightning',
   },
   {
     value: 7,
     label: '加强清理',
-    icon: 'app-shield',
+    icon: 'icon-shield',
   },
   {
     value: 35,
     label: '深度清理',
-    icon: 'app-storage',
+    icon: 'icon-storage',
   },
 ];
 // 说明清理强度对覆写次数与清理耗时的影响，供强度选项后的说明图标展示。
@@ -101,24 +101,24 @@ export const SYSTEM_SETTING_OPTIONS: SystemSettingOption[] = [
     key: 'alwaysOnTop',
     label: '桌宠始终置顶',
     description: '保持桌宠显示在其他窗口上方',
-    icon: 'app-pin',
+    icon: 'icon-pin',
   },
   {
     key: 'launchAtLogin',
     label: '开机自动启动',
     description: '登录 Windows 后自动运行',
-    icon: 'app-power',
+    icon: 'icon-power',
   },
   {
     key: 'systemNotifications',
     label: '开启系统通知',
     description: '清理完成后发送结果通知',
-    icon: 'app-notification',
+    icon: 'icon-notification',
   },
   {
     key: 'contextMenuInstalled',
     label: '资源管理器右键菜单',
     description: '添加文件和文件夹右键菜单',
-    icon: 'app-menu',
+    icon: 'icon-menu',
   },
 ];

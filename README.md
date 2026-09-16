@@ -50,6 +50,10 @@ npm run build:ia32
 
 同时构建两种架构使用 `npm run build`。成品位于 `release` 目录。新图标用于系统通知、设置窗口和资源管理器菜单；若要同时改写 portable 外壳图标，需要为 Electron Builder 开启 Windows 符号链接权限（启用开发者模式或使用管理员终端构建）。
 
+## 图标资源
+
+`src/assets/icons` 下的业务图标统一按 `icon-xxx.svg` 命名，与 `src/styles/icons` 中主题自带的表单图标相互独立。构建时 `vite-plugin-svg-icons` 依据文件名生成同名 symbol 雪碧图，组件统一通过 `<svg-icon name="icon-xxx" />` 引用；图标内部使用 `currentColor` 填充，颜色由外层文字颜色控制。
+
 ## 主题资源
 
 用户提供的 `styles.zip` 包含 `arco.less` 与图标资源，没有完整可直接使用的 `reset.less`。项目保留原始主题文件，并在 `src/styles/reset.less` 中补齐必要的页面与元素重置。

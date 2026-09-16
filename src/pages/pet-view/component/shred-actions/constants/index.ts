@@ -4,7 +4,7 @@ export const PET_HEADER_ACTION_OPTIONS: PetHeaderActionOption[] = [
   {
     key: 'records',
     title: '粉碎记录',
-    icon: 'app-history',
+    icon: 'icon-history',
   },
 ] as const;
 // 定义桌宠主操作菜单及其展示语义。
@@ -15,7 +15,7 @@ export const PET_ACTION_OPTIONS: PetActionOption[] = [
     description: '支持同时选择多个文件',
     badge: '常用',
     tone: 'primary',
-    icon: 'app-file-add',
+    icon: 'icon-file-add',
   },
   {
     key: 'directory',
@@ -23,7 +23,7 @@ export const PET_ACTION_OPTIONS: PetActionOption[] = [
     description: '包含文件夹内的所有内容',
     badge: '递归清理',
     tone: 'success',
-    icon: 'app-folder-open',
+    icon: 'icon-folder-open',
   },
   {
     key: 'settings',
@@ -31,7 +31,7 @@ export const PET_ACTION_OPTIONS: PetActionOption[] = [
     description: '调整桌宠与应用行为',
     badge: '偏好设置',
     tone: 'preference',
-    icon: 'app-settings',
+    icon: 'icon-settings',
   },
   {
     key: 'close',
@@ -39,6 +39,6 @@ export const PET_ACTION_OPTIONS: PetActionOption[] = [
     description: '退出文件粉碎精灵',
     badge: '谨慎操作',
     tone: 'danger',
-    icon: 'app-power',
+    icon: 'icon-power',
   },
 ];

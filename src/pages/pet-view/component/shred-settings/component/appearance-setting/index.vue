@@ -54,7 +54,7 @@
                 :disabled="isChoosingPetImage || isRestoringPetImage"
                 @click.stop="choosePetImage"
               >
-                <svg-icon name="app-edit" />
+                <svg-icon name="icon-edit" />
               </button>
               <button
                 v-if="isCustomPetImage"
@@ -65,7 +65,7 @@
                 :disabled="isChoosingPetImage || isRestoringPetImage"
                 @click.stop="restoreDefaultPetImage"
               >
-                <svg-icon name="app-restore" />
+                <svg-icon name="icon-restore" />
               </button>
             </div>
           </div>

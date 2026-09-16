@@ -4,30 +4,25 @@
     flex-direction: column;
     gap: 12px;
   }
-  .shred-level-setting-options {
+  .shred-level-setting-tip {
+    cursor: pointer;
+    font-size: 14px;
+    color: #86909c;
+    display: inline-flex;
+    align-items: center;
+    &:hover {
+      color: #0065ff;
+    }
+  }
+  &:deep(.arco-radio-button-content) {
+    height: 28px;
     display: flex;
     align-items: center;
-    gap: 8px;
-    &:deep(.arco-radio-button-content) {
-      height: 28px;
-      display: flex;
-      align-items: center;
-    }
-    .shred-level-setting-option {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-    .shred-level-setting-tip {
-      cursor: pointer;
-      font-size: 14px;
-      color: #86909c;
-      display: inline-flex;
-      align-items: center;
-      &:hover {
-        color: #0065ff;
-      }
-    }
+  }
+  .shred-level-setting-option {
+    display: flex;
+    align-items: center;
+    gap: 6px;
   }
   .shred-level-setting-folder {
     padding: var(--system-setting-row-padding, 8px 10px);
@@ -72,6 +67,5 @@
 }
 :global(.shred-level-setting-tooltip) {
   max-width: 260px;
-  word-break: break-all;
   white-space: normal;
 }

@@ -3,22 +3,22 @@ export const RESULT_METRIC_OPTIONS = [
   {
     key: 'succeeded',
     label: '已删文件',
-    icon: 'app-check-circle',
-    backgroundIcon: 'app-file',
+    icon: 'icon-check-circle',
+    backgroundIcon: 'icon-file',
     tone: 'success',
   },
   {
     key: 'failed',
     label: '删除失败',
-    icon: 'app-close-circle',
-    backgroundIcon: 'app-warning',
+    icon: 'icon-close-circle',
+    backgroundIcon: 'icon-warning',
     tone: 'failure',
   },
   {
     key: 'duration',
     label: '处理时间',
-    icon: 'app-time',
-    backgroundIcon: 'app-time',
+    icon: 'icon-time',
+    backgroundIcon: 'icon-time',
     tone: 'duration',
   },
 ] as const;

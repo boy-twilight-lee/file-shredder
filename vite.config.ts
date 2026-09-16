@@ -19,10 +19,10 @@ export default defineConfig(() => {
     },
     plugins: [
       vue(),
-      // 将业务 SVG 构建为 symbol 雪碧图，组件通过文件名引用对应图标。
+      // 将 icon-xxx 命名的业务 SVG 构建为同名 symbol 雪碧图，组件按名称直接从雪碧图取用图标。
       createSvgIconsPlugin({
         iconDirs: [resolve(process.cwd(), 'src/assets/icons')],
-        symbolId: 'icon-[name]',
+        symbolId: '[name]',
       }),
       // 自动引入 Vue 与 Vue Router 的组合式 API，并生成全局类型声明。
       AutoImport({

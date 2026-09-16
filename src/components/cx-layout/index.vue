@@ -8,7 +8,10 @@
     ]"
   >
     <span class="cx-layout-heading">
-      <span class="cx-layout-title">{{ title }}</span>
+      <span class="cx-layout-title-row">
+        <span class="cx-layout-title">{{ title }}</span>
+        <slot name="title-extra" />
+      </span>
       <span
         v-if="description"
         class="cx-layout-desc"

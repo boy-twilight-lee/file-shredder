@@ -3,7 +3,7 @@
     <span class="shred-actions-tip-icon">
       <svg-icon
         class="shred-actions-tip-heart"
-        name="app-heart"
+        name="icon-heart"
       />
     </span>
     <span>小贴士：文件或文件夹也可以直接拖到我身上。</span>

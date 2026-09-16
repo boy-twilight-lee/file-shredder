@@ -11,7 +11,7 @@
   >
     <svg-icon
       class="pet-character-drag-icon"
-      name="app-drag"
+      name="icon-drag"
     />
   </button>
 </template>

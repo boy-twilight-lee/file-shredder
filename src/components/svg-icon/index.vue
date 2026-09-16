@@ -18,14 +18,13 @@ defineOptions({
 });
 // 合并 SVG 图标属性与默认展示配置。
 const props = withDefaults(defineProps<SvgIconProps>(), {
-  prefix: 'icon',
   color: 'inherit',
   size: undefined,
 });
 // 提取图标尺寸与颜色属性供样式绑定使用。
 const { size, color } = toRefs(props);
-// 生成雪碧图中目标 symbol 的引用地址。
-const symbolId = computed(() => `#${props.prefix}-${props.name}`);
+// 按 icon-xxx 命名约定生成雪碧图中目标 symbol 的引用地址。
+const symbolId = computed(() => `#${props.name}`);
 // 将图标宽度转换为有效 CSS 尺寸。
 const width = computed(() => {
   return isUndefined(size.value)

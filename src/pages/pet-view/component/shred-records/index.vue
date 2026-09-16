@@ -52,7 +52,7 @@
             :disabled="selectedLogIds.length === 0"
           >
             <template #icon>
-              <svg-icon name="app-delete" />
+              <svg-icon name="icon-delete" />
             </template>
             批量删除
           </a-button>
@@ -198,7 +198,7 @@ function formatLogRows(records: ShredLog[]): RecordTableRow[] {
       : 'record-status-cell-failure',
     statusLabel: record.success ? '成功' : '失败',
     targetIconName:
-      record.targetType === 'directory' ? 'app-folder' : 'app-file',
+      record.targetType === 'directory' ? 'icon-folder' : 'icon-file',
     timestamp: formatRecordTime(record.timestamp),
   }));
 }

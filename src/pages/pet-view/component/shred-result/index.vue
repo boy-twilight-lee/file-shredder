@@ -36,7 +36,7 @@
     >
       <svg-icon
         class="shred-result-tip-icon"
-        name="app-information"
+        name="icon-information"
       />
       <span>{{ resultTip }}</span>
     </div>

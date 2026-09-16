@@ -8,7 +8,7 @@
         :loading="isCancelling"
         @click="cancelShred"
       >
-        <svg-icon name="app-stop" />
+        <svg-icon name="icon-stop" />
         {{ isCancelling ? '正在终止' : '取消删除' }}
       </a-link>
     </div>
@@ -19,7 +19,7 @@
       <div class="shred-progress-summary">
         <span class="shred-progress-status">
           <span class="shred-progress-status-icon">
-            <svg-icon name="app-delete" />
+            <svg-icon name="icon-delete" />
           </span>
           <span class="shred-progress-status-label">正在安全删除</span>
         </span>
@@ -35,7 +35,7 @@
         :title="progress?.path"
       >
         <span class="shred-progress-file-icon">
-          <svg-icon name="app-file" />
+          <svg-icon name="icon-file" />
         </span>
         <span class="shred-progress-file-name">
           {{ currentFileName }}
@@ -61,7 +61,7 @@
       <div class="shred-progress-security">
         <svg-icon
           class="shred-progress-security-icon"
-          name="app-shield"
+          name="icon-shield"
         />
         <span>安全粉碎 · 后台执行中</span>
       </div>
