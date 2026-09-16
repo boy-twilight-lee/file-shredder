@@ -1,15 +1,15 @@
 import { PetPose } from '../type';
-import idleImage from '@/assets/pet-templates/motions/idle.webp';
-import actionsImage from '@/assets/pet-templates/motions/actions.webp';
-import workingImage from '@/assets/pet-templates/motions/working.webp';
-import waitingImage from '@/assets/pet-templates/motions/waiting.webp';
-import successImage from '@/assets/pet-templates/motions/success.webp';
-import failureImage from '@/assets/pet-templates/motions/failure.webp';
-import rightImage from '@/assets/pet-templates/motions/right.webp';
-import leftImage from '@/assets/pet-templates/motions/left.webp';
-import restRightImage from '@/assets/pet-templates/motions/rest-right.webp';
-import restLeftImage from '@/assets/pet-templates/motions/rest-left.webp';
-import previewImage from '@/assets/pet-templates/default-pet-preview.png';
+import idleImage from '@/assets/imgs/motions/idle.webp';
+import actionsImage from '@/assets/imgs/motions/actions.webp';
+import workingImage from '@/assets/imgs/motions/working.webp';
+import waitingImage from '@/assets/imgs/motions/waiting.webp';
+import successImage from '@/assets/imgs/motions/success.webp';
+import failureImage from '@/assets/imgs/motions/failure.webp';
+import rightImage from '@/assets/imgs/motions/right.webp';
+import leftImage from '@/assets/imgs/motions/left.webp';
+import restRightImage from '@/assets/imgs/motions/rest-right.webp';
+import restLeftImage from '@/assets/imgs/motions/rest-left.webp';
+import previewImage from '@/assets/imgs/default-pet-preview.png';
 // 首次解码和素材加载失败时使用稳定的微笑姿势。
 export const DEFAULT_PET_PREVIEW = previewImage;
 // 待机、工作、步行与结果表情使用动态 WebP，操作和等待保持固定姿势。

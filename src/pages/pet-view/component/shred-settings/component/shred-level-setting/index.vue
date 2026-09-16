@@ -5,10 +5,7 @@
     description="设置文件清理强度与文件夹清理行为"
   >
     <div class="shred-level-setting-list">
-      <cx-layout
-        title="清理强度"
-        emphasis
-      >
+      <cx-layout title="清理强度">
         <div class="shred-level-setting-options">
           <a-radio-group
             :model-value="settings.passes"

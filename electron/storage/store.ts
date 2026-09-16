@@ -75,7 +75,7 @@ export class AppStore {
   private readonly logsPath: string;
   // 保存旧版本单张自定义桌宠图片路径。
   private readonly petImagePath: string;
-  // 保存当前版本桌宠模板目录路径。
+  // 保存当前版本的桌宠图片目录路径。
   private readonly petImagesDirectory: string;
   // 根据 Electron 用户数据目录初始化持久化路径。
   constructor(app: App) {
@@ -84,7 +84,7 @@ export class AppStore {
     this.settingsPath = join(dataDirectory, 'settings.json');
     this.logsPath = join(dataDirectory, 'shred-logs.json');
     this.petImagePath = join(dataDirectory, 'custom-pet.png');
-    this.petImagesDirectory = join(dataDirectory, 'pet-templates');
+    this.petImagesDirectory = join(dataDirectory, 'imgs');
   }
   // 读取持久化设置并合并当前版本默认值。
   async getSettings(): Promise<AppSettings> {

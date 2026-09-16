@@ -45,13 +45,13 @@ export class PetImageService {
   ) {}
   // 返回用户上传桌宠形象的持久化目录。
   private getImagesDirectory(): string {
-    return join(app.getPath('userData'), 'pet-templates');
+    return join(app.getPath('userData'), 'imgs');
   }
   // 返回当前运行环境中的内置桌宠图片路径。
   private getBuiltInImagePath(fileName: string): string {
     return app.isPackaged
-      ? join(process.resourcesPath, 'pet-templates', fileName)
-      : join(app.getAppPath(), 'src', 'assets', 'pet-templates', fileName);
+      ? join(process.resourcesPath, 'imgs', fileName)
+      : join(app.getAppPath(), 'src', 'assets', 'imgs', fileName);
   }
   // 返回指定用户桌宠形象的持久化路径。
   private getUploadedImagePath(image: UploadedPetImage): string {

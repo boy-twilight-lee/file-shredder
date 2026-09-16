@@ -75,8 +75,8 @@
         "to": "app-icon.ico"
       },
       {
-        "from": "src/assets/pet-templates",
-        "to": "pet-templates",
+        "from": "src/assets/imgs",
+        "to": "imgs",
         "filter": [
           "default-pet-preview.png"
         ]

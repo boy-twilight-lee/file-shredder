@@ -39,7 +39,7 @@ describe('PetImageService appearance', () => {
       restoreSettingsBubble: () => {},
     });
     files.add(
-      join('/app', 'src', 'assets', 'pet-templates', 'default-pet-preview.png'),
+      join('/app', 'src', 'assets', 'imgs', 'default-pet-preview.png'),
     );
   });
   // 首次启动必须返回真实存在的默认图集。
@@ -52,7 +52,7 @@ describe('PetImageService appearance', () => {
   // 上传的动态图片必须保留原始数据格式且不启用帧裁剪。
   it('keeps uploaded GIFs custom', () => {
     settings.uploadedPetImages = [{ id: 'custom', fileName: 'custom.gif' }];
-    files.add(join('/user', 'pet-templates', 'custom.gif'));
+    files.add(join('/user', 'imgs', 'custom.gif'));
     expect(service.getImageDataUrl()).toEqual({
       isDefault: false,
       image: expect.stringContaining('data:image/gif;base64,'),
