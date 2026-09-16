@@ -2,8 +2,9 @@ import { rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { App } from 'electron';
-import { DEFAULT_BUBBLE_APP_TITLE } from '@/constants';
-import { clamp, normalizeBubbleAppTitle } from '@/utils';
+import { DEFAULT_BUBBLE_ALIGN, DEFAULT_BUBBLE_DIRECTION } from '@/constants';
+import { BubbleAlign, BubbleDirection } from '@/type';
+import { clamp, normalizeBubbleAlign, normalizeBubbleDirection } from '@/utils';
 import { readJsonFile, writeJsonFile } from '../utils';
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
@@ -20,8 +21,8 @@ export interface AppSettings {
   petDisplayId: number | null;
   petPositionX: number | null;
   petPositionY: number | null;
-  bubbleAppTitle: string;
-  bubbleAppIconPath: string;
+  bubbleDirection: BubbleDirection;
+  bubbleAlign: BubbleAlign;
 }
 export interface UploadedPetImage {
   id: string;
@@ -56,8 +57,9 @@ const DEFAULT_SETTINGS: AppSettings = {
   petDisplayId: null,
   petPositionX: null,
   petPositionY: null,
-  bubbleAppTitle: DEFAULT_BUBBLE_APP_TITLE,
-  bubbleAppIconPath: '',
+  // 保持旧版本操作气泡位于人物左侧并垂直居中的展示方式。
+  bubbleDirection: DEFAULT_BUBBLE_DIRECTION,
+  bubbleAlign: DEFAULT_BUBBLE_ALIGN,
 };
 // 限制旧版持久化设置恢复时可使用的最小桌宠宽度。
 const PET_SIZE_MIN = 50;
@@ -72,8 +74,6 @@ export class AppStore {
   private readonly petImagePath: string;
   // 保存当前版本桌宠模板目录路径。
   private readonly petImagesDirectory: string;
-  // 保存操作气泡自定义品牌资源目录路径。
-  private readonly bubbleBrandingDirectory: string;
   // 根据 Electron 用户数据目录初始化持久化路径。
   constructor(app: App) {
     // 读取当前应用隔离的用户数据目录。
@@ -82,26 +82,29 @@ export class AppStore {
     this.logsPath = join(dataDirectory, 'shred-logs.json');
     this.petImagePath = join(dataDirectory, 'custom-pet.png');
     this.petImagesDirectory = join(dataDirectory, 'pet-templates');
-    this.bubbleBrandingDirectory = join(dataDirectory, 'bubble-branding');
   }
   // 读取持久化设置并合并当前版本默认值。
   async getSettings(): Promise<AppSettings> {
     // 读取可能包含旧版本字段的设置数据。
     const storedSettings = await readJsonFile<
-      Partial<AppSettings> & { shortcut?: string; snapToEdge?: boolean }
+      Partial<AppSettings> & {
+        shortcut?: string;
+        snapToEdge?: boolean;
+        bubbleAppTitle?: string;
+        bubbleAppIconPath?: string;
+      }
     >(this.settingsPath, {});
     // 清除旧版本遗留且界面已不再提供的配置，后续保存时不会再写回。
     delete storedSettings.shortcut;
     delete storedSettings.snapToEdge;
-    // 合并默认设置，并修正旧配置或手工修改产生的无效品牌字段。
+    delete storedSettings.bubbleAppTitle;
+    delete storedSettings.bubbleAppIconPath;
+    // 合并默认设置，并修正旧配置或手工修改产生的无效气泡位置字段。
     const settings = { ...DEFAULT_SETTINGS, ...storedSettings };
-    settings.bubbleAppTitle = normalizeBubbleAppTitle(
-      storedSettings.bubbleAppTitle,
+    settings.bubbleDirection = normalizeBubbleDirection(
+      storedSettings.bubbleDirection,
     );
-    settings.bubbleAppIconPath =
-      typeof storedSettings.bubbleAppIconPath === 'string'
-        ? storedSettings.bubbleAppIconPath
-        : '';
+    settings.bubbleAlign = normalizeBubbleAlign(storedSettings.bubbleAlign);
     // 将旧版本或手动修改的桌宠尺寸收敛到当前允许范围。
     settings.petSize = clamp(
       Math.round(
@@ -164,7 +167,6 @@ export class AppStore {
       rm(this.logsPath, { force: true }),
       rm(this.petImagePath, { force: true }),
       rm(this.petImagesDirectory, { force: true, recursive: true }),
-      rm(this.bubbleBrandingDirectory, { force: true, recursive: true }),
     ]);
   }
 }

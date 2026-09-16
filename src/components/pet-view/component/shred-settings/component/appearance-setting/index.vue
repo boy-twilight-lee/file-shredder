@@ -2,9 +2,12 @@
   <settings-card
     class="appearance-setting"
     title="外观设置"
-    description="自定义应用名称、图标和桌宠外观"
+    description="调整桌宠形象、大小与操作气泡的展示位置"
   >
-    <div class="appearance-setting-workspace">
+    <div
+      class="appearance-setting-workspace"
+      :style="workspaceStyle"
+    >
       <div
         class="appearance-setting-preview"
         aria-label="桌宠与操作气泡实时预览"
@@ -21,11 +24,11 @@
                   <img
                     class="appearance-setting-app-icon"
                     :src="appIconSource"
-                    :alt="appTitle"
+                    :alt="APP_NAME"
                   />
                   <span class="appearance-setting-header-info">
                     <span class="appearance-setting-app-title">
-                      {{ appTitle || '文件粉碎精灵' }}
+                      {{ APP_NAME }}
                     </span>
                     <span class="appearance-setting-app-desc">
                       安全、彻底地清理文件
@@ -91,44 +94,6 @@
         </div>
       </div>
       <div class="appearance-setting-content">
-        <settings-layout-row
-          tag="label"
-          title="应用名称"
-        >
-          <a-input
-            :model-value="appTitle"
-            :max-length="BUBBLE_APP_TITLE_MAX_LENGTH"
-            show-word-limit
-            @update:model-value="emit('update-app-title', $event)"
-            @blur="emit('save-app-title')"
-            @press-enter="blurTitleInput"
-          />
-        </settings-layout-row>
-        <settings-layout-row title="应用图标">
-          <div
-            class="appearance-setting-image-item appearance-setting-image-icon"
-          >
-            <span class="appearance-setting-image-view">
-              <img
-                class="appearance-setting-image"
-                :src="appIconSource"
-                :alt="appTitle"
-              />
-            </span>
-            <div class="appearance-setting-image-tools">
-              <button
-                class="appearance-setting-image-tool"
-                type="button"
-                title="更换应用图标"
-                aria-label="更换应用图标"
-                :disabled="isChoosingAppIcon"
-                @click.stop="emit('choose-app-icon')"
-              >
-                <svg-icon name="app-edit" />
-              </button>
-            </div>
-          </div>
-        </settings-layout-row>
         <settings-layout-row title="桌宠形象">
           <div
             class="appearance-setting-image-item appearance-setting-image-pet"
@@ -183,6 +148,32 @@
             </template>
           </a-input-number>
         </settings-layout-row>
+        <settings-layout-row title="气泡方向">
+          <a-radio-group
+            :model-value="bubbleDirection"
+            :options="BUBBLE_DIRECTION_OPTIONS"
+            type="button"
+            @change="updateBubbleDirection"
+          >
+            <template #label="{ data }">
+              <span class="appearance-setting-direction">
+                <svg-icon
+                  :name="data.icon"
+                  :size="14"
+                />
+                {{ data.label }}
+              </span>
+            </template>
+          </a-radio-group>
+        </settings-layout-row>
+        <settings-layout-row title="气泡对齐">
+          <a-radio-group
+            :model-value="bubbleAlign"
+            :options="BUBBLE_ALIGN_OPTIONS"
+            type="button"
+            @change="updateBubbleAlign"
+          />
+        </settings-layout-row>
       </div>
     </div>
   </settings-card>
@@ -190,13 +181,17 @@
 <script setup lang="ts">
 import { useResizeObserver } from '@vueuse/core';
 import { AppearanceSettingEmits, AppearanceSettingProps } from './type';
-import { BUBBLE_APP_TITLE_MAX_LENGTH } from '@/constants';
+import appIconSource from '@/assets/app-icon.png';
+import { APP_NAME } from '@/constants';
 import { clamp } from '@/utils';
 import {
+  BUBBLE_ALIGN_OPTIONS,
+  BUBBLE_DIRECTION_OPTIONS,
   PET_PREVIEW_BUBBLE_HEIGHT,
   PET_PREVIEW_BUBBLE_SCALE,
   PET_PREVIEW_BUBBLE_WIDTH,
   PET_PREVIEW_GAP,
+  PET_PREVIEW_HEIGHT,
   PET_PREVIEW_PADDING,
   PET_SIZE_MAX,
   PET_SIZE_MIN,
@@ -215,7 +210,11 @@ const previewStageElement = ref<HTMLElement | null>(null);
 const previewStageSize = ref({ width: 0, height: 0 });
 // 保存当前桌宠图片真实高宽比，用于还原人物显示尺寸。
 const previewPetAspectRatio = ref(1);
-// 根据真实场景尺寸与画布范围生成缩放后的预览尺寸。
+// 把由设置页高度推算的预览面板高度交给样式表使用。
+const workspaceStyle = {
+  '--appearance-setting-preview-height': `${PET_PREVIEW_HEIGHT}px`,
+};
+// 根据真实场景尺寸、气泡方位与画布范围生成缩放后的预览尺寸。
 const previewSceneStyle = computed(() => {
   // 计算桌宠在未缩放场景中的真实显示宽度。
   const petWidth = props.petSize;
@@ -227,17 +226,36 @@ const previewSceneStyle = computed(() => {
     PET_PREVIEW_BUBBLE_WIDTH +
     PET_PREVIEW_GAP +
     petWidth;
-  // 以气泡和桌宠中较高的一项确定完整场景高度。
-  const sceneHeight =
-    PET_PREVIEW_PADDING * 2 + Math.max(PET_PREVIEW_BUBBLE_HEIGHT, petHeight);
+  // 以气泡和桌宠中较高的一项确定内容区高度，对齐方式只改变两者的相对位置。
+  const contentHeight = Math.max(PET_PREVIEW_BUBBLE_HEIGHT, petHeight);
+  // 汇总内容区与四周留白后的完整场景高度。
+  const sceneHeight = PET_PREVIEW_PADDING * 2 + contentHeight;
+  // 标识气泡是否需要摆放在桌宠右侧。
+  const isBubbleOnRight = props.bubbleDirection === 'right';
+  // 计算气泡在场景中的横向起点。
+  const bubbleLeft =
+    PET_PREVIEW_PADDING + (isBubbleOnRight ? petWidth + PET_PREVIEW_GAP : 0);
+  // 计算桌宠在场景中的横向起点。
+  const petLeft =
+    PET_PREVIEW_PADDING +
+    (isBubbleOnRight ? 0 : PET_PREVIEW_BUBBLE_WIDTH + PET_PREVIEW_GAP);
+  // 计算拖拽按钮在场景中的横向起点，气泡位于右侧时镜像到桌宠左上角。
+  const dragHandleLeft = (isBubbleOnRight ? petLeft : petLeft + petWidth) - 18;
+  // 按对齐方式计算气泡在场景中的纵向起点。
+  const bubbleTop =
+    PET_PREVIEW_PADDING +
+    calculateAlignedOffset(PET_PREVIEW_BUBBLE_HEIGHT, contentHeight);
+  // 按对齐方式计算桌宠在场景中的纵向起点。
+  const petTop =
+    PET_PREVIEW_PADDING + calculateAlignedOffset(petHeight, contentHeight);
   // 读取画布可用宽度，未完成首次布局时保留原始比例。
   const availableWidth = previewStageSize.value.width;
   // 读取画布可用高度，未完成首次布局时保留原始比例。
   const availableHeight = previewStageSize.value.height;
-  // 求取完整场景在当前画布中不发生裁切的最大缩放比例。
+  // 求取完整场景在当前画布中不发生裁切的最大缩放比例，画布有余量时等比放大以充分展示预览。
   const scale =
     availableWidth > 0 && availableHeight > 0
-      ? Math.min(1, availableWidth / sceneWidth, availableHeight / sceneHeight)
+      ? Math.min(availableWidth / sceneWidth, availableHeight / sceneHeight)
       : 1;
   // 计算缩放后占据画布的场景宽度。
   const frameWidth = Math.round(sceneWidth * scale);
@@ -250,18 +268,24 @@ const previewSceneStyle = computed(() => {
     '--appearance-setting-preview-scene-width': `${sceneWidth}px`,
     '--appearance-setting-preview-scene-height': `${sceneHeight}px`,
     '--appearance-setting-preview-bubble-scale': `${PET_PREVIEW_BUBBLE_SCALE}`,
-    '--appearance-setting-preview-bubble-half-height': `${Math.round(
-      PET_PREVIEW_BUBBLE_HEIGHT / 2,
-    )}px`,
-    '--appearance-setting-preview-pet-left': `${
-      PET_PREVIEW_PADDING + PET_PREVIEW_BUBBLE_WIDTH + PET_PREVIEW_GAP
-    }px`,
+    '--appearance-setting-preview-bubble-left': `${bubbleLeft}px`,
+    '--appearance-setting-preview-bubble-top': `${bubbleTop}px`,
+    '--appearance-setting-preview-drag-left': `${dragHandleLeft}px`,
+    '--appearance-setting-preview-pet-left': `${petLeft}px`,
     '--appearance-setting-preview-pet-width': `${petWidth}px`,
-    '--appearance-setting-preview-pet-half-height': `${Math.round(
-      petHeight / 2,
-    )}px`,
+    '--appearance-setting-preview-pet-height': `${petHeight}px`,
+    '--appearance-setting-preview-pet-top': `${petTop}px`,
   };
 });
+// 按当前对齐方式计算元素相对场景内容区顶部的偏移。
+function calculateAlignedOffset(
+  elementHeight: number,
+  contentHeight: number,
+): number {
+  if (props.bubbleAlign === 'top') return 0;
+  if (props.bubbleAlign === 'bottom') return contentHeight - elementHeight;
+  return Math.round((contentHeight - elementHeight) / 2);
+}
 // 根据画布尺寸变化更新可用于预览缩放的边界。
 function handlePreviewStageResize(entries: ResizeObserverEntry[]): void {
   if (!entries[0]) return;
@@ -279,9 +303,15 @@ function handlePreviewPetLoad(event: Event): void {
 }
 // 持续观察预览画布尺寸，使缩放系数适配当前可用空间。
 useResizeObserver(previewStageElement, handlePreviewStageResize);
-// 按下回车时结束编辑，并复用失焦保存逻辑。
-function blurTitleInput(event: KeyboardEvent): void {
-  (event.currentTarget as HTMLInputElement | null)?.blur();
+// 校验并上报用户选择的气泡方位。
+function updateBubbleDirection(value: string | number | boolean): void {
+  if (value === 'left' || value === 'right')
+    emit('update-bubble-direction', value);
+}
+// 校验并上报用户选择的气泡对齐方式。
+function updateBubbleAlign(value: string | number | boolean): void {
+  if (value === 'top' || value === 'center' || value === 'bottom')
+    emit('update-bubble-align', value);
 }
 // 校验并上报输入框提交的桌宠尺寸。
 function updatePetSize(value: number | undefined): void {

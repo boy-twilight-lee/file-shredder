@@ -49,12 +49,6 @@ contextBridge.exposeInMainWorld('shredderApi', {
   // 保存部分应用设置。
   updateSettings: (settings: unknown) =>
     ipcRenderer.invoke('settings:update', settings),
-  // 读取操作气泡当前使用的自定义应用图标。
-  getBubbleAppIcon: () => ipcRenderer.invoke('bubble-app-icon:get'),
-  // 选择并保存操作气泡使用的自定义应用图标。
-  chooseBubbleAppIcon: () => ipcRenderer.invoke('bubble-app-icon:choose'),
-  // 恢复操作气泡使用的默认应用图标。
-  resetBubbleAppIcon: () => ipcRenderer.invoke('bubble-app-icon:reset'),
   // 读取当前桌宠形象数据。
   getPetImage: () => ipcRenderer.invoke('pet-image:get'),
   // 订阅原生窗口拖动方向并提供解绑入口。

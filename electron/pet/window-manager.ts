@@ -2,6 +2,11 @@ import { app, BrowserWindow, ipcMain, nativeImage, screen } from 'electron';
 import { join } from 'node:path';
 import { AppSettings } from '../storage';
 import { clamp, containsPoint, expandRectangle } from '@/utils';
+import {
+  PET_BUBBLE_GAP,
+  PET_BUBBLE_MAX_SIZE,
+  PET_WINDOW_PADDING,
+} from '@/constants';
 interface PetWindowManagerDependencies {
   runtimeDirectory: string;
   getSettings: () => AppSettings;
@@ -10,8 +15,10 @@ interface PetWindowManagerDependencies {
   isQuitting: () => boolean;
 }
 export interface PetWindowManager {
+  alignWindowToCharacterAnchor: (anchor: Electron.Point) => void;
   create: () => void;
   dispose: () => void;
+  getCharacterScreenAnchor: () => Electron.Point;
   recordPosition: () => Promise<void>;
   restorePosition: () => void;
   send: (channel: string, ...args: unknown[]) => void;
@@ -20,20 +27,22 @@ export interface PetWindowManager {
   show: () => void;
   showSettings: () => void;
 }
-// 固定画布恰好容纳最大桌宠、最大气泡及交互留白。
-const PET_WINDOW_SIZE = { width: 1476, height: 1050 };
-// 气泡首次上报前使用最大外框尺寸估算点击热区。
-const PET_BUBBLE_MAX_SIZE = { width: 702, height: 602 };
 // 定义常显桌宠拖拽按钮的交互区域尺寸。
 const PET_DRAG_HANDLE_SIZE = 36;
-// 为拖拽按钮阴影和人物动效预留窗口边缘空间。
-const PET_WINDOW_PADDING = 30;
-// 预留人物与左侧气泡之间的定位间距。
-const PET_BUBBLE_GAP = 14;
 // 限制桌宠支持的最小人物宽度。
 const PET_SIZE_MIN = 50;
 // 限制桌宠支持的最大人物宽度。
 const PET_SIZE_MAX = 400;
+// 固定画布在气泡所在侧容纳一份最大气泡，人物贴向另一侧，切换气泡方位只需重新摆放窗口。
+const PET_WINDOW_SIZE = {
+  width:
+    PET_WINDOW_PADDING * 2 +
+    PET_BUBBLE_GAP +
+    PET_BUBBLE_MAX_SIZE.width +
+    PET_SIZE_MAX,
+  // 高度保证气泡上下对齐且桌宠最小时仍完整可见。
+  height: (PET_WINDOW_PADDING + PET_BUBBLE_MAX_SIZE.height) * 2 - PET_SIZE_MIN,
+};
 // 定义桌宠窗口淡入动画的持续时间。
 const PET_FADE_DURATION_MS = 180;
 // 创建桌宠窗口及其布局、位置与交互控制器。
@@ -167,13 +176,18 @@ export function createPetWindowManager(
     const bounds = petWindow.getContentBounds();
     return { width: bounds.width, height: bounds.height };
   }
-  // 计算桌宠在固定内容区内靠右且垂直居中的边界。
+  // 计算桌宠在固定内容区内的边界：纵向居中，横向贴向气泡反方向的一侧。
   function calculateLocalCharacterBounds(
     windowSize: Electron.Size,
     characterSize: Electron.Size,
   ): Electron.Rectangle {
+    // 读取气泡相对人物的方位设置。
+    const { bubbleDirection } = dependencies.getSettings();
     return {
-      x: windowSize.width - PET_WINDOW_PADDING - characterSize.width,
+      x:
+        bubbleDirection === 'right'
+          ? PET_WINDOW_PADDING
+          : windowSize.width - PET_WINDOW_PADDING - characterSize.width,
       y: Math.round((windowSize.height - characterSize.height) / 2),
       ...characterSize,
     };
@@ -182,20 +196,47 @@ export function createPetWindowManager(
   function getLocalCharacterBounds(): Electron.Rectangle {
     return calculateLocalCharacterBounds(getWindowSize(), getCharacterSize());
   }
-  // 返回人物右上角对应的拖拽按钮与位置记录锚点。
-  function getDragAnchor(characterBounds: Electron.Rectangle): Electron.Point {
+  // 返回人物右上角对应的位置记录锚点，锚点跟随人物自身，与气泡方位和画布布局无关。
+  function getPositionAnchor(
+    characterBounds: Electron.Rectangle,
+  ): Electron.Point {
     return {
       x: characterBounds.x + characterBounds.width,
       y: characterBounds.y,
     };
   }
-  // 返回拖拽按钮在窗口内容区域中的交互边界。
-  function getLocalDragHandleBounds(): Electron.Rectangle {
-    // 读取当前人物右上角的按钮锚点。
-    const anchor = getDragAnchor(getLocalCharacterBounds());
+  // 读取人物当前在屏幕坐标系中的位置锚点。
+  function getCharacterScreenAnchor(): Electron.Point {
+    // 窗口尚未创建时以原点作为兜底锚点。
+    if (!petWindow || petWindow.isDestroyed()) return { x: 0, y: 0 };
+    // 读取窗口在屏幕坐标系中的边界。
+    const windowBounds = petWindow.getBounds();
+    // 将人物局部锚点换算为屏幕坐标。
+    const localAnchor = getPositionAnchor(getLocalCharacterBounds());
     return {
-      x: anchor.x - PET_DRAG_HANDLE_SIZE / 2,
-      y: anchor.y - PET_DRAG_HANDLE_SIZE / 2,
+      x: windowBounds.x + localAnchor.x,
+      y: windowBounds.y + localAnchor.y,
+    };
+  }
+  // 按人物屏幕锚点重新摆放窗口，使尺寸或气泡方位变化后人物在屏幕上保持原位。
+  function alignWindowToCharacterAnchor(anchor: Electron.Point): void {
+    if (!petWindow || petWindow.isDestroyed() || isDragging) return;
+    // 读取当前布局下人物锚点在窗口内容区域中的位置。
+    const localAnchor = getPositionAnchor(getLocalCharacterBounds());
+    petWindow.setPosition(anchor.x - localAnchor.x, anchor.y - localAnchor.y);
+  }
+  // 返回拖拽按钮在窗口内容区域中的交互边界，按钮随气泡方位镜像到人物另一侧。
+  function getLocalDragHandleBounds(): Electron.Rectangle {
+    // 读取人物在固定窗口中的局部边界。
+    const character = getLocalCharacterBounds();
+    // 读取气泡相对人物的方位设置。
+    const { bubbleDirection } = dependencies.getSettings();
+    // 气泡位于人物右侧时按钮镜像到人物左上角，避免按钮与气泡相互遮挡。
+    const handleCenterX =
+      bubbleDirection === 'right' ? character.x : character.x + character.width;
+    return {
+      x: handleCenterX - PET_DRAG_HANDLE_SIZE / 2,
+      y: character.y - PET_DRAG_HANDLE_SIZE / 2,
       width: PET_DRAG_HANDLE_SIZE,
       height: PET_DRAG_HANDLE_SIZE,
     };
@@ -226,8 +267,8 @@ export function createPetWindowManager(
       windowSize,
       characterSize,
     );
-    // 计算拖拽锚点相对窗口内容区域的位置。
-    const localAnchor = getDragAnchor(localCharacterBounds);
+    // 计算位置锚点相对窗口内容区域的位置。
+    const localAnchor = getPositionAnchor(localCharacterBounds);
     // 初始化锚点横坐标为目标显示器中的默认位置。
     let anchorX = Math.round(
       workArea.x + (workArea.width + characterSize.width) / 2,
@@ -244,7 +285,7 @@ export function createPetWindowManager(
       anchorX = Math.round(workArea.x + relativeX * workArea.width);
       anchorY = Math.round(workArea.y + relativeY * workArea.height);
     }
-    // 按钮锚点位于人物矩形右上角，允许人物底部超出工作区以保留用户的拖拽位置。
+    // 位置锚点位于人物矩形右上角，允许人物底部超出工作区以保留用户的拖拽位置。
     anchorX = clamp(
       anchorX,
       workArea.x + Math.min(characterSize.width, workArea.width),
@@ -256,14 +297,14 @@ export function createPetWindowManager(
       y: anchorY - localAnchor.y,
     };
   }
-  // 将当前桌宠拖拽锚点持久化为显示器相对位置。
+  // 将当前桌宠位置锚点持久化为显示器相对位置。
   async function recordPosition(): Promise<void> {
     if (!petWindow || petWindow.isDestroyed() || isDragging) return;
     // 读取当前窗口在屏幕坐标系中的边界。
     const windowBounds = petWindow.getBounds();
-    // 读取拖拽锚点在窗口内容区域中的位置。
-    const localAnchor = getDragAnchor(getLocalCharacterBounds());
-    // 将拖拽锚点转换为屏幕坐标。
+    // 读取位置锚点在窗口内容区域中的位置。
+    const localAnchor = getPositionAnchor(getLocalCharacterBounds());
+    // 将位置锚点转换为屏幕坐标。
     const anchor = {
       x: windowBounds.x + localAnchor.x,
       y: windowBounds.y + localAnchor.y,
@@ -293,15 +334,29 @@ export function createPetWindowManager(
     const position = getRestoredPosition(getCharacterSize(), { width, height });
     petWindow.setPosition(position.x, position.y);
   }
+  // 按气泡对齐方式计算气泡相对人物的纵向起点。
+  function getAlignedBubbleTop(character: Electron.Rectangle): number {
+    // 读取气泡对齐方式设置。
+    const { bubbleAlign } = dependencies.getSettings();
+    if (bubbleAlign === 'top') return character.y;
+    if (bubbleAlign === 'bottom')
+      return character.y + character.height - PET_BUBBLE_MAX_SIZE.height;
+    return Math.round(
+      character.y + (character.height - PET_BUBBLE_MAX_SIZE.height) / 2,
+    );
+  }
   // 估算气泡首次渲染前的默认交互边界。
   function getLocalBubbleBounds(): Electron.Rectangle {
     // 读取人物在固定窗口中的局部边界。
     const character = getLocalCharacterBounds();
+    // 读取气泡相对人物的方位设置。
+    const { bubbleDirection } = dependencies.getSettings();
     return {
-      x: character.x - PET_BUBBLE_GAP - PET_BUBBLE_MAX_SIZE.width,
-      y: Math.round(
-        character.y + (character.height - PET_BUBBLE_MAX_SIZE.height) / 2,
-      ),
+      x:
+        bubbleDirection === 'right'
+          ? character.x + character.width + PET_BUBBLE_GAP
+          : character.x - PET_BUBBLE_GAP - PET_BUBBLE_MAX_SIZE.width,
+      y: getAlignedBubbleTop(character),
       ...PET_BUBBLE_MAX_SIZE,
     };
   }
@@ -404,7 +459,7 @@ export function createPetWindowManager(
     const settings = dependencies.getSettings();
     // 计算当前桌宠人物实际尺寸。
     const characterSize = getCharacterSize();
-    // 根据保存的按钮锚点反算固定窗口的初始位置。
+    // 根据保存的位置锚点反算固定窗口的初始位置。
     const initialPosition = getRestoredPosition(characterSize, PET_WINDOW_SIZE);
     petWindow = new BrowserWindow({
       ...PET_WINDOW_SIZE,
@@ -424,6 +479,8 @@ export function createPetWindowManager(
         sandbox: true,
       },
     });
+    // 系统会把初始窗口限制在显示器工作区内，创建后显式恢复固定画布尺寸以保证人物与气泡布局完整。
+    petWindow.setContentSize(PET_WINDOW_SIZE.width, PET_WINDOW_SIZE.height);
     // 读取窗口创建后由系统确认的实际尺寸。
     const actualWindowSize = petWindow.getSize();
     // 根据实际窗口尺寸重新校准恢复位置。
@@ -535,6 +592,8 @@ export function createPetWindowManager(
     // 规范化图片实际高度为整数。
     const height = Math.round(candidate.height as number);
     if (width <= 0 || height <= 0) return;
+    // 保存形象尺寸变化前人物的屏幕位置，校准后据此保持人物不动。
+    const characterAnchor = getCharacterScreenAnchor();
     // 动态 WebP 无法由 nativeImage 解码，使用 Chromium 实际渲染尺寸校准点击热区。
     imageNaturalSize = {
       imagePath: dependencies.getActiveImagePath(),
@@ -542,6 +601,7 @@ export function createPetWindowManager(
       height,
     };
     characterSizeCache = null;
+    alignWindowToCharacterAnchor(characterAnchor);
     updateMouseThrough();
     // 图片比例变化后重新保存校准过的桌宠位置。
     recordPosition().catch((error: unknown) => {
@@ -549,9 +609,11 @@ export function createPetWindowManager(
     });
   });
   return {
+    alignWindowToCharacterAnchor,
     create,
     // 销毁管理器时停止尚未完成的淡入动画。
     dispose: () => clearInterval(fadeTimer),
+    getCharacterScreenAnchor,
     recordPosition,
     restorePosition,
     send,

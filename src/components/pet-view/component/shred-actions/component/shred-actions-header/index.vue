@@ -2,11 +2,11 @@
   <div class="shred-actions-header">
     <img
       class="shred-actions-header-avatar"
-      :src="iconSource"
-      :alt="title"
+      :src="appIconSource"
+      :alt="APP_NAME"
     />
     <span class="shred-actions-header-heading">
-      <span class="shred-actions-header-title">{{ title }}</span>
+      <span class="shred-actions-header-title">{{ APP_NAME }}</span>
       <span class="shred-actions-header-description">
         安全、彻底地清理文件
       </span>
@@ -35,10 +35,10 @@
   </div>
 </template>
 <script setup lang="ts">
+import appIconSource from '@/assets/app-icon.png';
+import { APP_NAME } from '@/constants';
 import { PetHeaderActionKey } from '../../type';
 import { PET_HEADER_ACTION_OPTIONS } from '../../constants';
-// 定义操作面板头部展示的品牌信息。
-defineProps<{ title: string; iconSource: string }>();
 // 定义用户选择头部快捷操作时向父组件发送的事件。
 const emit = defineEmits<{ select: [key: PetHeaderActionKey] }>();
 // 将用户选择的头部快捷操作通知给父组件。

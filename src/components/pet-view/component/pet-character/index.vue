@@ -1,6 +1,10 @@
 <template>
   <div
-    :class="['pet-character', `pet-character-${pose}`]"
+    :class="[
+      'pet-character',
+      `pet-character-${pose}`,
+      { 'pet-character-aligned-left': isBubbleOnRight },
+    ]"
     @mousedown.right.stop
     @click.left="handleClick"
     @contextmenu.prevent
@@ -38,7 +42,7 @@ import { usePetViewContext } from '@/components/pet-view/hooks';
 import { PetCharacterDrag } from './component';
 // 定义气泡打开时是否显示原生桌宠拖动入口。
 defineProps<{ dragButtonVisible: boolean }>();
-// 读取业务页面、任务结果和用户选择的桌宠形象。
+// 读取业务页面、任务结果、用户选择的桌宠形象与气泡方位。
 const {
   petState,
   bubbleMode,
@@ -47,10 +51,13 @@ const {
   petImageSource,
   isDefaultPet,
   petMotion,
+  bubbleDirection,
   openActions,
   closeBubble,
   handlePetImageLoad,
 } = usePetViewContext().inject();
+// 标识操作气泡是否位于人物右侧，人物需要因此贴向窗口另一侧。
+const isBubbleOnRight = computed(() => bubbleDirection.value === 'right');
 // 原生方向覆盖业务姿势，松手后自动恢复当前页面对应的图片。
 const { direction, isSettling } = usePetMotion(petMotion, isDefaultPet);
 // 结果页优先于可能晚到的工作状态，取消任务也保持静态姿势。

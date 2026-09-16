@@ -1,12 +1,15 @@
 .pet-character {
   position: absolute;
   top: 50%;
-  right: var(--pet-window-padding);
+  left: calc(100% - var(--pet-window-padding) - var(--pet-width));
   -webkit-app-region: no-drag;
   height: var(--pet-height);
   width: var(--pet-width);
   border-radius: 18px;
   transform: translateY(-50%);
+  &.pet-character-aligned-left {
+    left: var(--pet-window-padding);
+  }
   .pet-character-image {
     position: relative;
     z-index: 1;

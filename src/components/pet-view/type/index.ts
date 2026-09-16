@@ -1,4 +1,11 @@
-import { PetMotion, ShredProgress, ShredSummary, ShredTarget } from '@/type';
+import {
+  BubbleAlign,
+  BubbleDirection,
+  PetMotion,
+  ShredProgress,
+  ShredSummary,
+  ShredTarget,
+} from '@/type';
 export type PetState = 'idle' | 'working' | 'success' | 'failure';
 export type PetBubbleMode =
   | 'hidden'
@@ -14,6 +21,8 @@ export interface PetViewContext {
   petImageSource: Ref<string>;
   isDefaultPet: Ref<boolean>;
   petMotion: Ref<PetMotion | null>;
+  bubbleDirection: Ref<BubbleDirection>;
+  bubbleAlign: Ref<BubbleAlign>;
   bubbleElement: Ref<HTMLElement | null>;
   bubbleMode: Ref<PetBubbleMode>;
   selectedTargets: Ref<ShredTarget[]>;

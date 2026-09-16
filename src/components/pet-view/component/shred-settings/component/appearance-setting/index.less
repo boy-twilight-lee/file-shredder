@@ -1,6 +1,6 @@
 .appearance-setting {
   .appearance-setting-workspace {
-    min-height: 476px;
+    min-height: var(--appearance-setting-preview-height);
     display: flex;
     align-items: stretch;
     gap: 16px;
@@ -47,10 +47,8 @@
             transform-origin: top left;
             .appearance-setting-bubble {
               position: absolute;
-              top: calc(
-                50% - var(--appearance-setting-preview-bubble-half-height)
-              );
-              left: 30px;
+              top: var(--appearance-setting-preview-bubble-top);
+              left: var(--appearance-setting-preview-bubble-left);
               width: 380px;
               padding: 16px;
               background: rgba(255, 255, 255, 0.97);
@@ -253,25 +251,20 @@
             .appearance-setting-pet {
               position: absolute;
               z-index: 2;
-              top: 50%;
+              top: var(--appearance-setting-preview-pet-top);
               left: var(--appearance-setting-preview-pet-left);
               pointer-events: none;
+              height: var(--appearance-setting-preview-pet-height);
               width: var(--appearance-setting-preview-pet-width);
               object-fit: contain;
               object-position: center bottom;
               filter: drop-shadow(0 8px 12px rgba(65, 105, 160, 0.22));
-              transform: translateY(-50%);
             }
             .appearance-setting-drag {
               position: absolute;
               z-index: 3;
-              top: calc(
-                50% - var(--appearance-setting-preview-pet-half-height) - 18px
-              );
-              left: calc(
-                var(--appearance-setting-preview-pet-left) +
-                  var(--appearance-setting-preview-pet-width) - 18px
-              );
+              top: calc(var(--appearance-setting-preview-pet-top) - 18px);
+              left: var(--appearance-setting-preview-drag-left);
               height: 36px;
               width: 36px;
               padding: 0;
@@ -297,7 +290,7 @@
       display: flex;
       flex-shrink: 0;
       flex-direction: column;
-      gap: 12px;
+      gap: 10px;
       &:deep(.arco-input-wrapper) {
         border-radius: 8px;
       }
@@ -307,6 +300,11 @@
           font-size: 12px;
           color: #79828f;
         }
+      }
+      .appearance-setting-direction {
+        display: inline-flex;
+        align-items: center;
+        gap: 4px;
       }
       .appearance-setting-image-item {
         position: relative;
@@ -404,19 +402,8 @@
             }
           }
         }
-        &.appearance-setting-image-icon {
-          height: 100px;
-          width: 100px;
-          flex-shrink: 0;
-          .appearance-setting-image-view {
-            .appearance-setting-image {
-              height: 60px;
-              width: 60px;
-            }
-          }
-        }
         &.appearance-setting-image-pet {
-          height: 144px;
+          height: 112px;
           .appearance-setting-image-view {
             .appearance-setting-image {
               height: 88%;

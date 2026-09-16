@@ -12,13 +12,13 @@ export {}
 declare module 'vue' {
   export interface GlobalComponents {
     AButton: typeof import('@arco-design/web-vue')['Button']
-    AInput: typeof import('@arco-design/web-vue')['Input']
     AInputNumber: typeof import('@arco-design/web-vue')['InputNumber']
     AInputSearch: typeof import('@arco-design/web-vue')['InputSearch']
     ALink: typeof import('@arco-design/web-vue')['Link']
     APagination: typeof import('@arco-design/web-vue')['Pagination']
     APopconfirm: typeof import('@arco-design/web-vue')['Popconfirm']
     AppearanceSetting: typeof import('./../components/pet-view/component/shred-settings/component/appearance-setting/index.vue')['default']
+    ARadioGroup: typeof import('@arco-design/web-vue')['RadioGroup']
     AScrollbar: typeof import('@arco-design/web-vue')['Scrollbar']
     ASpin: typeof import('@arco-design/web-vue')['Spin']
     ASwitch: typeof import('@arco-design/web-vue')['Switch']

@@ -92,6 +92,26 @@ html {
         }
       }
     }
+    .arco-radio-group-button {
+      --color-fill-2: #f5f7fa;
+      --border-radius-small: 8px;
+      height: 32px;
+      padding: 2px;
+      display: inline-flex;
+      align-items: center;
+      .arco-radio-button {
+        --border-radius-small: 6px;
+        --color-text-2: #474f59;
+        margin: 0;
+        .arco-radio-button-content {
+          padding: 0 8px;
+        }
+        &.arco-radio-checked {
+          color: #0065ff;
+          font-weight: 500;
+        }
+      }
+    }
     .arco-switch {
       background-color: #c9ced6;
       .arco-switch-handle {
@@ -376,188 +396,6 @@ html {
                   }
                 }
               }
-            }
-          }
-        }
-      }
-    }
-    .arco-cascader-panel {
-      height: fit-content;
-      border: 1px solid #e1e5eb;
-      border-radius: 8px;
-      .arco-cascader-list {
-        padding: 4px;
-      }
-      .arco-cascader-option {
-        border-radius: 6px;
-        &:hover {
-          background: #edf1f7;
-        }
-        &.arco-cascader-option-active {
-          background: rgba(0, 101, 255, 0.08);
-          color: #0065ff;
-        }
-      }
-      .arco-cascader-panel-column {
-        height: 180px;
-        .arco-scrollbar-container {
-          max-height: 180px;
-        }
-        &:has(.arco-cascader-list-empty) {
-          height: 100px;
-        }
-      }
-    }
-    .arco-picker-container {
-      background: #fff;
-      border: 1px solid #e1e5eb;
-      border-radius: 8px;
-      box-shadow: 0px 0px 8px 0px rgba(0, 101, 255, 0.06);
-      .arco-picker-panel-wrapper {
-        .arco-panel-date {
-          height: 308px;
-          .arco-panel-date-inner {
-            .arco-picker-header {
-              height: 44px;
-              align-items: center;
-              .arco-picker-header-title {
-                color: #0d1014;
-                text-align: center;
-                font-family: 'PingFang SC';
-                font-size: 14px;
-                font-weight: 500;
-                line-height: 20px;
-                display: flex;
-                justify-content: center;
-                align-items: center;
-              }
-              .arco-picker-header-icon {
-                background-color: transparent;
-                font-size: 18px;
-                color: #99a1ad;
-                &:hover {
-                  color: #557ca7;
-                }
-              }
-            }
-            .arco-picker-week-list {
-              padding: 8px 8px 0 8px;
-              .arco-picker-week-list-item {
-                height: 24px;
-                line-height: 20px;
-                color: #99a1ad;
-                font-family: 'PingFang SC';
-                font-size: 14px;
-                font-weight: 400;
-              }
-            }
-            .arco-picker-body {
-              padding: 8px;
-              .arco-picker-cell {
-                .arco-picker-date {
-                  .arco-picker-date-value {
-                    border-radius: 6px;
-                    color: #474f59;
-                    font-family: 'PingFang SC';
-                    font-size: 14px;
-                    font-weight: 400;
-                    &:hover {
-                      background-color: #edf1f7;
-                    }
-                  }
-                }
-                &.arco-picker-cell-today {
-                  .arco-picker-date {
-                    .arco-picker-date-value {
-                      border: 1px solid #0065ff;
-                      background-color: transparent;
-                    }
-                  }
-                  &::after {
-                    display: none;
-                  }
-                }
-                &.arco-picker-cell-selected {
-                  .arco-picker-date {
-                    .arco-picker-date-value {
-                      background-color: #0065ff;
-                      border: none;
-                      color: #fff;
-                    }
-                  }
-                }
-                &.arco-picker-cell-disabled {
-                  .arco-picker-date {
-                    background-color: transparent;
-                    .arco-picker-date-value {
-                      background-color: transparent;
-                      color: #c9ced6;
-                    }
-                  }
-                }
-              }
-            }
-          }
-          .arco-panel-date-timepicker {
-            .arco-panel-date-timepicker-title {
-              height: 44px;
-            }
-            .arco-timepicker {
-              height: 266px;
-              .arco-timepicker-column {
-                ul {
-                  .arco-timepicker-cell {
-                    height: 30px;
-                    width: 48px;
-                    color: #474f59;
-                    text-align: center;
-                    font-family: 'PingFang SC';
-                    font-size: 14px;
-                    font-weight: 400;
-                    .arco-timepicker-cell-inner {
-                      padding-left: 0;
-                      border-radius: 6px;
-                      text-align: center;
-                      &:hover {
-                        background-color: #edf1f7;
-                      }
-                    }
-                    &.arco-timepicker-cell-disabled {
-                      .arco-timepicker-cell-inner {
-                        background-color: transparent;
-                        color: #c9ced6;
-                      }
-                    }
-                    &.arco-timepicker-cell-selected {
-                      .arco-timepicker-cell-inner {
-                        background-color: rgba(0, 101, 255, 0.08);
-                        color: #0065ff;
-                      }
-                    }
-                  }
-                  &::after {
-                    height: 234px;
-                  }
-                }
-              }
-            }
-          }
-        }
-        .arco-picker-footer {
-          height: 48px;
-          .arco-picker-footer-btn-wrapper {
-            height: 100%;
-            padding: 0 8px;
-            .arco-picker-shortcuts {
-              .arco-btn {
-                min-width: 0;
-                padding: 0;
-                background-color: transparent;
-                color: #0065ff;
-              }
-            }
-            .arco-picker-btn-confirm {
-              height: 32px;
             }
           }
         }
@@ -954,47 +792,6 @@ html {
           justify-content: center;
           align-items: center;
           gap: 10px;
-        }
-      }
-    }
-    .arco-form {
-      .arco-form-item {
-        min-height: 32px;
-        margin-bottom: 16px;
-        .arco-form-item-label-col {
-          .arco-form-item-label {
-            color: #0d1014;
-            font-family: 'PingFang SC';
-            font-size: 14px;
-            font-weight: 400;
-            .arco-form-item-label-required-symbol {
-              position: relative;
-              &::before {
-                position: absolute;
-                top: 50%;
-                left: -8px;
-                width: 8px;
-                content: '*';
-                font-size: 14px;
-                text-align: center;
-                color: #ff4c26;
-                display: inline-block;
-                transform: translateY(-50%);
-              }
-              svg {
-                display: none;
-              }
-            }
-          }
-        }
-        .arco-form-item-message {
-          min-height: 16px;
-          margin-top: 4px;
-          line-height: 20px;
-          color: #ff4c26;
-          font-family: 'PingFang SC';
-          font-size: 14px;
-          font-weight: 400;
         }
       }
     }

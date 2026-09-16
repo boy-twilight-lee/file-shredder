@@ -24,6 +24,8 @@ export interface ShredTarget {
   targetType: 'file' | 'directory';
   size: number | null;
 }
+export type BubbleDirection = 'left' | 'right';
+export type BubbleAlign = 'top' | 'center' | 'bottom';
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
   confirmBeforeShred: boolean;
@@ -39,8 +41,8 @@ export interface AppSettings {
   petDisplayId: number | null;
   petPositionX: number | null;
   petPositionY: number | null;
-  bubbleAppTitle: string;
-  bubbleAppIconPath: string;
+  bubbleDirection: BubbleDirection;
+  bubbleAlign: BubbleAlign;
 }
 export interface UploadedPetImage {
   id: string;
@@ -85,9 +87,6 @@ export interface ShredderApi {
   getContextMenuStatus: () => Promise<boolean>;
   getSettings: () => Promise<AppSettings>;
   updateSettings: (settings: Partial<AppSettings>) => Promise<AppSettings>;
-  getBubbleAppIcon: () => Promise<string>;
-  chooseBubbleAppIcon: () => Promise<string | null>;
-  resetBubbleAppIcon: () => Promise<string>;
   getPetImage: () => Promise<PetAppearance>;
   onPetMotion: (callback: (motion: PetMotion | null) => void) => () => void;
   getPetImageTemplates: () => Promise<PetImageTemplate[]>;

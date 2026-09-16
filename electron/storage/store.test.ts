@@ -3,7 +3,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import type { App } from 'electron';
-import { AppStore } from './store';
+import { AppSettings, AppStore } from './store';
 // 收集每个测试创建的临时数据目录。
 const temporaryDirectories: string[] = [];
 // 创建使用独立临时目录的应用存储实例。
@@ -33,10 +33,29 @@ describe('AppStore.getSettings', () => {
     await expect(store.getSettings()).resolves.toMatchObject({
       passes: 0,
       systemNotifications: true,
-      bubbleAppTitle: '文件粉碎精灵',
-      bubbleAppIconPath: '',
+      bubbleDirection: 'left',
+      bubbleAlign: 'center',
     });
     await expect(store.getSettings()).resolves.not.toHaveProperty('shortcut');
+    await expect(store.getSettings()).resolves.not.toHaveProperty(
+      'bubbleAppTitle',
+    );
+    await expect(store.getSettings()).resolves.not.toHaveProperty(
+      'bubbleAppIconPath',
+    );
+  });
+  // 验证手工修改产生的无效气泡位置配置会回落为默认值。
+  it('无效的气泡位置配置会回落为默认值', async () => {
+    // 创建隔离的应用存储。
+    const store = await createStore();
+    await store.updateSettings({
+      bubbleDirection: 'top' as unknown as AppSettings['bubbleDirection'],
+      bubbleAlign: 'middle' as unknown as AppSettings['bubbleAlign'],
+    });
+    await expect(store.getSettings()).resolves.toMatchObject({
+      bubbleDirection: 'left',
+      bubbleAlign: 'center',
+    });
   });
 });
 // 验证粉碎记录按标识删除。

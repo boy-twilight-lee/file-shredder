@@ -1,10 +1,10 @@
 .shred-settings {
-  height: 600px;
+  height: var(--pet-bubble-max-height);
   width: min(
-    800px,
+    var(--pet-bubble-max-width),
     calc(
-      100vw - var(--pet-width) - var(--pet-window-padding) -
-        var(--pet-window-padding) - var(--pet-bubble-gap)
+      100vw - var(--pet-width) - var(--pet-window-padding) * 2 -
+        var(--pet-bubble-gap)
     )
   );
   color: #0d1014;

@@ -1,4 +1,13 @@
-// 定义操作气泡标题的默认文案。
-export const DEFAULT_BUBBLE_APP_TITLE = '文件粉碎精灵';
-// 限制操作气泡标题允许展示的最大字符数。
-export const BUBBLE_APP_TITLE_MAX_LENGTH = 10;
+import { BubbleAlign, BubbleDirection } from '@/type';
+// 定义应用在气泡与设置预览中展示的名称。
+export const APP_NAME = '文件粉碎精灵';
+// 定义操作气泡相对桌宠的默认方位。
+export const DEFAULT_BUBBLE_DIRECTION: BubbleDirection = 'left';
+// 定义操作气泡相对桌宠的默认对齐方式。
+export const DEFAULT_BUBBLE_ALIGN: BubbleAlign = 'center';
+// 定义桌宠窗口为人物动效与阴影预留的边缘留白。
+export const PET_WINDOW_PADDING = 30;
+// 定义操作气泡与桌宠之间的定位间距。
+export const PET_BUBBLE_GAP = 14;
+// 定义操作气泡支持的最大外框尺寸，窗口在气泡所在侧按一份该尺寸预留空间。
+export const PET_BUBBLE_MAX_SIZE = { width: 750, height: 500 };

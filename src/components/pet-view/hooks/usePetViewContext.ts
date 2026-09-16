@@ -4,7 +4,21 @@ import {
   useResizeObserver,
 } from '@vueuse/core';
 import { PetBubbleMode, PetState, PetViewContext } from '../type';
-import { PetMotion, ShredProgress, ShredSummary, ShredTarget } from '@/type';
+import {
+  DEFAULT_BUBBLE_ALIGN,
+  DEFAULT_BUBBLE_DIRECTION,
+  PET_BUBBLE_GAP,
+  PET_BUBBLE_MAX_SIZE,
+  PET_WINDOW_PADDING,
+} from '@/constants';
+import {
+  BubbleAlign,
+  BubbleDirection,
+  PetMotion,
+  ShredProgress,
+  ShredSummary,
+  ShredTarget,
+} from '@/type';
 // 标识桌宠视图所属组件子树中的共享上下文。
 const PET_VIEW_CONTEXT_KEY: InjectionKey<PetViewContext> =
   Symbol('pet-view-context');
@@ -24,6 +38,8 @@ const PET_VIEW_DEFAULTS = {
   petImageSource: '',
   petSize: 200,
   petAspectRatio: 840 / 594,
+  bubbleDirection: DEFAULT_BUBBLE_DIRECTION,
+  bubbleAlign: DEFAULT_BUBBLE_ALIGN,
   bubbleElement: null as HTMLElement | null,
 } as const;
 // 暴露桌宠视图上下文的提供与注入能力。
@@ -67,6 +83,12 @@ export function usePetViewContext() {
       const petSize = ref<number>(PET_VIEW_DEFAULTS.petSize);
       // 保存桌宠形象真实的高宽比。
       const petAspectRatio = ref<number>(PET_VIEW_DEFAULTS.petAspectRatio);
+      // 保存操作气泡相对桌宠的展示方位。
+      const bubbleDirection = ref<BubbleDirection>(
+        PET_VIEW_DEFAULTS.bubbleDirection,
+      );
+      // 保存操作气泡相对桌宠的纵向对齐方式。
+      const bubbleAlign = ref<BubbleAlign>(PET_VIEW_DEFAULTS.bubbleAlign);
       // 保存当前业务气泡的根元素引用。
       const bubbleElement = ref<HTMLElement | null>(
         PET_VIEW_DEFAULTS.bubbleElement,
@@ -79,8 +101,10 @@ export function usePetViewContext() {
       const petAppearanceStyle = computed(() => ({
         '--pet-width': `${petSize.value}px`,
         '--pet-height': `${Math.round(petSize.value * petAspectRatio.value)}px`,
-        '--pet-window-padding': '30px',
-        '--pet-bubble-gap': '14px',
+        '--pet-window-padding': `${PET_WINDOW_PADDING}px`,
+        '--pet-bubble-gap': `${PET_BUBBLE_GAP}px`,
+        '--pet-bubble-max-width': `${PET_BUBBLE_MAX_SIZE.width}px`,
+        '--pet-bubble-max-height': `${PET_BUBBLE_MAX_SIZE.height}px`,
       }));
       // 将单文件进度换算为整个任务的单调百分比。
       function calculateProgressPercent(value: ShredProgress): number {
@@ -359,6 +383,8 @@ export function usePetViewContext() {
         ]);
         petSize.value = settings.petSize;
         presetPasses.value = settings.passes;
+        bubbleDirection.value = settings.bubbleDirection;
+        bubbleAlign.value = settings.bubbleAlign;
         // 主进程统一解析当前生效的内置或用户上传形象。
         isDefaultPet.value = templateImage.isDefault;
         petImageSource.value = templateImage.image;
@@ -448,6 +474,8 @@ export function usePetViewContext() {
         petImageSource,
         isDefaultPet,
         petMotion,
+        bubbleDirection,
+        bubbleAlign,
         bubbleElement,
         bubbleMode,
         selectedTargets,
@@ -480,6 +508,8 @@ export function usePetViewContext() {
         petImageSource: ref(''),
         isDefaultPet: ref(false),
         petMotion: ref(null),
+        bubbleDirection: ref(DEFAULT_BUBBLE_DIRECTION),
+        bubbleAlign: ref(DEFAULT_BUBBLE_ALIGN),
         bubbleElement: ref(null),
         bubbleMode: ref('hidden'),
         selectedTargets: ref([]),
