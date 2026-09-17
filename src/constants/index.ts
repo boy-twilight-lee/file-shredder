@@ -9,6 +9,10 @@ export const DEFAULT_BUBBLE_ALIGN: BubbleAlign = 'center';
 export const PET_WINDOW_PADDING = 30;
 // 定义操作气泡与桌宠之间的定位间距。
 export const PET_BUBBLE_GAP = 10;
+// 定义 records 之外业务气泡的统一外框宽度。
+export const PET_BUBBLE_DEFAULT_WIDTH = 340;
+// 定义设置气泡参与桌宠对齐动画的实际高度。
+export const PET_SETTINGS_BUBBLE_HEIGHT = 480;
 // 定义操作气泡支持的最大外框尺寸，窗口在气泡所在侧按一份该尺寸预留空间。
 export const PET_BUBBLE_MAX_SIZE = { width: 700, height: 500 };
 // 定义气泡对齐变化时气泡位置过渡的时长。

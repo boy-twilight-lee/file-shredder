@@ -46,8 +46,8 @@ import {
   MOVEMENT_PRELOAD_POSES,
   PET_POSE_IMAGES,
 } from './constants';
-import { PET_WINDOW_PADDING } from '@/constants';
 import { usePetViewContext } from '@/pages/pet-view/hooks';
+import { calculatePetBubbleLayoutInsets } from '@/utils';
 import { PetCharacterDrag } from './component';
 // 定义气泡打开时是否显示原生桌宠拖动入口、人物外观尺寸与外部缩放系数。
 const props = withDefaults(defineProps<PetCharacterProps>(), { scale: 1 });
@@ -76,27 +76,28 @@ const petVisualElement = ref<HTMLElement | null>(null);
 let petLayoutTween: gsap.core.Tween | null = null;
 // 递增布局动画请求版本，阻止快速切换时旧测量结果覆盖新动画。
 let petLayoutRequest = 0;
-// 按缩放系数与窗口留白换算人物的展示尺寸与贴边位置。
+// 按缩放系数与气泡布局换算人物的展示尺寸与贴边位置。
 const petStyle = computed<Record<string, string>>(() => {
-  // 保存按缩放系数换算后的窗口留白、人物宽度与高度。
-  const padding = PET_WINDOW_PADDING * props.scale;
+  // 保存按缩放系数换算后的人物宽度与高度。
   const width = Math.round(props.petWidth * props.scale);
   const height = Math.round(props.petHeight * props.scale);
-  // 汇总人物尺寸与横向位置，气泡位于右侧时人物贴左，否则贴窗口右侧留白。
+  // 将紧凑气泡布局居中放入 records 使用的最大透明画布区域。
+  const layoutInsets = calculatePetBubbleLayoutInsets(height, props.scale);
+  // 汇总人物尺寸与横向位置，方向切换只跨越紧凑气泡的真实宽度。
   const style: Record<string, string> = {
     '--pet-wave-size': `${Math.round(height * 0.86)}px`,
     height: `${height}px`,
     width: `${width}px`,
     left: isBubbleOnRight.value
-      ? `${padding}px`
-      : `calc(100% - ${padding + width}px)`,
+      ? `${Math.round(layoutInsets.horizontal)}px`
+      : `calc(100% - ${Math.round(layoutInsets.horizontal + width)}px)`,
   };
-  // 顶部与底部对齐改为贴窗口留白，居中时以位移抵消自身高度。
+  // 顶部与底部对齐按设置气泡真实高度计算，居中时以位移抵消自身高度。
   if (bubbleAlign.value === 'top') {
-    style.top = `${padding}px`;
+    style.top = `${Math.round(layoutInsets.vertical)}px`;
   } else if (bubbleAlign.value === 'bottom') {
     style.top = 'auto';
-    style.bottom = `${padding}px`;
+    style.bottom = `${Math.round(layoutInsets.vertical)}px`;
   } else {
     style.top = '50%';
     style.transform = 'translateY(-50%)';

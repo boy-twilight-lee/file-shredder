@@ -5,7 +5,7 @@
   >
     <div class="shred-level-setting-list">
       <cx-layout
-        title="清理强度"
+        title="强度"
         size="compact"
         direction="horizontal"
       >
@@ -32,7 +32,7 @@
         </a-radio-group>
       </cx-layout>
       <cx-layout
-        title="清理行为"
+        title="行为"
         size="compact"
         tooltip="处理删除文件夹时，是否保留根目录"
         direction="horizontal"

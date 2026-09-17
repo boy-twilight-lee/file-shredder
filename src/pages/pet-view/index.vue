@@ -33,7 +33,8 @@
 <script setup lang="ts">
 import { TriggerPosition } from '@arco-design/web-vue';
 import { usePetViewContext } from './hooks';
-import { PET_BUBBLE_GAP, PET_WINDOW_PADDING } from '@/constants';
+import { PET_BUBBLE_GAP } from '@/constants';
+import { calculatePetBubbleLayoutInsets } from '@/utils';
 import { PetBubble, PetCharacter } from './component';
 // 组件只消费 context，默认值、状态、派生数据和生命周期统一由 context 管理。
 const {
@@ -57,14 +58,18 @@ const bubbleTriggerPosition = computed<TriggerPosition>(() => {
   if (bubbleAlign.value === 'bottom') return 'lb';
   return 'left';
 });
-// 将固定尺寸气泡锁定在窗口预留区域左上角，避免方向与对齐切换改变其坐标。
+// 将设置气泡锁定在紧凑布局中心，避免桌宠对齐动画触发 Trigger 重复校正位置。
 const bubblePopupStyle = computed<Record<string, string>>(() => {
-  // 默认沿用 Trigger 针对普通气泡计算的完整定位样式。
+  // 保存需要覆盖 Trigger 自动定位的设置气泡坐标。
   const style: Record<string, string> = {};
-  if (bubbleMode.value === 'settings') {
-    style.top = `${PET_WINDOW_PADDING}px`;
-    style.left = `${PET_WINDOW_PADDING + petDisplaySize.value.width + PET_BUBBLE_GAP}px`;
-  }
+  // 非设置气泡继续使用 Trigger 根据人物锚点计算的位置。
+  if (bubbleMode.value !== 'settings') return style;
+  // 将紧凑设置布局居中放入 records 使用的最大透明画布区域。
+  const layoutInsets = calculatePetBubbleLayoutInsets(
+    petDisplaySize.value.height,
+  );
+  style.top = `${Math.round(layoutInsets.vertical)}px`;
+  style.left = `${Math.round(layoutInsets.horizontal + petDisplaySize.value.width + PET_BUBBLE_GAP)}px`;
   return style;
 });
 // 在组件库检测到外部交互时关闭业务气泡。

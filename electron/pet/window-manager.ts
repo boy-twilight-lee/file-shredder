@@ -1,10 +1,17 @@
 import { app, BrowserWindow, ipcMain, nativeImage, screen } from 'electron';
 import { join } from 'node:path';
 import { AppSettings } from '../storage';
-import { clamp, containsPoint, expandRectangle } from '@/utils';
 import {
+  calculatePetBubbleLayoutInsets,
+  clamp,
+  containsPoint,
+  expandRectangle,
+} from '@/utils';
+import {
+  PET_BUBBLE_DEFAULT_WIDTH,
   PET_BUBBLE_GAP,
   PET_BUBBLE_MAX_SIZE,
+  PET_SETTINGS_BUBBLE_HEIGHT,
   PET_WINDOW_PADDING,
 } from '@/constants';
 interface PetWindowManagerDependencies {
@@ -192,18 +199,24 @@ export function createPetWindowManager(
   ): Electron.Rectangle {
     // 读取气泡相对人物的方位与纵向对齐设置。
     const { bubbleDirection, bubbleAlign } = dependencies.getSettings();
-    // 按气泡对齐方式计算人物纵向位置，让单份气泡高度覆盖全部布局。
+    // 将紧凑气泡布局居中放入为 records 预留的最大透明画布区域。
+    const layoutInsets = calculatePetBubbleLayoutInsets(characterSize.height);
+    // 按设置气泡真实高度计算人物纵向位置，避免对齐动画产生多余位移。
     const y =
       bubbleAlign === 'top'
-        ? PET_WINDOW_PADDING
+        ? Math.round(layoutInsets.vertical)
         : bubbleAlign === 'bottom'
-          ? windowSize.height - PET_WINDOW_PADDING - characterSize.height
+          ? windowSize.height -
+            Math.round(layoutInsets.vertical) -
+            characterSize.height
           : Math.round((windowSize.height - characterSize.height) / 2);
     return {
       x:
         bubbleDirection === 'right'
-          ? PET_WINDOW_PADDING
-          : windowSize.width - PET_WINDOW_PADDING - characterSize.width,
+          ? Math.round(layoutInsets.horizontal)
+          : windowSize.width -
+            Math.round(layoutInsets.horizontal) -
+            characterSize.width,
       y,
       ...characterSize,
     };
@@ -401,9 +414,9 @@ export function createPetWindowManager(
     const { bubbleAlign } = dependencies.getSettings();
     if (bubbleAlign === 'top') return character.y;
     if (bubbleAlign === 'bottom')
-      return character.y + character.height - PET_BUBBLE_MAX_SIZE.height;
+      return character.y + character.height - PET_SETTINGS_BUBBLE_HEIGHT;
     return Math.round(
-      character.y + (character.height - PET_BUBBLE_MAX_SIZE.height) / 2,
+      character.y + (character.height - PET_SETTINGS_BUBBLE_HEIGHT) / 2,
     );
   }
   // 估算气泡首次渲染前的默认交互边界。
@@ -416,9 +429,10 @@ export function createPetWindowManager(
       x:
         bubbleDirection === 'right'
           ? character.x + character.width + PET_BUBBLE_GAP
-          : character.x - PET_BUBBLE_GAP - PET_BUBBLE_MAX_SIZE.width,
+          : character.x - PET_BUBBLE_GAP - PET_BUBBLE_DEFAULT_WIDTH,
       y: getAlignedBubbleTop(character),
-      ...PET_BUBBLE_MAX_SIZE,
+      width: PET_BUBBLE_DEFAULT_WIDTH,
+      height: PET_SETTINGS_BUBBLE_HEIGHT,
     };
   }
   // 根据指针位置切换透明区域的鼠标穿透状态。

@@ -29,7 +29,7 @@
 <script setup lang="ts">
 import { gsap } from 'gsap';
 import { usePetViewContext } from '@/pages/pet-view/hooks';
-import { PET_BUBBLE_MAX_SIZE } from '@/constants';
+import { PET_BUBBLE_DEFAULT_WIDTH, PET_BUBBLE_MAX_SIZE } from '@/constants';
 import {
   PetBubbleActions,
   PetBubbleConfirm,
@@ -42,10 +42,12 @@ import {
 const { bubbleElement, bubbleMode } = usePetViewContext().inject();
 // 保留最后一个可见业务视图，供 Trigger 完成气泡退场动画。
 const visibleBubbleMode = ref(bubbleMode.value);
-// 设置使用移动端尺寸，记录页面铺满最大气泡区域，其余页面按内容自适应。
+// records 铺满最大气泡区域，其余页面统一使用紧凑宽度并按内容自适应高度。
 const bubbleSizeStyle = computed<Record<string, string>>(() => {
-  // 保存固定尺寸气泡需要的内联样式，其余页面保持空对象按内容自适应。
-  const style: Record<string, string> = {};
+  // 保存当前气泡模式对应的统一外框宽度。
+  const style: Record<string, string> = {
+    width: `${PET_BUBBLE_DEFAULT_WIDTH}px`,
+  };
   if (visibleBubbleMode.value === 'records') {
     style.height = `${PET_BUBBLE_MAX_SIZE.height}px`;
     style.width = `${PET_BUBBLE_MAX_SIZE.width}px`;
