@@ -33,12 +33,6 @@ const PET_DRAG_HANDLE_SIZE = 36;
 const PET_SIZE_MIN = 50;
 // 限制桌宠支持的最大人物宽度。
 const PET_SIZE_MAX = 400;
-// 固定画布横向容纳一份最大气泡与最大人物。
-const PET_WINDOW_WIDTH =
-  PET_WINDOW_PADDING * 2 +
-  PET_BUBBLE_GAP +
-  PET_BUBBLE_MAX_SIZE.width +
-  PET_SIZE_MAX;
 // 定义桌宠窗口淡入动画的持续时间。
 const PET_FADE_DURATION_MS = 180;
 // 内置桌宠图集为 640×640 正方形，图片无法解码时按该比例估算人物尺寸。
@@ -171,10 +165,14 @@ export function createPetWindowManager(
     characterSizeCache = { imagePath, width, size };
     return size;
   }
-  // 根据最大气泡与人物实际高度返回紧凑窗口尺寸。
+  // 根据最大气泡与人物实际尺寸返回左右对称的窗口尺寸，让气泡保持固定锚点。
   function getRequiredWindowSize(characterSize: Electron.Size): Electron.Size {
     return {
-      width: PET_WINDOW_WIDTH,
+      width:
+        PET_WINDOW_PADDING * 2 +
+        characterSize.width * 2 +
+        PET_BUBBLE_GAP * 2 +
+        PET_BUBBLE_MAX_SIZE.width,
       height:
         PET_WINDOW_PADDING * 2 +
         Math.max(PET_BUBBLE_MAX_SIZE.height, characterSize.height),
@@ -187,7 +185,7 @@ export function createPetWindowManager(
     const bounds = petWindow.getContentBounds();
     return { width: bounds.width, height: bounds.height };
   }
-  // 计算桌宠在固定内容区内的边界：纵向跟随气泡对齐，横向贴向气泡反方向的一侧。
+  // 计算桌宠在对称内容区内的边界：纵向跟随气泡对齐，横向切换到气泡另一侧。
   function calculateLocalCharacterBounds(
     windowSize: Electron.Size,
     characterSize: Electron.Size,

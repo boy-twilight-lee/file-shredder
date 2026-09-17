@@ -7,6 +7,7 @@
       <cx-layout
         title="清理强度"
         size="compact"
+        direction="horizontal"
       >
         <template #tooltip>
           <span class="shred-level-setting-tooltip">
@@ -25,21 +26,16 @@
           @change="handlePassesChange"
         >
           <template #label="{ data }">
-            <span class="shred-level-setting-option">
-              <svg-icon
-                :name="data.icon"
-                :size="16"
-              />
-              <span>
-                {{ data.label }}
-              </span>
-            </span>
+            <svg-icon :name="data.icon" />
+            {{ data.label }}
           </template>
         </a-radio-group>
       </cx-layout>
       <cx-layout
         title="清理行为"
         size="compact"
+        tooltip="处理删除文件夹时，是否保留根目录"
+        direction="horizontal"
       >
         <a-radio-group
           :model-value="cleanupBehavior"
@@ -48,15 +44,8 @@
           @change="handleCleanupBehaviorChange"
         >
           <template #label="{ data }">
-            <span class="shred-level-setting-option">
-              <svg-icon
-                :name="data.icon"
-                :size="16"
-              />
-              <span>
-                {{ data.label }}
-              </span>
-            </span>
+            <svg-icon :name="data.icon" />
+            {{ data.label }}
           </template>
         </a-radio-group>
       </cx-layout>

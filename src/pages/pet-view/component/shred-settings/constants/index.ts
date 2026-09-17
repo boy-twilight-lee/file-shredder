@@ -5,11 +5,7 @@ import {
   SystemSettingOption,
 } from '../type';
 import { AppSettings, BubbleAlign, BubbleDirection } from '@/type';
-import {
-  DEFAULT_BUBBLE_ALIGN,
-  DEFAULT_BUBBLE_DIRECTION,
-  PET_BUBBLE_MAX_SIZE,
-} from '@/constants';
+import { DEFAULT_BUBBLE_ALIGN, DEFAULT_BUBBLE_DIRECTION } from '@/constants';
 // 提供设置读取完成前及首次启动时的默认值。
 export const DEFAULT_APP_SETTINGS: AppSettings = {
   // 设置读取完成前也保持极速删除为默认选中状态。
@@ -41,25 +37,6 @@ export const PET_SIZE_MIN = 50;
 export const PET_SIZE_MAX = 400;
 // 定义桌宠尺寸控件的单次调整步长。
 export const PET_SIZE_STEP = 4;
-// 定义预览气泡的外框描边宽度，与 pet-bubble 的边框保持一致。
-export const PET_PREVIEW_BUBBLE_BORDER = 1;
-// 定义预览气泡的圆角，与 pet-bubble 的圆角保持一致。
-export const PET_PREVIEW_BUBBLE_RADIUS = 18;
-// 定义设置页页头占用高度，与 cx-page-header 保持一致。
-export const SETTINGS_PAGE_HEADER_HEIGHT = 40;
-// 定义设置页列表的上下内边距，与 shred-settings 保持一致。
-export const SETTINGS_PAGE_LIST_PADDING = 10;
-// 定义设置卡片标题区与内容区的下内边距，与 cx-card 保持一致。
-export const SETTINGS_CARD_PADDING = 16;
-// 定义设置卡片标题区高度，由标题行高 20 组成。
-export const SETTINGS_CARD_TITLE_HEIGHT = 20;
-// 按设置页固定高度扣除页头、列表内边距、卡片标题区与上下两段卡片下内边距得到预览面板高度。
-export const PET_PREVIEW_HEIGHT =
-  PET_BUBBLE_MAX_SIZE.height -
-  SETTINGS_PAGE_HEADER_HEIGHT -
-  SETTINGS_PAGE_LIST_PADDING * 2 -
-  SETTINGS_CARD_TITLE_HEIGHT -
-  SETTINGS_CARD_PADDING * 2;
 // 定义操作气泡相对桌宠的方位可选项。
 export const BUBBLE_DIRECTION_OPTIONS: SettingOption<BubbleDirection>[] = [
   { label: '居左', value: 'left', icon: 'icon-align-left' },
@@ -75,22 +52,22 @@ export const BUBBLE_ALIGN_OPTIONS: SettingOption<BubbleAlign>[] = [
 export const SHRED_LEVEL_OPTIONS: ShredLevelOption[] = [
   {
     value: 0,
-    label: '极速删除',
+    label: '极速',
     icon: 'icon-delete',
   },
   {
     value: 3,
-    label: '日常清理',
+    label: '日常',
     icon: 'icon-lightning',
   },
   {
     value: 7,
-    label: '加强清理',
+    label: '加强',
     icon: 'icon-shield',
   },
   {
     value: 35,
-    label: '深度清理',
+    label: '深度',
     icon: 'icon-storage',
   },
 ];
@@ -98,12 +75,12 @@ export const SHRED_LEVEL_OPTIONS: ShredLevelOption[] = [
 export const CLEANUP_BEHAVIOR_OPTIONS: CleanupBehaviorOption[] = [
   {
     value: 'delete',
-    label: '删除',
+    label: '删除根目录',
     icon: 'icon-delete',
   },
   {
     value: 'keep',
-    label: '保留',
+    label: '保留根目录',
     icon: 'icon-folder-open',
   },
 ];

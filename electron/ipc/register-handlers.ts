@@ -118,13 +118,15 @@ export function registerIpcHandlers(
         await dependencies.setContextMenuEnabled(
           safePatch.contextMenuInstalled,
         );
-      // 保存桌宠尺寸或气泡布局变化前人物的屏幕位置，布局变化后据此保持桌宠不动。
+      // 仅在尺寸变化前保存屏幕锚点，布局切换保留窗口位置以展示人物完整位移。
       const characterAnchor =
-        typeof safePatch.petSize === 'number' ||
-        safePatch.bubbleDirection !== undefined ||
-        safePatch.bubbleAlign !== undefined
+        typeof safePatch.petSize === 'number'
           ? dependencies.windowManager.getCharacterScreenAnchor()
           : null;
+      // 标记方向或对齐变化，设置生效后记录人物移动到的新屏幕位置。
+      const shouldRecordLayoutPosition =
+        safePatch.bubbleDirection !== undefined ||
+        safePatch.bubbleAlign !== undefined;
       // 保存经过校验与规范化的设置更新。
       const settings = await dependencies.store.updateSettings({
         ...safePatch,
@@ -136,7 +138,8 @@ export function registerIpcHandlers(
           characterAnchor,
         );
         await dependencies.windowManager.recordPosition();
-      }
+      } else if (shouldRecordLayoutPosition)
+        await dependencies.windowManager.recordPosition();
       dependencies.windowManager.setAlwaysOnTop(settings.alwaysOnTop);
       if (typeof safePatch.launchAtLogin === 'boolean')
         applyLoginSetting(safePatch.launchAtLogin);

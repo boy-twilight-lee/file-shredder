@@ -4,7 +4,7 @@
     class="shred-records"
   >
     <record-empty-state
-      v-if="emptyStateTitle"
+      v-if="!isLoading && emptyStateTitle"
       :title="emptyStateTitle"
     />
     <cx-page-header
@@ -239,8 +239,8 @@ watch(pathKeyword, resetSelectionForFilter);
 watch(logs, reconcileRecordState);
 // 组件挂载后加载记录并订阅跨窗口更新事件。
 onMounted(async () => {
-  await refreshLogs();
   disposers.push(window.shredderApi.onLogsUpdated(refreshLogs));
+  await refreshLogs();
 });
 // 组件销毁前解除全部记录更新监听。
 onBeforeUnmount(() => {

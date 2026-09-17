@@ -2,7 +2,7 @@ import { RecordTableColumn } from '../type';
 // 定义记录表格每页可选的展示数量。
 export const RECORD_PAGE_SIZE_OPTIONS = [50, 100, 150, 200];
 // 定义记录表格首次打开时的默认每页数量。
-export const DEFAULT_RECORD_PAGE_SIZE = RECORD_PAGE_SIZE_OPTIONS[1];
+export const DEFAULT_RECORD_PAGE_SIZE = RECORD_PAGE_SIZE_OPTIONS[0];
 // 定义粉碎记录表格的列标题、字段及展示方式。
 export const RECORD_TABLE_COLUMNS: RecordTableColumn[] = [
   {

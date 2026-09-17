@@ -95,16 +95,24 @@ html {
     .arco-radio-group-button {
       --color-fill-2: #f5f7fa;
       --border-radius-small: 8px;
-      height: 32px;
+      height: 28px;
       padding: 2px;
       display: inline-flex;
       align-items: center;
+      gap: 2px;
       .arco-radio-button {
         --border-radius-small: 6px;
         --color-text-2: #474f59;
-        margin-right: 2px;
+        height: 100%;
+        margin: 0;
         .arco-radio-button-content {
+          height: 100%;
           padding: 0 8px;
+          font-size: 12px;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+          gap: 4px;
         }
         &.arco-radio-checked {
           color: #0065ff;

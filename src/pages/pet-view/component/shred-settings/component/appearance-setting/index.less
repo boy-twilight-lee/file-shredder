@@ -1,93 +1,35 @@
 .appearance-setting {
-  .appearance-setting-workspace {
+  .appearance-setting-list {
     display: flex;
-    align-items: stretch;
-    gap: 12px;
-    .appearance-setting-preview {
-      position: relative;
-      overflow: hidden;
-      min-width: 0;
-      background: #f5f8fc;
-      border: 1px solid #dce6f5;
-      border-radius: 14px;
-      box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.78);
+    flex-direction: column;
+    .appearance-setting-item {
+      min-height: 48px;
+      padding: 8px 0;
+      border-bottom: 1px solid #f2f5fa;
       display: flex;
-      flex: 1;
-      .appearance-setting-stage {
-        position: relative;
-        overflow: hidden;
-        height: 100%;
-        width: 100%;
-        background:
-          radial-gradient(
-            circle at 84% 76%,
-            rgba(128, 171, 255, 0.2),
-            transparent 32%
-          ),
-          linear-gradient(
-            180deg,
-            rgba(255, 255, 255, 0.9),
-            rgba(231, 240, 254, 0.76)
-          );
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        .appearance-setting-scene {
-          position: relative;
-          pointer-events: none;
-          flex-shrink: 0;
-          .appearance-setting-bubble {
-            position: absolute;
-            overflow: hidden;
-            background: rgba(255, 255, 255, 0.97);
-            border: 1px solid rgba(225, 229, 235, 0.82);
-          }
-        }
+      align-items: center;
+      &:first-child {
+        padding-top: 0;
       }
-    }
-    .appearance-setting-content {
-      width: 144px;
-      display: flex;
-      flex-shrink: 0;
-      flex-direction: column;
-      gap: 12px;
+      &:last-child {
+        padding-bottom: 0;
+        border-bottom: 0;
+      }
       .appearance-setting-size-input {
-        width: 88px;
+        width: 96px;
         .appearance-setting-size-unit {
           font-size: 12px;
           color: #79828f;
         }
       }
-      .appearance-setting-option-group {
-        &:deep(.arco-radio-button-content) {
-          height: 28px;
-          display: flex;
-          justify-content: center;
-          align-items: center;
-        }
-      }
       .appearance-setting-image-item {
         position: relative;
         overflow: hidden;
-        height: 78px;
-        width: 100%;
-        padding: 0;
+        height: 64px;
+        width: 96px;
         background: #f7f9fc;
         border: 1px solid #e2e8f0;
-        border-radius: 9px;
-        font: inherit;
-        color: #474f59;
-        display: flex;
-        align-items: center;
-        transition:
-          border-color 160ms ease,
-          box-shadow 160ms ease;
-        &:hover {
-          .appearance-setting-image-tools {
-            pointer-events: auto;
-            opacity: 1;
-          }
-        }
+        border-radius: 10px;
         .appearance-setting-image-view {
           overflow: hidden;
           height: 100%;
@@ -114,38 +56,28 @@
           align-items: center;
           justify-content: center;
           .appearance-setting-image {
-            height: 72%;
-            width: 72%;
+            height: 92%;
+            width: 92%;
             object-fit: contain;
-            transition: transform 160ms ease;
           }
         }
         .appearance-setting-image-tools {
           position: absolute;
           z-index: 1;
-          top: 0;
-          right: 0;
-          bottom: 0;
-          left: 0;
-          pointer-events: none;
-          background: rgba(29, 33, 41, 0.6);
-          opacity: 0;
+          right: 4px;
+          bottom: 4px;
           display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 8px;
-          transition: opacity 160ms ease;
+          gap: 4px;
           .appearance-setting-image-tool {
             cursor: pointer;
-            height: 32px;
-            width: 32px;
-            padding: 0;
-            background: transparent;
-            border: 0;
-            border-radius: 0;
-            box-shadow: none;
-            color: #fff;
-            font-size: 24px;
+            height: 24px;
+            width: 24px;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid rgba(214, 221, 232, 0.9);
+            border-radius: 7px;
+            box-shadow: 0 2px 8px rgba(30, 55, 90, 0.14);
+            color: #3564ff;
+            font-size: 16px;
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -153,22 +85,11 @@
               opacity 160ms ease,
               color 160ms ease;
             &:hover {
-              background: transparent;
-              color: #3564ff;
+              color: #1749df;
             }
             &:disabled {
               cursor: wait;
               opacity: 0.65;
-            }
-          }
-        }
-        &.appearance-setting-image-pet {
-          height: 116px;
-          width: 144px;
-          .appearance-setting-image-view {
-            .appearance-setting-image {
-              height: 96%;
-              width: 96%;
             }
           }
         }
