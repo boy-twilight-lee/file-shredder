@@ -44,9 +44,25 @@ module.exports = async function after_all_artifact_build(build_result) {
   const project_dir = await fs.realpath(path.resolve(__dirname, '..'));
   const output_dir = path.resolve(build_result.outDir);
   const expected_output = path.join(project_dir, 'release');
-  const artifact_paths = build_result.artifactPaths.map((artifact) =>
+  let artifact_paths = build_result.artifactPaths.map((artifact) =>
     path.resolve(artifact),
   );
+
+  // NSIS produces update sidecars and temporary installer outputs that are not
+  // part of the distributable requested for this project. Keep the installer
+  // executable and remove those files during the final cleanup pass.
+  const has_nsis_target = [...build_result.platformToTargets.values()].some(
+    (targets) => targets.has('nsis'),
+  );
+  if (has_nsis_target) {
+    artifact_paths = artifact_paths.filter(
+      (artifact) => !['.blockmap', '.yml'].includes(path.extname(artifact)),
+    );
+    await fs.rm(path.join(output_dir, 'latest.yml'), {
+      force: true,
+      maxRetries: 3,
+    });
+  }
 
   try {
     // 仅允许清理本项目真实的 release 目录，拒绝目录链接和自定义外部路径。
