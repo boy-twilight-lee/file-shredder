@@ -76,6 +76,8 @@ const petVisualElement = ref<HTMLElement | null>(null);
 let petLayoutTween: gsap.core.Tween | null = null;
 // 递增布局动画请求版本，阻止快速切换时旧测量结果覆盖新动画。
 let petLayoutRequest = 0;
+// 标识桌宠是否已经完成首次布局，首次同步只应用最终位置不播放过渡。
+let hasAppliedInitialLayout = false;
 // 按缩放系数与气泡布局换算人物的展示尺寸与贴边位置。
 const petStyle = computed<Record<string, string>>(() => {
   // 保存按缩放系数换算后的人物宽度与高度。
@@ -108,6 +110,18 @@ const petStyle = computed<Record<string, string>>(() => {
 function clearPetVisualTransform(visualElement: HTMLElement): void {
   gsap.set(visualElement, { clearProps: 'transform,transformOrigin' });
   if (petVisualElement.value === visualElement) petLayoutTween = null;
+}
+// 首次布局变化只等待 DOM 更新并清理残留变换，不创建进入动画。
+async function handlePetLayoutChange(): Promise<void> {
+  if (!hasAppliedInitialLayout) {
+    hasAppliedInitialLayout = true;
+    petLayoutRequest += 1;
+    petLayoutTween?.kill();
+    await nextTick();
+    if (petVisualElement.value) clearPetVisualTransform(petVisualElement.value);
+    return;
+  }
+  await playPetLayoutMotion();
 }
 // 按人物切换前后的可见边界播放位移与缩放，同时保持 Trigger 锚点位于最终布局。
 async function playPetLayoutMotion(): Promise<void> {
@@ -258,7 +272,7 @@ watch(
     () => props.petHeight,
     () => props.scale,
   ],
-  playPetLayoutMotion,
+  handlePetLayoutChange,
 );
 // 页面就绪后开始预热移动素材，不阻塞首个静态待机画面。
 onMounted(preloadMovementImages);
@@ -266,6 +280,7 @@ onMounted(preloadMovementImages);
 onBeforeUnmount(() => {
   imageRequest += 1;
   petLayoutRequest += 1;
+  hasAppliedInitialLayout = true;
   petLayoutTween?.kill();
   decodedImages.clear();
 });

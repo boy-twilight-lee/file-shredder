@@ -95,6 +95,12 @@ function parseLaunchPaths(argv: string[]): string[] {
     .map((item) => resolve(item))
     .filter(existsSync);
 }
+// 读取安装器静默传入的开机启动配置，普通启动不返回配置值。
+function parseStartupConfiguration(argv: string[]): boolean | null {
+  if (argv.includes('--configure-startup=true')) return true;
+  if (argv.includes('--configure-startup=false')) return false;
+  return null;
+}
 // 校验外部目标并请求桌宠展示确认页面。
 async function requestPetConfirmation(paths: string[]): Promise<void> {
   // 规范化并过滤外部传入的粉碎路径。
@@ -178,6 +184,16 @@ function scheduleStartupMaintenance(): void {
 // 加载设置、创建桌宠窗口并注册屏幕环境监听。
 async function initializeApplication(): Promise<void> {
   currentSettings = await store.getSettings();
+  // 安装阶段只同步开机启动设置，不创建桌宠窗口。
+  const startupConfiguration = parseStartupConfiguration(process.argv);
+  if (startupConfiguration !== null) {
+    currentSettings = await store.updateSettings({
+      launchAtLogin: startupConfiguration,
+    });
+    applyLoginSetting(startupConfiguration);
+    app.quit();
+    return;
+  }
   petWindowManager.create();
   screen.on('display-removed', petWindowManager.restorePosition);
   screen.on('display-metrics-changed', petWindowManager.restorePosition);

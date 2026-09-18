@@ -50,6 +50,10 @@ export function createPetWindowManager(
 ): PetWindowManager {
   // 保存当前桌宠浏览器窗口实例。
   let petWindow: BrowserWindow | null = null;
+  // 标识渲染页面是否已经完成首帧绘制并可安全显示。
+  let isViewReady = false;
+  // 标识页面就绪后是否需要显示桌宠窗口。
+  let shouldShowWhenReady = false;
   // 保存桌宠淡入动画的定时任务。
   let fadeTimer: NodeJS.Timeout | undefined;
   // 标识业务气泡当前是否展开。
@@ -133,6 +137,10 @@ export function createPetWindowManager(
   // 显示桌宠窗口并执行淡入动画。
   function show(): void {
     if (!petWindow) return;
+    if (!isViewReady) {
+      shouldShowWhenReady = true;
+      return;
+    }
     if (!petWindow.isVisible()) {
       petWindow.setOpacity(0);
       petWindow.showInactive();
@@ -534,6 +542,8 @@ export function createPetWindowManager(
   function create(): void {
     // 读取窗口置顶与桌宠外观设置。
     const settings = dependencies.getSettings();
+    // 记录正常启动是否需要在首帧绘制后显示桌宠。
+    shouldShowWhenReady = shouldShowOnLaunch();
     // 计算当前桌宠人物实际尺寸。
     const characterSize = getCharacterSize();
     // 计算当前人物与最大气泡所需的紧凑窗口尺寸。
@@ -553,7 +563,7 @@ export function createPetWindowManager(
       alwaysOnTop: settings.alwaysOnTop,
       skipTaskbar: true,
       hasShadow: false,
-      show: shouldShowOnLaunch(),
+      show: false,
       webPreferences: {
         preload: join(dependencies.runtimeDirectory, 'preload.mjs'),
         contextIsolation: true,
@@ -580,6 +590,11 @@ export function createPetWindowManager(
     observedWindowSize = getWindowSize();
     petWindow.on('will-move', handleWindowWillMove);
     petWindow.on('moved', handleWindowMoved);
+    // Chromium 完成首帧绘制后再显示透明窗口，避免先出现空白窗口。
+    petWindow.once('ready-to-show', () => {
+      isViewReady = true;
+      if (shouldShowWhenReady) show();
+    });
     // 页面加载完成后再次确保透明背景生效。
     petWindow.webContents.once('did-finish-load', () =>
       petWindow?.setBackgroundColor('#00000000'),
@@ -593,6 +608,8 @@ export function createPetWindowManager(
     petWindow.on('closed', () => {
       clearInterval(fadeTimer);
       fadeTimer = undefined;
+      isViewReady = false;
+      shouldShowWhenReady = false;
       dragStartPosition = null;
       petWindow = null;
     });

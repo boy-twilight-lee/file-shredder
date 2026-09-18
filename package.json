@@ -11,8 +11,8 @@
     "build": "npm run build:app && electron-builder",
     "build:app": "vue-tsc --noEmit && vite build",
     "build:win": "npm run build:win:x64",
-    "build:win:x64": "npm run build:app && electron-builder --win portable --x64",
-    "build:win:ia32": "npm run build:app && electron-builder --win portable --ia32",
+    "build:win:x64": "npm run build:app && electron-builder --win nsis --x64 && python scripts/build_installer_shell.py",
+    "build:win:ia32": "npm run build:app && electron-builder --win nsis --ia32 && python scripts/build_installer_shell.py",
     "build:mac": "npm run build:app && electron-builder --mac dmg zip --x64 --arm64",
     "build:mac:x64": "npm run build:app && electron-builder --mac dmg zip --x64",
     "build:mac:arm64": "npm run build:app && electron-builder --mac dmg zip --arm64",
@@ -86,10 +86,25 @@
     "win": {
       "icon": "src/assets/app-icon.ico",
       "target": [
-        "portable"
+        "nsis"
       ],
-      "artifactName": "文件粉碎精灵.${ext}",
       "signAndEditExecutable": false
+    },
+    "nsis": {
+      "artifactName": "文件粉碎精灵安装程序.${ext}",
+      "oneClick": false,
+      "perMachine": false,
+      "allowElevation": false,
+      "allowToChangeInstallationDirectory": false,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "文件粉碎精灵",
+      "installerIcon": "src/assets/app-icon.ico",
+      "uninstallerIcon": "src/assets/app-icon.ico",
+      "installerHeader": "build/installer-header.bmp",
+      "installerSidebar": "build/installer-sidebar.bmp",
+      "uninstallerSidebar": "build/installer-sidebar.bmp",
+      "include": "build/installer.nsh"
     },
     "mac": {
       "icon": "src/assets/app-icon.png",

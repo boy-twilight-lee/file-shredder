@@ -41,14 +41,23 @@ npm test
 npm run typecheck
 ```
 
-构建 portable EXE：
+构建 Windows 安装包：
 
 ```text
 npm run build:x64
 npm run build:ia32
 ```
 
-同时构建两种架构使用 `npm run build`。成品位于 `release` 目录。新图标用于系统通知、设置窗口和资源管理器菜单；若要同时改写 portable 外壳图标，需要为 Electron Builder 开启 Windows 符号链接权限（启用开发者模式或使用管理员终端构建）。
+需要免安装单文件时可单独构建 portable EXE：
+
+```text
+npm run build:win:portable:x64
+npm run build:win:portable:ia32
+```
+
+成品位于 `release` 目录。日常使用推荐安装包版本，portable EXE 每次运行都要先解压 Electron 运行时，冷启动会更慢。新图标用于系统通知、设置窗口和资源管理器菜单；若要同时改写 portable 外壳图标，需要为 Electron Builder 开启 Windows 符号链接权限（启用开发者模式或使用管理员终端构建）。
+
+Windows 安装包使用桌宠主题的单页安装流程，用户可以选择安装路径，并在安装前选择是否创建桌面快捷方式、是否开机自启。安装器的品牌图片位于 `build` 目录，自定义页面和安装行为位于 `build/installer.nsh`。
 
 ## 图标资源
 
