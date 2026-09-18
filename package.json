@@ -11,8 +11,8 @@
     "build": "npm run build:app && electron-builder",
     "build:app": "vue-tsc --noEmit && vite build",
     "build:win": "npm run build:win:x64",
-    "build:win:x64": "npm run build:app && electron-builder --win nsis --x64 && python scripts/clean_release.py",
-    "build:win:ia32": "npm run build:app && electron-builder --win nsis --ia32 && python scripts/clean_release.py",
+    "build:win:x64": "npm run build:app && electron-builder --win nsis --x64 && node scripts/clean_release.cjs",
+    "build:win:ia32": "npm run build:app && electron-builder --win nsis --ia32 && node scripts/clean_release.cjs",
     "build:mac": "npm run build:app && electron-builder --mac dmg zip --x64 --arm64",
     "build:mac:x64": "npm run build:app && electron-builder --mac dmg zip --x64",
     "build:mac:arm64": "npm run build:app && electron-builder --mac dmg zip --arm64",
@@ -56,6 +56,7 @@
     "appId": "com.filetools.fileshredder",
     "productName": "文件粉碎精灵",
     "asar": true,
+    "afterPack": "scripts/after-pack.cjs",
     "afterAllArtifactBuild": "scripts/after-all-artifact-build.cjs",
     "directories": {
       "output": "release"
