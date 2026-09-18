@@ -171,12 +171,10 @@ async function playPetLayoutMotion(): Promise<void> {
   );
 }
 // 原生方向覆盖业务姿势，松手后自动恢复当前页面对应的图片。
-const { direction, isSettling } = usePetMotion(petMotion, isDefaultPet);
+const { direction } = usePetMotion(petMotion, isDefaultPet);
 // 结果页优先于可能晚到的工作状态，取消任务也保持静态姿势。
 const pose = computed<PetPose>(() => {
   if (direction.value !== null) {
-    if (isSettling.value)
-      return direction.value === 'left' ? 'restLeft' : 'restRight';
     return direction.value;
   }
   if (bubbleMode.value === 'result') {
@@ -224,7 +222,7 @@ async function loadImage(source: string): Promise<boolean> {
   if (!loaded) decodedImages.delete(source);
   return Boolean(loaded);
 }
-// 在桌宠挂载后预解码左右移动与收脚素材，减少首次拖动延迟。
+// 在桌宠挂载后预解码左右移动素材，减少首次拖动延迟。
 async function preloadMovementImages(): Promise<void> {
   if (!isDefaultPet.value) return;
   // 并行缓存全部移动素材，后续方向切换只需更新图片地址。

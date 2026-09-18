@@ -9,27 +9,22 @@ export function usePetMotion(
 ) {
   // 保存当前水平朝向，不再产生上下或斜向姿势。
   const direction = ref<'left' | 'right' | null>(null);
-  // 松手后先展示收脚静态帧，防止角色继续原地走动。
-  const isSettling = ref(false);
   // 短暂事件中断先继续步行动画，避免抖动反复重播。
   let stopTimer: ReturnType<typeof setTimeout> | undefined;
-  // 收脚短暂停留后恢复当前页面的业务动作。
-  let restoreTimer: ReturnType<typeof setTimeout> | undefined;
-  // 清理停止和恢复两个阶段，新的拖动可立即打断停留。
+  // 清理停止阶段，新的拖动可立即打断释放缓冲。
   function clearTimers(): void {
     clearTimeout(stopTimer);
-    clearTimeout(restoreTimer);
+    stopTimer = undefined;
   }
   // 释放方向覆盖，使确认、结果或进度状态重新展示。
   function restore(): void {
     direction.value = null;
-    isSettling.value = false;
   }
-  // 从循环步行动画切换到同朝向的收脚姿势。
+  // 停止移动后恢复当前页面的业务姿势。
   function settle(): void {
     if (direction.value === null) return;
-    isSettling.value = true;
-    restoreTimer = setTimeout(restore, PET_MOTION_TIMING.rest);
+    stopTimer = undefined;
+    restore();
   }
   // 只按水平位移更新朝向，纵向变化不会重新加载动画。
   function updateMotion(): void {
@@ -41,14 +36,13 @@ export function usePetMotion(
     // 垂直拖动延续已有朝向；停止事件进入释放缓冲。
     const next = getHorizontalPetDirection(motion.value, direction.value);
     if (next === null) {
-      if (!isSettling.value && direction.value !== null) {
+      if (direction.value !== null && stopTimer === undefined) {
         clearTimeout(stopTimer);
         stopTimer = setTimeout(settle, PET_MOTION_TIMING.release);
       }
       return;
     }
     clearTimers();
-    isSettling.value = false;
     direction.value = next;
     stopTimer = setTimeout(settle, PET_MOTION_TIMING.silence);
   }
@@ -56,5 +50,5 @@ export function usePetMotion(
   watch([motion, enabled], updateMotion, { flush: 'sync' });
   // 卸载后取消尚未执行的方向恢复回调。
   onBeforeUnmount(clearTimers);
-  return { direction, isSettling };
+  return { direction };
 }

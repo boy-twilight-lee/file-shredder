@@ -6,9 +6,7 @@ export type PetPose =
   | 'success'
   | 'failure'
   | 'right'
-  | 'left'
-  | 'restRight'
-  | 'restLeft';
+  | 'left';
 
 // 定义人物展示所需的交互开关、外观尺寸与外部缩放系数。
 export interface PetCharacterProps {
