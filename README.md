@@ -57,7 +57,13 @@ npm run build:win:portable:ia32
 
 成品位于 `release` 目录。日常使用推荐安装包版本，portable EXE 每次运行都要先解压 Electron 运行时，冷启动会更慢。新图标用于系统通知、设置窗口和资源管理器菜单；若要同时改写 portable 外壳图标，需要为 Electron Builder 开启 Windows 符号链接权限（启用开发者模式或使用管理员终端构建）。
 
-Windows 安装包使用桌宠主题的单页安装流程，用户可以选择安装路径，并在安装前选择是否创建桌面快捷方式、是否开机自启。安装器的品牌图片位于 `build` 目录，自定义页面和安装行为位于 `build/installer.nsh`。
+Windows 安装包使用品牌一致的向导流程：欢迎页 → 安装位置页 → 安装选项页 → 安装进度 → 完成页。安装位置页是 NSIS 原生目录页，可以修改安装目录并显示所需空间与可用空间；完成页可以直接启动应用。
+
+安装选项页分为两组：**快捷方式**决定是否创建桌面快捷方式；**初始系统设置**与应用内“设置 - 系统设置”一一对应，包含桌宠始终置顶、开机自动启动、开启系统通知、资源管理器右键菜单四项。勾选状态就是安装后写入的默认值，并且只在首次安装时生效，升级安装不会覆盖用户在应用内改过的设置。
+
+安装阶段由安装程序以 `--install-defaults=alwaysOnTop:true,launchAtLogin:false,systemNotifications:true,contextMenuInstalled:false` 调用应用一次，应用据此写入初始设置并同步系统启动项与资源管理器右键菜单，随后直接退出，不显示桌宠窗口。静默安装可用 `/install-defaults=` 传入同一份键值对覆盖界面上的勾选结果。应用只在安装器传入的字段落在上述四项之内时才会采用，其余字段一律忽略。
+
+安装器的品牌图片位于 `build` 目录：`installer-header.bmp`（150×57，白底页眉图标）用于每一页右上角，`installer-sidebar.bmp`（164×314）用于欢迎页和完成页左侧。页面顺序、页眉文案与安装行为位于 `build/installer.nsh`，两张位图都是静态资源，替换文件即可换肤；需要用桌宠形象重新生成时运行 `python build/installer-art.py`。
 
 ## 图标资源
 

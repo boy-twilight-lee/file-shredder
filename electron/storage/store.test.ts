@@ -58,6 +58,17 @@ describe('AppStore.getSettings', () => {
     });
   });
 });
+// 验证首次安装判断依据本地设置文件是否存在。
+describe('AppStore.hasStoredSettings', () => {
+  // 验证安装器写入初始设置前后能够正确区分首次安装与升级安装。
+  it('写入设置前后返回不同的判断结果', async () => {
+    // 创建隔离的空应用存储。
+    const store = await createStore();
+    await expect(store.hasStoredSettings()).resolves.toBe(false);
+    await store.updateSettings({ systemNotifications: false });
+    await expect(store.hasStoredSettings()).resolves.toBe(true);
+  });
+});
 // 验证粉碎记录按标识删除。
 describe('AppStore.deleteLogs', () => {
   // 验证批量删除仅移除用户指定的记录。

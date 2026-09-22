@@ -3,6 +3,9 @@ dist/
 dist-electron/
 dist-renderer/
 release/
+release-*/
+docs/
+.workbuddy
 .vscode/
 *.log
 __pycache__/

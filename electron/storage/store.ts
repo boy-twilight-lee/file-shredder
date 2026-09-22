@@ -1,4 +1,4 @@
-import { rm } from 'node:fs/promises';
+import { access, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { App } from 'electron';
@@ -121,6 +121,16 @@ export class AppStore {
       PET_SIZE_MAX,
     );
     return settings;
+  }
+  // 判断用户数据目录中是否已存在设置文件，用于区分首次安装与升级安装。
+  async hasStoredSettings(): Promise<boolean> {
+    try {
+      await access(this.settingsPath);
+      return true;
+    } catch {
+      // 设置文件不存在时视为首次安装。
+      return false;
+    }
   }
   // 合并并持久化部分应用设置。
   async updateSettings(patch: Partial<AppSettings>): Promise<AppSettings> {

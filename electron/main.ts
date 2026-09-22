@@ -6,6 +6,7 @@ import {
   applyLoginSetting,
   getExecutablePath,
   getWindowsIconPath,
+  parseInstallerConfiguration,
 } from './app';
 import {
   installContextMenu,
@@ -95,11 +96,27 @@ function parseLaunchPaths(argv: string[]): string[] {
     .map((item) => resolve(item))
     .filter(existsSync);
 }
-// 读取安装器静默传入的开机启动配置，普通启动不返回配置值。
-function parseStartupConfiguration(argv: string[]): boolean | null {
-  if (argv.includes('--configure-startup=true')) return true;
-  if (argv.includes('--configure-startup=false')) return false;
-  return null;
+// 将安装器选择的系统设置写入本地设置，并同步对应系统集成。
+async function applyInstallerConfiguration(
+  configuration: Partial<AppSettings>,
+): Promise<void> {
+  // 仅在首次安装时采用安装器提供的默认值，升级安装保留用户已有设置。
+  currentSettings = (await store.hasStoredSettings())
+    ? await store.getSettings()
+    : await store.updateSettings(configuration);
+  // 即使设置已关闭也同步一次，以清理由旧版本遗留的错误启动项。
+  applyLoginSetting(currentSettings.launchAtLogin);
+  if (process.platform !== 'win32') return;
+  if (currentSettings.contextMenuInstalled)
+    await installContextMenu(getExecutablePath(), getWindowsIconPath());
+  else await removeContextMenu();
+}
+// 处理安装器命令行请求，返回本次启动是否属于安装阶段。
+async function applyInstallerRequest(argv: string[]): Promise<boolean> {
+  const configuration = parseInstallerConfiguration(argv);
+  if (!configuration) return false;
+  await applyInstallerConfiguration(configuration);
+  return true;
 }
 // 校验外部目标并请求桌宠展示确认页面。
 async function requestPetConfirmation(paths: string[]): Promise<void> {
@@ -139,8 +156,10 @@ async function setContextMenuEnabled(enabled: boolean): Promise<void> {
   });
   petWindowManager.send('settings:changed');
 }
-// 处理第二实例传入的粉碎目标或显示请求。
-function handleSecondInstance(argv: string[]): void {
+// 处理第二实例传入的安装器请求、粉碎目标或显示请求。
+async function handleSecondInstance(argv: string[]): Promise<void> {
+  // 应用已在运行时由当前实例代为处理安装器下发的初始设置。
+  if (await applyInstallerRequest(argv)) return;
   // 提取第二实例命令中的有效粉碎目标。
   const launchPaths = parseLaunchPaths(argv);
   if (launchPaths.length > 0) {
@@ -183,17 +202,12 @@ function scheduleStartupMaintenance(): void {
 }
 // 加载设置、创建桌宠窗口并注册屏幕环境监听。
 async function initializeApplication(): Promise<void> {
-  currentSettings = await store.getSettings();
-  // 安装阶段只同步开机启动设置，不创建桌宠窗口。
-  const startupConfiguration = parseStartupConfiguration(process.argv);
-  if (startupConfiguration !== null) {
-    currentSettings = await store.updateSettings({
-      launchAtLogin: startupConfiguration,
-    });
-    applyLoginSetting(startupConfiguration);
+  // 安装阶段只写入初始设置并同步系统集成，不创建桌宠窗口。
+  if (await applyInstallerRequest(process.argv)) {
     app.quit();
     return;
   }
+  currentSettings = await store.getSettings();
   petWindowManager.create();
   screen.on('display-removed', petWindowManager.restorePosition);
   screen.on('display-metrics-changed', petWindowManager.restorePosition);
@@ -209,7 +223,12 @@ const singleInstance = app.requestSingleInstanceLock();
 if (!singleInstance) app.quit();
 else {
   // 将第二实例启动参数转交给当前主实例。
-  app.on('second-instance', (_event, argv) => handleSecondInstance(argv));
+  app.on('second-instance', (_event, argv) => {
+    // 第二实例请求处理失败只记录日志，不影响正在运行的桌宠。
+    handleSecondInstance(argv).catch((error: unknown) => {
+      console.error('第二实例请求处理失败:', error);
+    });
+  });
   // Electron 就绪后初始化完整应用。
   app.once('ready', () => {
     // 初始化失败时记录错误并结束应用。

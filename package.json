@@ -95,7 +95,7 @@
       "oneClick": false,
       "perMachine": false,
       "allowElevation": false,
-      "allowToChangeInstallationDirectory": false,
+      "allowToChangeInstallationDirectory": true,
       "createDesktopShortcut": true,
       "createStartMenuShortcut": true,
       "shortcutName": "文件粉碎精灵",
