@@ -1,5 +1,7 @@
 import 'virtual:svg-icons-register';
 import App from './App.vue';
+import 'element-plus/dist/index.css';
+import '@arco-design/web-vue/dist/arco.css';
 import '@/styles/index.less';
 import { SvgIcon } from '@/components';
 // 创建渲染进程的 Vue 应用实例。

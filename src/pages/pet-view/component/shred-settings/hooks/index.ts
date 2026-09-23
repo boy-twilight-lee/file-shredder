@@ -1,1 +1,0 @@
-export { useShredSettingsContext } from './useShredSettingsContext';

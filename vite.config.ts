@@ -3,7 +3,10 @@ import { resolve } from 'node:path';
 import vue from '@vitejs/plugin-vue';
 import AutoImport from 'unplugin-auto-import/vite';
 import Components from 'unplugin-vue-components/vite';
-import { ArcoResolver } from 'unplugin-vue-components/resolvers';
+import {
+  ArcoResolver,
+  ElementPlusResolver,
+} from 'unplugin-vue-components/resolvers';
 import electron from 'vite-plugin-electron/simple';
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons';
 // 生成渲染进程、主进程与预加载脚本的统一构建配置。
@@ -24,16 +27,22 @@ export default defineConfig(() => {
         iconDirs: [resolve(process.cwd(), 'src/assets/icons')],
         symbolId: '[name]',
       }),
-      // 自动引入 Vue 与 Vue Router 的组合式 API，并生成全局类型声明。
+      Components({
+        dts: 'src/type/components.d.ts',
+        resolvers: [
+          ArcoResolver({
+            importStyle: 'css',
+          }),
+          ElementPlusResolver(),
+        ],
+      }),
       AutoImport({
         dts: 'src/type/auto-imports.d.ts',
         imports: ['vue', 'vue-router'],
-        vueTemplate: true,
-      }),
-      // 自动按需引入模板中使用的 Arco 组件及对应样式；业务图标统一使用 SVG 雪碧图。
-      Components({
-        dts: 'src/type/components.d.ts',
-        resolvers: [ArcoResolver({ resolveIcons: false })],
+        include: ['src/**/*.{ts,vue}'],
+        eslintrc: {
+          enabled: true,
+        },
       }),
       electron({
         main: {

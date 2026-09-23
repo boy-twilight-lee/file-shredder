@@ -1,0 +1,30 @@
+.cx-pagination {
+  display: flex;
+  align-items: center;
+  gap: 23px;
+
+  .pagination-item-ellipsis-icon {
+    height: 100%;
+    width: 100%;
+    position: relative;
+    color: #99a1ad;
+    .more-icon {
+      opacity: 1;
+    }
+    .more-hover-icon {
+      opacity: 0;
+    }
+    &:hover .more-icon {
+      opacity: 0;
+    }
+    &:hover .more-hover-icon {
+      opacity: 1;
+    }
+    svg {
+      position: absolute;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+    }
+  }
+}

@@ -1,0 +1,122 @@
+.cx-table-wrapper {
+  position: relative;
+  flex: 1;
+  flex-shrink: 0;
+  height: 100%;
+  width: 100%;
+  display: flex !important;
+  flex-direction: column;
+  .cx-table {
+    flex: 1;
+    overflow: hidden;
+
+    .el-table {
+      border-radius: 8px;
+      &::before {
+        display: none;
+      }
+      &::after {
+        display: none;
+      }
+      .el-table__inner-wrapper {
+        &::before {
+          display: none;
+        }
+        &::after {
+          display: none;
+        }
+        .el-table__border-left-patch {
+          display: none;
+        }
+      }
+      .cx-table-header-row {
+        height: 40px;
+        border-bottom: 1px solid #f2f5fa;
+        .cx-table-header-cell {
+          padding: 0;
+          background: #f5f7fa;
+          border: none !important;
+          position: relative;
+          &.cx-table-header-resizable {
+            &::after {
+              content: '';
+              position: absolute;
+              right: 2px;
+              top: 50%;
+              transform: translateY(-50%);
+              background: #e1e5eb;
+              height: 12px;
+              width: 2px;
+              border-radius: 1px;
+            }
+          }
+          .cell {
+            padding: 0 16px;
+            color: #557ca7;
+            font-family: PingFang SC;
+            font-size: 14px;
+            font-weight: 400;
+            display: flex;
+            align-items: center;
+            .sort-caret.ascending {
+              top: -3px; /* 微调位置 */
+            }
+            .sort-caret.descending {
+              bottom: -5px; /* 微调位置 */
+            }
+          }
+        }
+      }
+      .cx-table-row {
+        height: 48px;
+        border-bottom: 1px solid #f2f5fa;
+        &:nth-child(2n) {
+          .cx-table-cell {
+            background: #fafbfc;
+          }
+        }
+        &:hover {
+          .cx-table-cell {
+            background-color: #edf1f7;
+          }
+        }
+        .cx-table-cell {
+          padding: 0;
+          background-color: #fff;
+          border: none !important;
+
+          .cell {
+            padding: 0 16px;
+            color: #474f59;
+            font-family: PingFang SC;
+            font-size: 14px;
+            font-weight: 400;
+            overflow-wrap: break-word;
+          }
+          // &:last-child .cell {
+          // 	color: @theme-color;
+          // }
+        }
+      }
+    }
+  }
+  .cx-table-pagination {
+    height: 44px;
+    padding: 0 16px;
+    border-top: 1px solid #f2f5fa;
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+  }
+  .cx-table-empty {
+    top: 40px;
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+  }
+}
+.custom-header-cell {
+  display: flex;
+  align-items: center;
+}
