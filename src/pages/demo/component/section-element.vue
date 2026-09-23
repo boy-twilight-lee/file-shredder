@@ -90,6 +90,7 @@
           :min="0"
           :max="35"
           :step="1"
+          :controls="false"
         />
       </demo-item>
       <demo-item label="固定步进">
@@ -98,12 +99,14 @@
           :min="0"
           :max="35"
           :step="3"
+          :controls="false"
           step-strictly
         />
       </demo-item>
       <demo-item label="禁用">
         <el-input-number
           :model-value="3"
+          :controls="false"
           disabled
         />
       </demo-item>
@@ -111,6 +114,7 @@
         <el-input-number
           v-model="passCount"
           controls-position="right"
+          :controls="false"
         />
       </demo-item>
     </demo-case>
