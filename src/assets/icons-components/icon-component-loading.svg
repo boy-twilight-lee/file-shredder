@@ -1,0 +1,55 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="36" height="36" viewBox="0 0 36 36" fill="none">
+	<defs>
+		<filter id="icon-component-loading-shadow" x="-16.4" y="-2" width="40" height="40" filterUnits="userSpaceOnUse" color-interpolation-filters="sRGB">
+			<feDropShadow dx="0" dy="0" stdDeviation="10" flood-color="#121f35" flood-opacity="0.3" />
+		</filter>
+	</defs>
+	<g transform="rotate(0 18 18)">
+		<circle cx="3.6" cy="18" r="0" fill="#0565ff" opacity="0.5" filter="url(#icon-component-loading-shadow)">
+			<animate attributeName="r" values="0;3.6;0" keyTimes="0;0.5;1" dur="1s" repeatCount="indefinite" />
+			<animate attributeName="opacity" values="0.5;1;0.5" keyTimes="0;0.5;1" dur="1s" repeatCount="indefinite" />
+		</circle>
+	</g>
+	<g transform="rotate(45 18 18)">
+		<circle cx="3.6" cy="18" r="0" fill="#0565ff" opacity="0.5" filter="url(#icon-component-loading-shadow)">
+			<animate attributeName="r" values="0;3.6;0" keyTimes="0;0.5;1" dur="1s" begin="-0.9s" repeatCount="indefinite" />
+			<animate attributeName="opacity" values="0.5;1;0.5" keyTimes="0;0.5;1" dur="1s" begin="-0.9s" repeatCount="indefinite" />
+		</circle>
+	</g>
+	<g transform="rotate(90 18 18)">
+		<circle cx="3.6" cy="18" r="0" fill="#0565ff" opacity="0.5" filter="url(#icon-component-loading-shadow)">
+			<animate attributeName="r" values="0;3.6;0" keyTimes="0;0.5;1" dur="1s" begin="-0.7875s" repeatCount="indefinite" />
+			<animate attributeName="opacity" values="0.5;1;0.5" keyTimes="0;0.5;1" dur="1s" begin="-0.7875s" repeatCount="indefinite" />
+		</circle>
+	</g>
+	<g transform="rotate(135 18 18)">
+		<circle cx="3.6" cy="18" r="0" fill="#0565ff" opacity="0.5" filter="url(#icon-component-loading-shadow)">
+			<animate attributeName="r" values="0;3.6;0" keyTimes="0;0.5;1" dur="1s" begin="-0.675s" repeatCount="indefinite" />
+			<animate attributeName="opacity" values="0.5;1;0.5" keyTimes="0;0.5;1" dur="1s" begin="-0.675s" repeatCount="indefinite" />
+		</circle>
+	</g>
+	<g transform="rotate(180 18 18)">
+		<circle cx="3.6" cy="18" r="0" fill="#0565ff" opacity="0.5" filter="url(#icon-component-loading-shadow)">
+			<animate attributeName="r" values="0;3.6;0" keyTimes="0;0.5;1" dur="1s" begin="-0.5625s" repeatCount="indefinite" />
+			<animate attributeName="opacity" values="0.5;1;0.5" keyTimes="0;0.5;1" dur="1s" begin="-0.5625s" repeatCount="indefinite" />
+		</circle>
+	</g>
+	<g transform="rotate(225 18 18)">
+		<circle cx="3.6" cy="18" r="0" fill="#0565ff" opacity="0.5" filter="url(#icon-component-loading-shadow)">
+			<animate attributeName="r" values="0;3.6;0" keyTimes="0;0.5;1" dur="1s" begin="-0.45s" repeatCount="indefinite" />
+			<animate attributeName="opacity" values="0.5;1;0.5" keyTimes="0;0.5;1" dur="1s" begin="-0.45s" repeatCount="indefinite" />
+		</circle>
+	</g>
+	<g transform="rotate(270 18 18)">
+		<circle cx="3.6" cy="18" r="0" fill="#0565ff" opacity="0.5" filter="url(#icon-component-loading-shadow)">
+			<animate attributeName="r" values="0;3.6;0" keyTimes="0;0.5;1" dur="1s" begin="-0.3375s" repeatCount="indefinite" />
+			<animate attributeName="opacity" values="0.5;1;0.5" keyTimes="0;0.5;1" dur="1s" begin="-0.3375s" repeatCount="indefinite" />
+		</circle>
+	</g>
+	<g transform="rotate(315 18 18)">
+		<circle cx="3.6" cy="18" r="0" fill="#0565ff" opacity="0.5" filter="url(#icon-component-loading-shadow)">
+			<animate attributeName="r" values="0;3.6;0" keyTimes="0;0.5;1" dur="1s" begin="-0.225s" repeatCount="indefinite" />
+			<animate attributeName="opacity" values="0.5;1;0.5" keyTimes="0;0.5;1" dur="1s" begin="-0.225s" repeatCount="indefinite" />
+		</circle>
+	</g>
+</svg>

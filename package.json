@@ -24,6 +24,12 @@
     "typecheck": "vue-tsc --noEmit",
     "test": "vitest run --config vitest.config.ts"
   },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "electron",
+      "esbuild"
+    ]
+  },
   "dependencies": {
     "@arco-design/web-vue": "^2.57.0",
     "@vueuse/core": "^14.4.0",
