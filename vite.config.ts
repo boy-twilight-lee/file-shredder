@@ -24,7 +24,10 @@ export default defineConfig(() => {
       vue(),
       // 将 icon-xxx 命名的业务 SVG 构建为同名 symbol 雪碧图，组件按名称直接从雪碧图取用图标。
       createSvgIconsPlugin({
-        iconDirs: [resolve(process.cwd(), 'src/assets/icons')],
+        iconDirs: [
+          resolve(process.cwd(), 'src/assets/icons'),
+          resolve(process.cwd(), 'src/assets/icons-components'),
+        ],
         symbolId: '[name]',
       }),
       Components({

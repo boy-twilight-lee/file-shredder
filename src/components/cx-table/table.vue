@@ -132,15 +132,14 @@
 </template>
 
 <script lang="ts" setup>
+import { isBoolean, isEmpty, isNumber, isUndefined } from 'lodash-es';
 import { ref, toRefs } from 'vue';
 import { useControlValue } from '@/hooks';
 import { TableInstance } from 'element-plus';
 import { TableColumnData } from './type';
-import { isUndefined } from '@/utils';
 import TableColumn from './table-column.vue';
 import YcEmpty from '@/components/cx-empty';
 import YcPagination from '@/components/cx-pagination';
-import { isBoolean, isEmpty, isNumber } from 'lodash-es';
 const props = withDefaults(
   defineProps<{
     data?: Record<string, any>[];

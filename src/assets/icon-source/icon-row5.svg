@@ -1,9 +1,9 @@
 <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
 <g id="&#231;&#187;&#147;&#230;&#157;&#159;&#230;&#151;&#182;&#233;&#151;&#180;">
-<path id="Vector" d="M1.79395 13.9097H14.2063" stroke="#99A1AD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="Vector_2" d="M1.79395 2.09033H14.2063" stroke="#99A1AD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="Vector_3" d="M6.51486 7.80967C4.82156 7.05916 3.30176 5.05854 3.30176 2.09033H12.6976C12.6976 5.03795 11.1748 7.05454 9.47958 7.80967" stroke="#99A1AD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
-<path id="Vector_4" d="M6.51486 7.80971C4.82156 8.56022 3.30176 10.5608 3.30176 13.5291H12.6976C12.6976 10.5814 11.1748 8.56484 9.47958 7.80971" stroke="#99A1AD" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector" d="M1.79395 13.9097H14.2063" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_2" d="M1.79395 2.09033H14.2063" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_3" d="M6.51486 7.80967C4.82156 7.05916 3.30176 5.05854 3.30176 2.09033H12.6976C12.6976 5.03795 11.1748 7.05454 9.47958 7.80967" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
+<path id="Vector_4" d="M6.51486 7.80971C4.82156 8.56022 3.30176 10.5608 3.30176 13.5291H12.6976C12.6976 10.5814 11.1748 8.56484 9.47958 7.80971" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round"/>
 <path id="Vector (Stroke)" fill-rule="evenodd" clip-rule="evenodd" d="M6.07617 10.8847C6.07617 11.2713 6.36058 11.5847 6.71142 11.5847L9.28925 11.5847C9.64009 11.5847 9.9245 11.2713 9.9245 10.8847C9.9245 10.4981 9.64009 10.1847 9.28925 10.1847L6.71142 10.1847C6.36058 10.1847 6.07617 10.4981 6.07617 10.8847Z" fill="#99A1AD"/>
 </g>
 </svg>

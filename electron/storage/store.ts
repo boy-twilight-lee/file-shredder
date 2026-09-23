@@ -2,7 +2,6 @@ import { access, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { App } from 'electron';
-import { DEFAULT_BUBBLE_ALIGN, DEFAULT_BUBBLE_DIRECTION } from '@/constants';
 import { BubbleAlign, BubbleDirection } from '@/type';
 import { clamp, normalizeBubbleAlign, normalizeBubbleDirection } from '@/utils';
 import { readJsonFile, writeJsonFile } from '../utils';
@@ -22,8 +21,6 @@ export interface AppSettings {
   petDisplayId: number | null;
   petPositionX: number | null;
   petPositionY: number | null;
-  bubbleDirection: BubbleDirection;
-  bubbleAlign: BubbleAlign;
 }
 export interface UploadedPetImage {
   id: string;
@@ -60,9 +57,6 @@ const DEFAULT_SETTINGS: AppSettings = {
   petDisplayId: null,
   petPositionX: null,
   petPositionY: null,
-  // 保持旧版本操作气泡位于人物左侧并垂直居中的展示方式。
-  bubbleDirection: DEFAULT_BUBBLE_DIRECTION,
-  bubbleAlign: DEFAULT_BUBBLE_ALIGN,
 };
 // 限制旧版持久化设置恢复时可使用的最小桌宠宽度。
 const PET_SIZE_MIN = 50;
@@ -104,10 +98,6 @@ export class AppStore {
     delete storedSettings.bubbleAppIconPath;
     // 合并默认设置，并修正旧配置或手工修改产生的无效气泡位置字段。
     const settings = { ...DEFAULT_SETTINGS, ...storedSettings };
-    settings.bubbleDirection = normalizeBubbleDirection(
-      storedSettings.bubbleDirection,
-    );
-    settings.bubbleAlign = normalizeBubbleAlign(storedSettings.bubbleAlign);
     // 旧设置缺少该字段或字段无效时保持清理文件夹包含根目录的默认行为。
     settings.removeRootDirectory = storedSettings.removeRootDirectory !== false;
     // 将旧版本或手动修改的桌宠尺寸收敛到当前允许范围。

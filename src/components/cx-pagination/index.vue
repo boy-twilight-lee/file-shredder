@@ -10,12 +10,12 @@
       v-bind="$attrs"
     >
       <template #page-item-step="{ type }">
-        <svg-icon :name="type == 'previous' ? 'page-pre' : 'page-next'" />
+        <svg-icon :name="`icon-page-${type == 'previous' ? 'pre' : 'next'}`" />
       </template>
       <template #page-item-ellipsis>
         <div class="pagination-item-ellipsis-icon">
           <svg-icon
-            name="page-more"
+            name="icon-page-more-hover"
             class="more-hover-icon"
           />
           <svg-icon
