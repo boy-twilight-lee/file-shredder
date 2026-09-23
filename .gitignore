@@ -4,9 +4,11 @@ dist-electron/
 dist-renderer/
 release/
 release-*/
-docs/
-.workbuddy
 .vscode/
 *.log
 __pycache__/
 output/pet-assets/
+# 原型自查脚本每次运行重写的中转明细，随手可重新生成
+docs/ui-prototype/_*.txt
+.tmp-*/
+.workbuddy/
