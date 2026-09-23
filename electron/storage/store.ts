@@ -2,8 +2,6 @@ import { access, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { App } from 'electron';
-import { BubbleAlign, BubbleDirection } from '@/type';
-import { clamp, normalizeBubbleAlign, normalizeBubbleDirection } from '@/utils';
 import { readJsonFile, writeJsonFile } from '../utils';
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
@@ -14,17 +12,6 @@ export interface AppSettings {
   systemNotifications: boolean;
   contextMenuInstalled: boolean;
   contextMenuAutoInstall: boolean;
-  customPetImagePath: string;
-  petImageTemplateId: string;
-  uploadedPetImages: UploadedPetImage[];
-  petSize: number;
-  petDisplayId: number | null;
-  petPositionX: number | null;
-  petPositionY: number | null;
-}
-export interface UploadedPetImage {
-  id: string;
-  fileName: string;
 }
 export interface ShredLog {
   id: string;
@@ -50,67 +37,65 @@ const DEFAULT_SETTINGS: AppSettings = {
   systemNotifications: true,
   contextMenuInstalled: false,
   contextMenuAutoInstall: false,
-  customPetImagePath: '',
-  petImageTemplateId: 'built-in-ao-yin',
-  uploadedPetImages: [],
-  petSize: 200,
-  petDisplayId: null,
-  petPositionX: null,
-  petPositionY: null,
 };
-// 限制旧版持久化设置恢复时可使用的最小桌宠宽度。
-const PET_SIZE_MIN = 50;
-// 限制旧版持久化设置恢复时可使用的最大桌宠宽度。
-const PET_SIZE_MAX = 400;
+// 解析持久化布尔设置，字段缺失或类型非法时回退到当前版本默认值。
+function resolveStoredBoolean(value: unknown, fallback: boolean): boolean {
+  return typeof value === 'boolean' ? value : fallback;
+}
+// 解析持久化清理强度，取值不在当前支持范围内时回退到默认强度。
+function resolveStoredPasses(value: unknown): 0 | 3 | 7 | 35 {
+  return value === 3 || value === 7 || value === 35
+    ? value
+    : DEFAULT_SETTINGS.passes;
+}
 export class AppStore {
   // 保存应用设置文件路径。
   private readonly settingsPath: string;
   // 保存粉碎记录文件路径。
   private readonly logsPath: string;
-  // 保存旧版本单张自定义桌宠图片路径。
-  private readonly petImagePath: string;
-  // 保存当前版本的桌宠图片目录路径。
-  private readonly petImagesDirectory: string;
   // 根据 Electron 用户数据目录初始化持久化路径。
   constructor(app: App) {
     // 读取当前应用隔离的用户数据目录。
     const dataDirectory = app.getPath('userData');
     this.settingsPath = join(dataDirectory, 'settings.json');
     this.logsPath = join(dataDirectory, 'shred-logs.json');
-    this.petImagePath = join(dataDirectory, 'custom-pet.png');
-    this.petImagesDirectory = join(dataDirectory, 'imgs');
   }
-  // 读取持久化设置并合并当前版本默认值。
+  // 读取持久化设置，只采用当前版本支持的字段并补齐默认值。
   async getSettings(): Promise<AppSettings> {
-    // 读取可能包含旧版本字段的设置数据。
-    const storedSettings = await readJsonFile<
-      Partial<AppSettings> & {
-        shortcut?: string;
-        snapToEdge?: boolean;
-        bubbleAppTitle?: string;
-        bubbleAppIconPath?: string;
-      }
-    >(this.settingsPath, {});
-    // 清除旧版本遗留且界面已不再提供的配置，后续保存时不会再写回。
-    delete storedSettings.shortcut;
-    delete storedSettings.snapToEdge;
-    delete storedSettings.bubbleAppTitle;
-    delete storedSettings.bubbleAppIconPath;
-    // 合并默认设置，并修正旧配置或手工修改产生的无效气泡位置字段。
-    const settings = { ...DEFAULT_SETTINGS, ...storedSettings };
-    // 旧设置缺少该字段或字段无效时保持清理文件夹包含根目录的默认行为。
-    settings.removeRootDirectory = storedSettings.removeRootDirectory !== false;
-    // 将旧版本或手动修改的桌宠尺寸收敛到当前允许范围。
-    settings.petSize = clamp(
-      Math.round(
-        typeof storedSettings.petSize === 'number'
-          ? storedSettings.petSize
-          : DEFAULT_SETTINGS.petSize,
-      ),
-      PET_SIZE_MIN,
-      PET_SIZE_MAX,
+    // 读取可能包含旧版本废弃字段的设置数据。
+    const storedSettings = await readJsonFile<Record<string, unknown>>(
+      this.settingsPath,
+      {},
     );
-    return settings;
+    // 逐字段收敛旧配置，旧版本遗留字段不会写回，升级后自动清理。
+    return {
+      passes: resolveStoredPasses(storedSettings.passes),
+      removeRootDirectory: resolveStoredBoolean(
+        storedSettings.removeRootDirectory,
+        DEFAULT_SETTINGS.removeRootDirectory,
+      ),
+      confirmBeforeShred: resolveStoredBoolean(
+        storedSettings.confirmBeforeShred,
+        DEFAULT_SETTINGS.confirmBeforeShred,
+      ),
+      alwaysOnTop: resolveStoredBoolean(
+        storedSettings.alwaysOnTop,
+        DEFAULT_SETTINGS.alwaysOnTop,
+      ),
+      launchAtLogin: resolveStoredBoolean(
+        storedSettings.launchAtLogin,
+        DEFAULT_SETTINGS.launchAtLogin,
+      ),
+      systemNotifications: resolveStoredBoolean(
+        storedSettings.systemNotifications,
+        DEFAULT_SETTINGS.systemNotifications,
+      ),
+      contextMenuInstalled: resolveStoredBoolean(
+        storedSettings.contextMenuInstalled,
+        DEFAULT_SETTINGS.contextMenuInstalled,
+      ),
+      contextMenuAutoInstall: false,
+    };
   }
   // 判断用户数据目录中是否已存在设置文件，用于区分首次安装与升级安装。
   async hasStoredSettings(): Promise<boolean> {
@@ -165,13 +150,11 @@ export class AppStore {
     await writeJsonFile(this.logsPath, logs);
     return logs;
   }
-  // 删除应用设置、记录及用户桌宠形象数据。
+  // 删除应用设置与全部粉碎记录。
   async cleanup(): Promise<void> {
     await Promise.all([
       rm(this.settingsPath, { force: true }),
       rm(this.logsPath, { force: true }),
-      rm(this.petImagePath, { force: true }),
-      rm(this.petImagesDirectory, { force: true, recursive: true }),
     ]);
   }
 }

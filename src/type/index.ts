@@ -24,8 +24,8 @@ export interface ShredTarget {
   targetType: 'file' | 'directory';
   size: number | null;
 }
-export type BubbleDirection = 'left' | 'right';
-export type BubbleAlign = 'top' | 'center' | 'bottom';
+// 描述粉碎任务在界面导航与状态展示中使用的运行状态。
+export type TaskState = 'idle' | 'working' | 'success' | 'failure';
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
   removeRootDirectory: boolean;
@@ -35,30 +35,6 @@ export interface AppSettings {
   systemNotifications: boolean;
   contextMenuInstalled: boolean;
   contextMenuAutoInstall: boolean;
-  customPetImagePath: string;
-  petImageTemplateId: string;
-  uploadedPetImages: UploadedPetImage[];
-  petSize: number;
-  petDisplayId: number | null;
-  petPositionX: number | null;
-  petPositionY: number | null;
-  bubbleDirection: BubbleDirection;
-  bubbleAlign: BubbleAlign;
-}
-export interface UploadedPetImage {
-  id: string;
-  fileName: string;
-}
-export interface PetImageTemplate {
-  image: string;
-}
-export interface PetAppearance {
-  image: string;
-  isDefault: boolean;
-}
-export interface PetMotion {
-  x: number;
-  y: number;
 }
 export type SettingBooleanKey =
   | 'removeRootDirectory'
@@ -89,36 +65,23 @@ export interface ShredderApi {
   getContextMenuStatus: () => Promise<boolean>;
   getSettings: () => Promise<AppSettings>;
   updateSettings: (settings: Partial<AppSettings>) => Promise<AppSettings>;
-  getPetImage: () => Promise<PetAppearance>;
-  onPetMotion: (callback: (motion: PetMotion | null) => void) => () => void;
-  getPetImageTemplates: () => Promise<PetImageTemplate[]>;
-  choosePetImage: () => Promise<PetImageTemplate[] | null>;
-  deletePetImage: (id: string) => Promise<PetImageTemplate[]>;
   getLogs: () => Promise<ShredLog[]>;
   deleteLogs: (ids: string[]) => Promise<ShredLog[]>;
   exitApp: () => Promise<boolean>;
   cleanupAndExit: () => Promise<boolean>;
-  // 同步桌宠业务气泡展开状态。
-  setPetExpanded: (expanded: boolean) => void;
-  setPetImageSize: (width: number, height: number) => void;
-  setPetBubbleBounds: (
-    bounds: {
-      x: number;
-      y: number;
-      width: number;
-      height: number;
-    } | null,
-  ) => void;
-  onOpenSettings: (callback: () => void) => () => void;
-  onPetState: (
-    callback: (state: 'idle' | 'working' | 'success' | 'failure') => void,
-  ) => () => void;
-  onPetConfirm: (
+  // 订阅主进程粉碎任务状态变化。
+  onTaskState: (callback: (state: TaskState) => void) => () => void;
+  // 订阅外部目标触发的粉碎确认请求。
+  onTaskConfirm: (
     callback: (targets: ShredTarget[], passes: 0 | 3 | 7 | 35) => void,
   ) => () => void;
-  onPetProgress: (callback: (progress: ShredProgress) => void) => () => void;
-  onPetComplete: (callback: (summary: ShredSummary) => void) => () => void;
+  // 订阅当前粉碎任务的实时进度。
+  onTaskProgress: (callback: (progress: ShredProgress) => void) => () => void;
+  // 订阅当前粉碎任务的最终结果。
+  onTaskComplete: (callback: (summary: ShredSummary) => void) => () => void;
+  // 订阅其他窗口触发的应用设置变化。
   onSettingsChanged: (callback: () => void) => () => void;
+  // 订阅主进程粉碎记录变化。
   onLogsUpdated: (callback: () => void) => () => void;
 }
 declare global {

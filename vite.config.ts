@@ -26,6 +26,7 @@ export default defineConfig(() => {
       createSvgIconsPlugin({
         iconDirs: [
           resolve(process.cwd(), 'src/assets/icons'),
+          resolve(process.cwd(), 'src/assets/icon-source'),
           resolve(process.cwd(), 'src/assets/icons-components'),
         ],
         symbolId: '[name]',

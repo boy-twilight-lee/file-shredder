@@ -1,4 +1,4 @@
-import { app, BrowserWindow, screen } from 'electron';
+import { app, BrowserWindow } from 'electron';
 import { existsSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -15,62 +15,31 @@ import {
   updateContextMenuIcon,
 } from './integrations';
 import { registerIpcHandlers } from './ipc';
-import { createPetWindowManager, PetImageService } from './pet';
 import {
   createShredSession,
   getShredTargetMetadata,
   normalizeTargets,
 } from './shred';
 import { AppSettings, AppStore } from './storage';
+import { createMainWindowManager } from './window';
 // 创建应用级设置与记录存储实例。
 const store = new AppStore(app);
 // 解析构建后主进程模块所在目录。
 const runtimeDirectory = dirname(fileURLToPath(import.meta.url));
 // 缓存当前生效的应用设置。
 let currentSettings: AppSettings;
-// 标识应用是否正在执行正常退出流程。
-let isQuitting = false;
 // 保存合并外部启动路径的延迟任务。
 let launchTimer: NodeJS.Timeout | undefined;
 // 保存启动后维护任务的延迟定时器。
 let startupMaintenanceTimer: NodeJS.Timeout | undefined;
-// 汇总等待桌宠确认的外部启动路径。
+// 汇总等待渲染进程确认的外部启动路径。
 let queuedLaunchPaths: string[] = [];
-// 标识应用就绪后是否需要补充显示桌宠。
-let shouldShowPetOnReady = false;
-// 保存桌宠形象服务实例供窗口管理器回调使用。
-let petImageService: PetImageService;
-// 创建桌宠窗口及其设置同步依赖。
-const petWindowManager = createPetWindowManager({
-  runtimeDirectory,
-  // 向窗口管理器提供当前应用设置。
-  getSettings: () => currentSettings,
-  // 持久化窗口管理器产生的设置更新。
-  updateSettings: async (patch) => {
-    currentSettings = await store.updateSettings(patch);
-    return currentSettings;
-  },
-  // 向窗口管理器提供当前桌宠形象路径。
-  getActiveImagePath: () => petImageService.getActiveImagePath(),
-  // 向窗口管理器提供应用退出状态。
-  isQuitting: () => isQuitting,
-});
-petImageService = new PetImageService(store, {
-  // 向形象服务提供当前应用设置。
-  getSettings: () => currentSettings,
-  // 将形象服务保存后的设置同步到主进程缓存。
-  onSettingsUpdated: (settings) => {
-    currentSettings = settings;
-  },
-  // 形象变化后通知渲染进程刷新桌宠外观。
-  notifyAppearanceChanged: () => petWindowManager.send('settings:changed'),
-  // 原生选择器关闭后恢复设置气泡。
-  restoreSettingsBubble: () => petWindowManager.send('pet:open-settings'),
-});
+// 创建主窗口管理器，负责窗口生命周期与事件转发。
+const mainWindowManager = createMainWindowManager({ runtimeDirectory });
 // 创建应用级粉碎任务会话。
 const shredSession = createShredSession({
   store,
-  windowManager: petWindowManager,
+  windowManager: mainWindowManager,
   // 向粉碎会话提供当前应用设置。
   getSettings: () => currentSettings,
 });
@@ -118,15 +87,15 @@ async function applyInstallerRequest(argv: string[]): Promise<boolean> {
   await applyInstallerConfiguration(configuration);
   return true;
 }
-// 校验外部目标并请求桌宠展示确认页面。
-async function requestPetConfirmation(paths: string[]): Promise<void> {
+// 校验外部目标，并请求渲染进程展示粉碎确认页面。
+async function requestShredConfirmation(paths: string[]): Promise<void> {
   // 规范化并过滤外部传入的粉碎路径。
   const normalizedPaths = await normalizeTargets(paths);
   if (normalizedPaths.length === 0) return;
   // 读取确认页面展示所需的目标元数据。
   const targets = await getShredTargetMetadata(normalizedPaths);
-  petWindowManager.show();
-  petWindowManager.send('pet:confirm', targets, currentSettings.passes);
+  mainWindowManager.show();
+  mainWindowManager.send('task:confirm', targets, currentSettings.passes);
 }
 // 合并短时间内收到的外部启动路径并延迟确认。
 function queueLaunchPaths(paths: string[]): void {
@@ -137,7 +106,7 @@ function queueLaunchPaths(paths: string[]): void {
     // 固定本轮需要请求确认的路径集合。
     const targets = queuedLaunchPaths;
     queuedLaunchPaths = [];
-    await requestPetConfirmation(targets);
+    await requestShredConfirmation(targets);
   }, 260);
 }
 // 安装或删除系统右键菜单并同步设置状态。
@@ -154,7 +123,7 @@ async function setContextMenuEnabled(enabled: boolean): Promise<void> {
     contextMenuInstalled: enabled,
     contextMenuAutoInstall: false,
   });
-  petWindowManager.send('settings:changed');
+  mainWindowManager.send('settings:changed');
 }
 // 处理第二实例传入的安装器请求、粉碎目标或显示请求。
 async function handleSecondInstance(argv: string[]): Promise<void> {
@@ -167,17 +136,12 @@ async function handleSecondInstance(argv: string[]): Promise<void> {
     return;
   }
   if (argv.includes('--background')) return;
-  if (!currentSettings) {
-    shouldShowPetOnReady = true;
-    return;
-  }
-  petWindowManager.show();
+  mainWindowManager.show();
 }
-// 在应用启动后迁移旧数据并校准系统集成状态。
+// 在应用启动后校准系统集成状态与旧版本遗留配置。
 async function runStartupMaintenance(): Promise<void> {
   // 即使设置已关闭也执行一次，以清理由旧版本遗留的错误启动项。
   applyLoginSetting(currentSettings.launchAtLogin);
-  await petImageService.migrateLegacyImage();
   if (process.platform !== 'win32') return;
   await updateContextMenuIcon(getWindowsIconPath());
   // 查询系统中实际存在的右键菜单状态。
@@ -190,7 +154,7 @@ async function runStartupMaintenance(): Promise<void> {
     contextMenuAutoInstall: false,
   });
 }
-// 延迟执行不阻塞桌宠首屏的启动维护任务。
+// 延迟执行不阻塞首屏的启动维护任务。
 function scheduleStartupMaintenance(): void {
   // 启动一秒后执行系统集成维护。
   startupMaintenanceTimer = setTimeout(() => {
@@ -200,31 +164,29 @@ function scheduleStartupMaintenance(): void {
     });
   }, 1000);
 }
-// 加载设置、创建桌宠窗口并注册屏幕环境监听。
+// 加载设置、创建主窗口并注册应用启动流程。
 async function initializeApplication(): Promise<void> {
-  // 安装阶段只写入初始设置并同步系统集成，不创建桌宠窗口。
+  // 安装阶段只写入初始设置并同步系统集成，不创建主窗口。
   if (await applyInstallerRequest(process.argv)) {
     app.quit();
     return;
   }
   currentSettings = await store.getSettings();
-  petWindowManager.create();
-  screen.on('display-removed', petWindowManager.restorePosition);
-  screen.on('display-metrics-changed', petWindowManager.restorePosition);
+  // 登录启动或后台启动时保持窗口隐藏，避免开机弹出界面。
+  mainWindowManager.create({
+    visible: !process.argv.includes('--background'),
+  });
+  mainWindowManager.setAlwaysOnTop(currentSettings.alwaysOnTop);
   queueLaunchPaths(parseLaunchPaths(process.argv));
-  if (shouldShowPetOnReady) {
-    shouldShowPetOnReady = false;
-    petWindowManager.show();
-  }
   scheduleStartupMaintenance();
 }
-// 获取应用单实例锁，防止重复桌宠窗口运行。
+// 获取应用单实例锁，防止重复启动产生多个主窗口。
 const singleInstance = app.requestSingleInstanceLock();
 if (!singleInstance) app.quit();
 else {
   // 将第二实例启动参数转交给当前主实例。
   app.on('second-instance', (_event, argv) => {
-    // 第二实例请求处理失败只记录日志，不影响正在运行的桌宠。
+    // 第二实例请求处理失败只记录日志，不影响正在运行的主窗口。
     handleSecondInstance(argv).catch((error: unknown) => {
       console.error('第二实例请求处理失败:', error);
     });
@@ -240,9 +202,8 @@ else {
 }
 registerIpcHandlers({
   store,
-  petImageService,
   shredSession,
-  windowManager: petWindowManager,
+  windowManager: mainWindowManager,
   // 向 IPC 处理器提供当前设置。
   getSettings: () => currentSettings,
   // 将 IPC 保存后的设置同步到主进程缓存。
@@ -250,16 +211,16 @@ registerIpcHandlers({
     currentSettings = settings;
   },
   setContextMenuEnabled,
-  // 标记后续窗口关闭属于正常退出流程。
-  setQuitting: () => {
-    isQuitting = true;
-  },
 });
-// 保持无窗口时主进程继续运行桌宠后台能力。
-app.on('window-all-closed', () => undefined);
+// 关闭全部主窗口后按平台约定结束应用。
+app.on('window-all-closed', () => {
+  if (process.platform !== 'darwin') app.quit();
+});
+// macOS 应用保留在后台时按需重建主窗口。
+app.on('activate', () => mainWindowManager.create());
 // 应用退出前清理定时器与窗口资源。
 app.on('will-quit', () => {
   clearTimeout(launchTimer);
   clearTimeout(startupMaintenanceTimer);
-  petWindowManager.dispose();
+  mainWindowManager.dispose();
 });

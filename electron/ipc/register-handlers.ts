@@ -1,28 +1,49 @@
 import { app, dialog, ipcMain } from 'electron';
-import { clamp, normalizeBubbleAlign, normalizeBubbleDirection } from '@/utils';
 import { applyLoginSetting, getExecutablePath } from '../app';
 import { isContextMenuInstalled, removeContextMenu } from '../integrations';
-import { PetImageService, PetWindowManager } from '../pet';
 import {
   getShredTargetMetadata,
   normalizeTargets,
   ShredSession,
 } from '../shred';
 import { AppSettings, AppStore } from '../storage';
+import { MainWindowManager } from '../window';
 interface IpcHandlerDependencies {
   store: AppStore;
-  petImageService: PetImageService;
   shredSession: ShredSession;
-  windowManager: PetWindowManager;
+  windowManager: MainWindowManager;
   getSettings: () => AppSettings;
   setSettings: (settings: AppSettings) => void;
   setContextMenuEnabled: (enabled: boolean) => Promise<void>;
-  setQuitting: () => void;
 }
-// 限制 IPC 设置允许的最小桌宠宽度。
-const PET_SIZE_MIN = 50;
-// 限制 IPC 设置允许的最大桌宠宽度。
-const PET_SIZE_MAX = 400;
+// 描述设置字段允许的取值类型，用于过滤渲染进程传入的非法参数。
+const SETTING_PATCH_VALIDATORS: Record<
+  keyof AppSettings,
+  (value: unknown) => boolean
+> = {
+  passes: (value) => value === 0 || value === 3 || value === 7 || value === 35,
+  removeRootDirectory: (value) => typeof value === 'boolean',
+  confirmBeforeShred: (value) => typeof value === 'boolean',
+  alwaysOnTop: (value) => typeof value === 'boolean',
+  launchAtLogin: (value) => typeof value === 'boolean',
+  systemNotifications: (value) => typeof value === 'boolean',
+  contextMenuInstalled: (value) => typeof value === 'boolean',
+  contextMenuAutoInstall: (value) => typeof value === 'boolean',
+};
+// 过滤渲染进程提交的设置，只保留字段名合法且取值类型正确的部分。
+function normalizeSettingsPatch(patch: unknown): Partial<AppSettings> {
+  if (typeof patch !== 'object' || patch === null) return {};
+  // 汇总通过校验的设置字段。
+  const normalized: Partial<AppSettings> = {};
+  for (const [key, value] of Object.entries(patch)) {
+    // 忽略未登记字段，避免渲染进程写入任意配置。
+    const validator = SETTING_PATCH_VALIDATORS[key as keyof AppSettings];
+    if (!validator || !validator(value)) continue;
+    // 通过校验的字段按原始字段名写回。
+    (normalized as Record<string, unknown>)[key] = value;
+  }
+  return normalized;
+}
 // 注册渲染进程可调用的全部主进程业务处理器。
 export function registerIpcHandlers(
   dependencies: IpcHandlerDependencies,
@@ -87,82 +108,30 @@ export function registerIpcHandlers(
   // 返回主进程缓存的当前应用设置。
   ipcMain.handle('settings:get', () => dependencies.getSettings());
   // 校验、持久化设置并同步关联系统能力。
-  ipcMain.handle(
-    'settings:update',
-    async (_event, patch: Partial<AppSettings>) => {
-      // 读取更新前设置供差异判断使用。
-      const currentSettings = dependencies.getSettings();
-      // 复制渲染进程更新并移除不允许直接修改的字段。
-      const safePatch = { ...patch };
-      delete safePatch.customPetImagePath;
-      delete safePatch.petImageTemplateId;
-      delete safePatch.uploadedPetImages;
-      if (safePatch.bubbleDirection !== undefined)
-        safePatch.bubbleDirection = normalizeBubbleDirection(
-          safePatch.bubbleDirection,
-        );
-      else delete safePatch.bubbleDirection;
-      if (safePatch.bubbleAlign !== undefined)
-        safePatch.bubbleAlign = normalizeBubbleAlign(safePatch.bubbleAlign);
-      else delete safePatch.bubbleAlign;
-      if (typeof safePatch.petSize === 'number')
-        safePatch.petSize = clamp(
-          Math.round(safePatch.petSize),
-          PET_SIZE_MIN,
-          PET_SIZE_MAX,
-        );
-      if (
-        typeof safePatch.contextMenuInstalled === 'boolean' &&
-        safePatch.contextMenuInstalled !== currentSettings.contextMenuInstalled
-      )
-        await dependencies.setContextMenuEnabled(
-          safePatch.contextMenuInstalled,
-        );
-      // 仅在尺寸变化前保存屏幕锚点，布局切换保留窗口位置以展示人物完整位移。
-      const characterAnchor =
-        typeof safePatch.petSize === 'number'
-          ? dependencies.windowManager.getCharacterScreenAnchor()
-          : null;
-      // 标记方向或对齐变化，设置生效后记录人物移动到的新屏幕位置。
-      const shouldRecordLayoutPosition =
-        safePatch.bubbleDirection !== undefined ||
-        safePatch.bubbleAlign !== undefined;
-      // 保存经过校验与规范化的设置更新。
-      const settings = await dependencies.store.updateSettings({
-        ...safePatch,
-        contextMenuAutoInstall: false,
-      });
-      dependencies.setSettings(settings);
-      if (characterAnchor) {
-        dependencies.windowManager.alignWindowToCharacterAnchor(
-          characterAnchor,
-        );
-        await dependencies.windowManager.recordPosition();
-      } else if (shouldRecordLayoutPosition)
-        await dependencies.windowManager.recordPosition();
-      dependencies.windowManager.setAlwaysOnTop(settings.alwaysOnTop);
-      if (typeof safePatch.launchAtLogin === 'boolean')
-        applyLoginSetting(safePatch.launchAtLogin);
-      dependencies.windowManager.send('settings:changed');
-      return dependencies.getSettings();
-    },
-  );
-  // 返回当前桌宠形象完整数据。
-  ipcMain.handle('pet-image:get', () =>
-    dependencies.petImageService.getImageDataUrl(),
-  );
-  // 返回设置页可用的桌宠形象模板。
-  ipcMain.handle('pet-image:list', () =>
-    dependencies.petImageService.getTemplates(),
-  );
-  // 打开桌宠图片选择器并保存新模板。
-  ipcMain.handle('pet-image:choose', () =>
-    dependencies.petImageService.chooseImage(),
-  );
-  // 删除指定用户桌宠形象。
-  ipcMain.handle('pet-image:delete', (_event, id: unknown) =>
-    dependencies.petImageService.deleteImage(id),
-  );
+  ipcMain.handle('settings:update', async (_event, patch: unknown) => {
+    // 读取更新前设置供差异判断使用。
+    const previousSettings = dependencies.getSettings();
+    // 过滤渲染进程提交的设置字段与取值。
+    const safePatch = normalizeSettingsPatch(patch);
+    if (
+      typeof safePatch.contextMenuInstalled === 'boolean' &&
+      safePatch.contextMenuInstalled !== previousSettings.contextMenuInstalled
+    )
+      await dependencies.setContextMenuEnabled(
+        safePatch.contextMenuInstalled,
+      );
+    // 保存经过校验的设置更新，并清除安装器痕迹字段。
+    const settings = await dependencies.store.updateSettings({
+      ...safePatch,
+      contextMenuAutoInstall: false,
+    });
+    dependencies.setSettings(settings);
+    dependencies.windowManager.setAlwaysOnTop(settings.alwaysOnTop);
+    if (typeof safePatch.launchAtLogin === 'boolean')
+      applyLoginSetting(safePatch.launchAtLogin);
+    dependencies.windowManager.send('settings:changed');
+    return dependencies.getSettings();
+  });
   // 返回全部本地粉碎记录。
   ipcMain.handle('logs:get', () => dependencies.store.getLogs());
   // 校验、去重并删除指定粉碎记录。
@@ -174,7 +143,6 @@ export function registerIpcHandlers(
   });
   // 标记正常退出并结束应用进程。
   ipcMain.handle('app:exit', () => {
-    dependencies.setQuitting();
     // 当前 IPC 响应完成后退出应用。
     setImmediate(() => app.quit());
     return true;
@@ -184,7 +152,6 @@ export function registerIpcHandlers(
     await removeContextMenu();
     applyLoginSetting(false);
     await dependencies.store.cleanup();
-    dependencies.setQuitting();
     // 当前 IPC 响应完成后退出已清理的应用。
     setImmediate(() => app.quit());
     return true;

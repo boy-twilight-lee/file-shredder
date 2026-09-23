@@ -120,11 +120,11 @@
       class="cx-table-empty"
     >
       <yc-empty :description="emptyText">
-        <template #image>
-          <slot
-            v-if="$slots.empty"
-            name="empty"
-          />
+        <template
+          v-if="$slots.empty"
+          #image
+        >
+          <slot name="empty" />
         </template>
       </yc-empty>
     </div>

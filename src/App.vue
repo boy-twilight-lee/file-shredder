@@ -1,4 +1,6 @@
 <template>
-  <div></div>
+  <demo-page />
 </template>
-<script setup lang="ts"></script>
+<script setup lang="ts">
+import DemoPage from '@/pages/demo/index.vue';
+</script>

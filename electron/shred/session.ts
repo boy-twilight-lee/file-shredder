@@ -1,6 +1,6 @@
-import type { PetWindowManager } from '../pet';
-import type { AppSettings, AppStore } from '../storage';
+import { AppSettings, AppStore } from '../storage';
 import { showShredCompletionNotification } from '../system';
+import { MainWindowManager } from '../window';
 import {
   ShredCancelledError,
   shredPaths,
@@ -13,7 +13,7 @@ import {
 } from './targets';
 interface ShredSessionDependencies {
   store: AppStore;
-  windowManager: PetWindowManager;
+  windowManager: MainWindowManager;
   getSettings: () => AppSettings;
 }
 export interface ShredSession {
@@ -46,7 +46,7 @@ export function createShredSession(
     // 创建本次任务独立的取消控制器。
     const controller = new AbortController();
     activeController = controller;
-    dependencies.windowManager.send('pet:state', 'working');
+    dependencies.windowManager.send('task:state', 'working');
     // 记录任务开始时间供耗时与进度估算使用。
     const startedAt = Date.now();
     // 保存等待下一次发送的最新进度。
@@ -66,7 +66,7 @@ export function createShredSession(
         clearTimeout(progressTimer);
         progressTimer = undefined;
       }
-      dependencies.windowManager.send('pet:progress', progress);
+      dependencies.windowManager.send('task:progress', progress);
     }
     // 接收底层粉碎进度并按固定间隔合并发送。
     function reportProgress(progress: ShredProgress): void {
@@ -115,10 +115,10 @@ export function createShredSession(
         0,
       );
       dependencies.windowManager.send(
-        'pet:state',
+        'task:state',
         failedCount === 0 ? 'success' : 'failure',
       );
-      dependencies.windowManager.send('pet:complete', {
+      dependencies.windowManager.send('task:complete', {
         succeeded,
         failed: failedCount,
         durationMs,
@@ -146,8 +146,8 @@ export function createShredSession(
         await dependencies.store.appendLogs(
           createShredLogs(targetMetadata, error.results),
         );
-      dependencies.windowManager.send('pet:state', 'idle');
-      dependencies.windowManager.send('pet:complete', {
+      dependencies.windowManager.send('task:state', 'idle');
+      dependencies.windowManager.send('task:complete', {
         succeeded: error.deletedFileCount,
         failed: failedCount,
         durationMs,
@@ -159,9 +159,9 @@ export function createShredSession(
       pendingProgress = null;
       if (activeController === controller) activeController = null;
       isShredding = false;
-      // 短暂展示最终状态后恢复桌宠空闲状态。
+      // 短暂展示最终状态后恢复空闲状态。
       setTimeout(
-        () => dependencies.windowManager.send('pet:state', 'idle'),
+        () => dependencies.windowManager.send('task:state', 'idle'),
         1800,
       );
       dependencies.windowManager.send('logs:updated');

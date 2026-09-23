@@ -1,6 +1,1 @@
-export {
-  AppStore,
-  type AppSettings,
-  type ShredLog,
-  type UploadedPetImage,
-} from './store';
+export { AppStore, type AppSettings, type ShredLog } from './store';

@@ -1,29 +1,21 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
-import { PetMotion, ShredTarget } from '../src/type';
-// 页面就绪后按动画帧向主进程同步指针位置。
-window.addEventListener('DOMContentLoaded', () => {
-  // 保存本帧最近一次鼠标位置。
-  let pendingPointer: { x: number; y: number } | null = null;
-  // 保存待执行的指针同步动画帧。
-  let pointerFrame = 0;
-  // Windows 在点击穿透时仍会转发鼠标移动，每帧最多同步一次即可替代主进程常驻轮询。
-  window.addEventListener(
-    'mousemove',
-    // 收集鼠标位置并合并同一帧内的高频移动事件。
-    (event) => {
-      pendingPointer = { x: event.clientX, y: event.clientY };
-      if (pointerFrame) return;
-      // 下一动画帧向主进程发送最新指针位置。
-      pointerFrame = requestAnimationFrame(() => {
-        if (pendingPointer)
-          ipcRenderer.send('pet:pointer-move', pendingPointer);
-        pendingPointer = null;
-        pointerFrame = 0;
-      });
-    },
-    { passive: true },
-  );
-});
+import {
+  ShredProgress,
+  ShredSummary,
+  ShredTarget,
+  TaskState,
+} from '../src/type';
+// 创建过滤 Electron 事件参数的事件订阅器，并返回解除订阅的清理函数。
+function subscribe<Args extends unknown[]>(
+  channel: string,
+  callback: (...args: Args) => void,
+): () => void {
+  // 包装业务回调供 Electron 事件订阅与解除使用。
+  const listener = (_event: Electron.IpcRendererEvent, ...args: Args) =>
+    callback(...args);
+  ipcRenderer.on(channel, listener);
+  return () => ipcRenderer.removeListener(channel, listener);
+}
 // 向受隔离的渲染进程暴露类型受控的主进程能力。
 contextBridge.exposeInMainWorld('shredderApi', {
   // 返回拖放文件对应的本地路径。
@@ -49,25 +41,6 @@ contextBridge.exposeInMainWorld('shredderApi', {
   // 保存部分应用设置。
   updateSettings: (settings: unknown) =>
     ipcRenderer.invoke('settings:update', settings),
-  // 读取当前桌宠形象数据。
-  getPetImage: () => ipcRenderer.invoke('pet-image:get'),
-  // 订阅原生窗口拖动方向并提供解绑入口。
-  onPetMotion: (callback: (motion: PetMotion | null) => void) => {
-    // 只向渲染页面转发位移数据。
-    const listener = (
-      _event: Electron.IpcRendererEvent,
-      motion: PetMotion | null,
-    ) => callback(motion);
-    ipcRenderer.on('pet:motion', listener);
-    // 页面卸载时移除方向监听。
-    return () => ipcRenderer.removeListener('pet:motion', listener);
-  },
-  // 读取全部桌宠形象模板。
-  getPetImageTemplates: () => ipcRenderer.invoke('pet-image:list'),
-  // 选择并保存用户桌宠图片。
-  choosePetImage: () => ipcRenderer.invoke('pet-image:choose'),
-  // 删除指定用户桌宠形象。
-  deletePetImage: (id: string) => ipcRenderer.invoke('pet-image:delete', id),
   // 读取全部粉碎记录。
   getLogs: () => ipcRenderer.invoke('logs:get'),
   // 删除指定粉碎记录。
@@ -76,78 +49,23 @@ contextBridge.exposeInMainWorld('shredderApi', {
   exitApp: () => ipcRenderer.invoke('app:exit'),
   // 请求清理应用数据后退出。
   cleanupAndExit: () => ipcRenderer.invoke('app:cleanup-exit'),
-  // 同步桌宠业务气泡展开状态。
-  setPetExpanded: (expanded: boolean) =>
-    ipcRenderer.send('pet:expanded', expanded),
-  // 同步 Chromium 实际解码的桌宠图片尺寸。
-  setPetImageSize: (width: number, height: number) =>
-    ipcRenderer.send('pet:image-size', { width, height }),
-  // 同步业务气泡及传送浮层的联合边界。
-  setPetBubbleBounds: (bounds: unknown) =>
-    ipcRenderer.send('pet:bubble-bounds', bounds),
-  // 订阅主进程打开设置页面的请求。
-  onOpenSettings: (callback: () => void) => {
-    // 包装业务回调供 Electron 事件订阅与解除使用。
-    const listener = () => callback();
-    ipcRenderer.on('pet:open-settings', listener);
-    // 返回解除设置打开事件监听的清理器。
-    return () => ipcRenderer.removeListener('pet:open-settings', listener);
-  },
-  // 订阅主进程桌宠工作状态变化。
-  onPetState: (callback: (state: string) => void) => {
-    // 过滤 Electron 事件参数并转发桌宠状态。
-    const listener = (_event: Electron.IpcRendererEvent, state: string) =>
-      callback(state);
-    ipcRenderer.on('pet:state', listener);
-    // 返回解除桌宠状态监听的清理器。
-    return () => ipcRenderer.removeListener('pet:state', listener);
-  },
+  // 订阅主进程粉碎任务状态变化。
+  onTaskState: (callback: (state: TaskState) => void) =>
+    subscribe<[TaskState]>('task:state', callback),
   // 订阅外部目标触发的粉碎确认请求。
-  onPetConfirm: (
+  onTaskConfirm: (
     callback: (targets: ShredTarget[], passes: 0 | 3 | 7 | 35) => void,
-  ) => {
-    // 过滤 Electron 事件参数并转发目标与清理强度。
-    const listener = (
-      _event: Electron.IpcRendererEvent,
-      targets: ShredTarget[],
-      passes: 0 | 3 | 7 | 35,
-    ) => callback(targets, passes);
-    ipcRenderer.on('pet:confirm', listener);
-    // 返回解除粉碎确认监听的清理器。
-    return () => ipcRenderer.removeListener('pet:confirm', listener);
-  },
+  ) => subscribe<[ShredTarget[], 0 | 3 | 7 | 35]>('task:confirm', callback),
   // 订阅当前粉碎任务的实时进度。
-  onPetProgress: (callback: (progress: unknown) => void) => {
-    // 过滤 Electron 事件参数并转发任务进度。
-    const listener = (_event: Electron.IpcRendererEvent, progress: unknown) =>
-      callback(progress);
-    ipcRenderer.on('pet:progress', listener);
-    // 返回解除任务进度监听的清理器。
-    return () => ipcRenderer.removeListener('pet:progress', listener);
-  },
+  onTaskProgress: (callback: (progress: ShredProgress) => void) =>
+    subscribe<[ShredProgress]>('task:progress', callback),
   // 订阅当前粉碎任务的最终结果。
-  onPetComplete: (callback: (summary: unknown) => void) => {
-    // 过滤 Electron 事件参数并转发任务汇总。
-    const listener = (_event: Electron.IpcRendererEvent, summary: unknown) =>
-      callback(summary);
-    ipcRenderer.on('pet:complete', listener);
-    // 返回解除任务完成监听的清理器。
-    return () => ipcRenderer.removeListener('pet:complete', listener);
-  },
+  onTaskComplete: (callback: (summary: ShredSummary) => void) =>
+    subscribe<[ShredSummary]>('task:complete', callback),
   // 订阅其他窗口触发的应用设置变化。
-  onSettingsChanged: (callback: () => void) => {
-    // 包装业务回调供 Electron 事件订阅与解除使用。
-    const listener = () => callback();
-    ipcRenderer.on('settings:changed', listener);
-    // 返回解除设置变化监听的清理器。
-    return () => ipcRenderer.removeListener('settings:changed', listener);
-  },
+  onSettingsChanged: (callback: () => void) =>
+    subscribe<[]>('settings:changed', callback),
   // 订阅主进程粉碎记录变化。
-  onLogsUpdated: (callback: () => void) => {
-    // 包装业务回调供 Electron 事件订阅与解除使用。
-    const listener = () => callback();
-    ipcRenderer.on('logs:updated', listener);
-    // 返回解除记录变化监听的清理器。
-    return () => ipcRenderer.removeListener('logs:updated', listener);
-  },
+  onLogsUpdated: (callback: () => void) =>
+    subscribe<[]>('logs:updated', callback),
 });
