@@ -151,13 +151,21 @@ function handleShowMessage(
   type: 'info' | 'success' | 'warning' | 'error' | 'loading',
 ): void {
   if (type === 'loading') {
-    // 加载态消息自动关闭，避免遮挡后续演示。
     Message.loading({ content: '正在覆写磁盘数据', duration: 1500 });
     return;
   }
-  if (type === 'success') return Message.success({ content: '清理完成' });
-  if (type === 'warning') return Message.warning({ content: '部分文件被占用' });
-  if (type === 'error') return Message.error({ content: '清理失败' });
+  if (type === 'success') {
+    Message.success({ content: '清理完成' });
+    return;
+  }
+  if (type === 'warning') {
+    Message.warning({ content: '部分文件被占用' });
+    return;
+  }
+  if (type === 'error') {
+    Message.error({ content: '清理失败' });
+    return;
+  }
   Message.info({ content: '已加入待处理列表' });
 }
 // 弹出超长文案，展示消息内容区的单行省略。

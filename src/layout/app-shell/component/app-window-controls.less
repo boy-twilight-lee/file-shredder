@@ -1,0 +1,38 @@
+.app-window-controls {
+  display: flex;
+  align-items: center;
+  -webkit-app-region: no-drag;
+  .app-window-controls-button {
+    min-width: 0;
+    width: 46px;
+    height: 49px;
+    padding: 0;
+    border: none;
+    border-radius: @radius-0;
+    color: @color-gray-900;
+    background: transparent;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    &:not(.arco-btn-disabled) {
+      &:hover {
+        color: @color-gray-1000;
+        background: @color-gray-400;
+      }
+      &:active {
+        background: @color-gray-500;
+      }
+    }
+    &.app-window-controls-button-close {
+      &:not(.arco-btn-disabled) {
+        &:hover {
+          color: @color-gray-100;
+          background: @color-error-600;
+        }
+        &:active {
+          background: @color-error-700;
+        }
+      }
+    }
+  }
+}

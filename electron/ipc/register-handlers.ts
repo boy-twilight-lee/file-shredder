@@ -1,4 +1,4 @@
-import { app, dialog, ipcMain } from 'electron';
+import { app, dialog, ipcMain, shell } from 'electron';
 import { applyLoginSetting, getExecutablePath } from '../app';
 import { isContextMenuInstalled, removeContextMenu } from '../integrations';
 import {
@@ -25,6 +25,7 @@ const SETTING_PATCH_VALIDATORS: Record<
   removeRootDirectory: (value) => typeof value === 'boolean',
   confirmBeforeShred: (value) => typeof value === 'boolean',
   alwaysOnTop: (value) => typeof value === 'boolean',
+  rememberWindowPosition: (value) => typeof value === 'boolean',
   launchAtLogin: (value) => typeof value === 'boolean',
   systemNotifications: (value) => typeof value === 'boolean',
   contextMenuInstalled: (value) => typeof value === 'boolean',
@@ -117,9 +118,7 @@ export function registerIpcHandlers(
       typeof safePatch.contextMenuInstalled === 'boolean' &&
       safePatch.contextMenuInstalled !== previousSettings.contextMenuInstalled
     )
-      await dependencies.setContextMenuEnabled(
-        safePatch.contextMenuInstalled,
-      );
+      await dependencies.setContextMenuEnabled(safePatch.contextMenuInstalled);
     // 保存经过校验的设置更新，并清除安装器痕迹字段。
     const settings = await dependencies.store.updateSettings({
       ...safePatch,
@@ -141,10 +140,33 @@ export function registerIpcHandlers(
       throw new Error('无效的粉碎记录参数');
     return dependencies.store.deleteLogs([...new Set(ids)]);
   });
+  // 最小化主窗口。
+  ipcMain.handle('window:minimize', () => {
+    dependencies.windowManager.minimize();
+  });
+  // 切换主窗口最大化状态并返回切换结果。
+  ipcMain.handle('window:maximize-toggle', () =>
+    dependencies.windowManager.toggleMaximize(),
+  );
+  // 关闭主窗口。
+  ipcMain.handle('window:close', () => {
+    dependencies.windowManager.close();
+  });
+  // 查询主窗口当前最大化状态，供渲染进程初始化按钮图标。
+  ipcMain.handle('window:is-maximized', () =>
+    dependencies.windowManager.isMaximized(),
+  );
   // 标记正常退出并结束应用进程。
   ipcMain.handle('app:exit', () => {
     // 当前 IPC 响应完成后退出应用。
     setImmediate(() => app.quit());
+    return true;
+  });
+  // 使用系统默认浏览器打开外部链接，仅允许 http 与 https 协议。
+  ipcMain.handle('app:open-external', async (_event, url: unknown) => {
+    if (typeof url !== 'string' || !/^https?:\/\//i.test(url))
+      throw new Error('无效的外部链接');
+    await shell.openExternal(url);
     return true;
   });
   // 清理系统集成与本地数据后结束应用进程。

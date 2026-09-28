@@ -21,6 +21,7 @@ import {
   normalizeTargets,
 } from './shred';
 import { AppSettings, AppStore } from './storage';
+import { BoundsRect } from './utils';
 import { createMainWindowManager } from './window';
 // 创建应用级设置与记录存储实例。
 const store = new AppStore(app);
@@ -35,7 +36,17 @@ let startupMaintenanceTimer: NodeJS.Timeout | undefined;
 // 汇总等待渲染进程确认的外部启动路径。
 let queuedLaunchPaths: string[] = [];
 // 创建主窗口管理器，负责窗口生命周期与事件转发。
-const mainWindowManager = createMainWindowManager({ runtimeDirectory });
+const mainWindowManager = createMainWindowManager({
+  runtimeDirectory,
+  // 仅在启用窗口位置记忆时持久化最新窗口边界。
+  onBoundsChange: (bounds) => {
+    if (!currentSettings.rememberWindowPosition) return;
+    // 写入失败只记录日志，不影响用户继续使用窗口。
+    store.updateWindowBounds(bounds).catch((error: unknown) => {
+      console.error('窗口位置保存失败:', error);
+    });
+  },
+});
 // 创建应用级粉碎任务会话。
 const shredSession = createShredSession({
   store,
@@ -164,6 +175,15 @@ function scheduleStartupMaintenance(): void {
     });
   }, 1000);
 }
+// 按窗口位置记忆设置读取上次退出时的窗口位置与尺寸。
+async function resolveRestoredBounds(): Promise<BoundsRect | undefined> {
+  if (!currentSettings.rememberWindowPosition) return undefined;
+  return store.getWindowBounds();
+}
+// 按窗口位置记忆设置重建主窗口，窗口已存在时不产生新窗口。
+async function recreateMainWindow(): Promise<void> {
+  mainWindowManager.create({ bounds: await resolveRestoredBounds() });
+}
 // 加载设置、创建主窗口并注册应用启动流程。
 async function initializeApplication(): Promise<void> {
   // 安装阶段只写入初始设置并同步系统集成，不创建主窗口。
@@ -175,6 +195,7 @@ async function initializeApplication(): Promise<void> {
   // 登录启动或后台启动时保持窗口隐藏，避免开机弹出界面。
   mainWindowManager.create({
     visible: !process.argv.includes('--background'),
+    bounds: await resolveRestoredBounds(),
   });
   mainWindowManager.setAlwaysOnTop(currentSettings.alwaysOnTop);
   queueLaunchPaths(parseLaunchPaths(process.argv));
@@ -217,7 +238,12 @@ app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') app.quit();
 });
 // macOS 应用保留在后台时按需重建主窗口。
-app.on('activate', () => mainWindowManager.create());
+app.on('activate', () => {
+  // 重建窗口失败只记录日志，不影响已运行的进程。
+  recreateMainWindow().catch((error: unknown) => {
+    console.error('主窗口重建失败:', error);
+  });
+});
 // 应用退出前清理定时器与窗口资源。
 app.on('will-quit', () => {
   clearTimeout(launchTimer);

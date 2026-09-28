@@ -1,5 +1,5 @@
-import Empty from './index.vue'
+import Empty from './index.vue';
 
-export type EmptyInstance = InstanceType<typeof Empty>
+export type EmptyInstance = InstanceType<typeof Empty>;
 
-export { default } from './index.vue'
+export { default } from './index.vue';

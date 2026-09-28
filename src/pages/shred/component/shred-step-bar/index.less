@@ -1,0 +1,83 @@
+@step-connector-width: 32px;
+@step-connector-height: 2px;
+.shred-step-bar {
+  flex-shrink: 0;
+  width: 100%;
+  height: 56px;
+  padding: 0 @spacing-20;
+  border-radius: @radius-16;
+  background: @color-gray-100;
+  display: flex;
+  align-items: center;
+  &:deep(.arco-steps) {
+    width: auto;
+    align-items: center;
+    .arco-steps-item {
+      position: relative;
+      flex: none;
+      height: 36px;
+      padding: 0 @spacing-12;
+      border-radius: @radius-pill;
+      background: transparent;
+      display: flex;
+      align-items: center;
+      & + .arco-steps-item {
+        margin-left: @step-connector-width;
+      }
+      &:not(:last-child)::after {
+        position: absolute;
+        left: 100%;
+        top: 50%;
+        content: '';
+        width: @step-connector-width;
+        height: @step-connector-height;
+        background: @color-gray-600;
+        transform: translateY(-50%);
+      }
+      .arco-steps-item-tail {
+        display: none;
+      }
+      .arco-steps-item-node {
+        margin-right: @spacing-8;
+        .arco-steps-icon {
+          width: 20px;
+          height: 20px;
+          border-radius: @radius-pill;
+          color: @color-gray-900;
+          background: @color-gray-400;
+          display: flex;
+          justify-content: center;
+          align-items: center;
+        }
+      }
+      .arco-steps-item-title {
+        color: @color-gray-900;
+        font-size: @font-size-14;
+        font-weight: 400;
+        line-height: @line-height-100;
+      }
+      &.arco-steps-item-process {
+        background: @color-brand-200;
+        .arco-steps-item-node .arco-steps-icon {
+          color: @color-gray-100;
+          background: @color-brand-600;
+        }
+        .arco-steps-item-title {
+          color: @color-brand-600;
+          font-weight: 500;
+        }
+      }
+      &.arco-steps-item-finish {
+        .arco-steps-item-node .arco-steps-icon {
+          color: @color-gray-100;
+          background: @color-brand-600;
+        }
+      }
+      &.arco-steps-item-wait {
+        .arco-steps-item-title {
+          color: @color-gray-800;
+        }
+      }
+    }
+  }
+}

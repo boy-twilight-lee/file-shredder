@@ -1,0 +1,29 @@
+.record-filter {
+  flex-shrink: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  .record-filter-group {
+    display: flex;
+    align-items: center;
+    gap: @spacing-8;
+    .record-filter-label {
+      flex-shrink: 0;
+      color: @color-gray-900;
+      font-size: @font-size-14;
+      line-height: @line-height-100;
+    }
+    .record-filter-control {
+      width: 120px;
+      &.record-filter-control-keyword {
+        width: 200px;
+      }
+    }
+  }
+  .record-filter-actions {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    gap: @spacing-12;
+  }
+}

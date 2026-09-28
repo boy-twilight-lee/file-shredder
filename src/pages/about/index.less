@@ -1,0 +1,68 @@
+.about-page {
+  flex: 1;
+  min-height: 0;
+  .about-card {
+    height: 100%;
+    padding: @spacing-24;
+    border-radius: @radius-16;
+    background: @color-gray-100;
+    overflow-y: auto;
+    display: flex;
+    .about-content {
+      margin: auto;
+      width: 100%;
+      max-width: 560px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: @spacing-24;
+      .about-visual {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: @spacing-8;
+        .about-logo {
+          width: 88px;
+          height: 88px;
+          border-radius: @radius-16;
+        }
+        .about-name {
+          color: @color-gray-1000;
+          font-size: @font-size-24;
+          font-weight: 500;
+          line-height: @line-height-100;
+        }
+        .about-version {
+          color: @color-gray-800;
+          font-size: @font-size-12;
+          line-height: @line-height-100;
+        }
+        .about-description {
+          margin: @spacing-8 0 0;
+          color: @color-gray-900;
+          font-size: @font-size-14;
+          line-height: @line-height-multiple;
+          text-align: center;
+        }
+      }
+      .about-info {
+        width: 100%;
+        &:deep(.arco-descriptions-item-label) {
+          padding-right: @spacing-16;
+          color: @color-gray-800;
+          font-size: @font-size-14;
+        }
+        &:deep(.arco-descriptions-item-value) {
+          color: @color-gray-900;
+          font-size: @font-size-14;
+          word-break: break-all;
+        }
+      }
+      .about-copyright {
+        color: @color-gray-800;
+        font-size: @font-size-12;
+        line-height: @line-height-100;
+      }
+    }
+  }
+}

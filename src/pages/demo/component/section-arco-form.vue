@@ -78,7 +78,10 @@
         </a-radio-group>
       </demo-item>
     </demo-case>
-    <demo-case title="switch" description="开关底色与滑块颜色按主题重写，选中禁用态使用浅主题色">
+    <demo-case
+      title="switch"
+      description="开关底色与滑块颜色按主题重写，选中禁用态使用浅主题色"
+    >
       <demo-item label="基础">
         <a-switch v-model="switchValue" />
       </demo-item>
@@ -164,7 +167,10 @@
         />
       </demo-item>
     </demo-case>
-    <demo-case title="textarea" description="多行输入框共享输入框的圆角、描边与光晕，内部留白为 6px 9px">
+    <demo-case
+      title="textarea"
+      description="多行输入框共享输入框的圆角、描边与光晕，内部留白为 6px 9px"
+    >
       <demo-item label="基础">
         <a-textarea
           v-model="textareaValue"

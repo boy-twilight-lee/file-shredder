@@ -2,7 +2,11 @@
   <div class="demo-case">
     <div class="demo-case-head">
       <span class="demo-case-title">{{ title }}</span>
-      <span v-if="description" class="demo-case-desc">{{ description }}</span>
+      <span
+        v-if="description"
+        class="demo-case-desc"
+        >{{ description }}</span
+      >
     </div>
     <div class="demo-case-body">
       <slot />

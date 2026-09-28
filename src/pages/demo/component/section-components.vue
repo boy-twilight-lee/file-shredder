@@ -138,8 +138,8 @@
       </demo-item>
       <demo-item label="当前状态">
         <span class="section-components-state">
-          第 {{ pagination.current }} 页 / 每页 {{ pagination.pageSize }} 条 / 共
-          {{ pagination.total }} 条
+          第 {{ pagination.current }} 页 / 每页 {{ pagination.pageSize }} 条 /
+          共 {{ pagination.total }} 条
         </span>
       </demo-item>
     </demo-case>
@@ -190,9 +190,7 @@
               <span class="section-components-file">
                 <svg-icon
                   :name="
-                    row.targetType === 'directory'
-                      ? 'icon-folder'
-                      : 'icon-file'
+                    row.targetType === 'directory' ? 'icon-folder' : 'icon-file'
                   "
                 />
                 {{ row.name }}

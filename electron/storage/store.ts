@@ -2,12 +2,14 @@ import { access, rm } from 'node:fs/promises';
 import { join } from 'node:path';
 import { randomUUID } from 'node:crypto';
 import { App } from 'electron';
-import { readJsonFile, writeJsonFile } from '../utils';
+import { BoundsRect, readJsonFile, writeJsonFile } from '../utils';
 export interface AppSettings {
   passes: 0 | 3 | 7 | 35;
   removeRootDirectory: boolean;
   confirmBeforeShred: boolean;
   alwaysOnTop: boolean;
+  // 控制下次启动时是否恢复上次退出时的窗口位置与尺寸。
+  rememberWindowPosition: boolean;
   launchAtLogin: boolean;
   systemNotifications: boolean;
   contextMenuInstalled: boolean;
@@ -23,6 +25,10 @@ export interface ShredLog {
   targetType?: 'file' | 'directory';
   succeededCount?: number;
   failedCount?: number;
+  // 记录本次任务使用的覆写强度，供记录页按清理级别筛选。
+  passes?: 0 | 3 | 7 | 35;
+  // 记录本次任务的总耗时，供详情抽屉展示消耗时间。
+  durationMs?: number;
 }
 // 定义首次启动及旧设置缺省字段使用的应用设置。
 const DEFAULT_SETTINGS: AppSettings = {
@@ -32,6 +38,8 @@ const DEFAULT_SETTINGS: AppSettings = {
   removeRootDirectory: true,
   confirmBeforeShred: true,
   alwaysOnTop: true,
+  // 默认在下次启动时恢复上次退出时的窗口位置与尺寸。
+  rememberWindowPosition: true,
   launchAtLogin: false,
   // 保留旧版本清理完成后会通知用户的默认行为。
   systemNotifications: true,
@@ -53,12 +61,15 @@ export class AppStore {
   private readonly settingsPath: string;
   // 保存粉碎记录文件路径。
   private readonly logsPath: string;
+  // 保存主窗口位置与尺寸文件路径。
+  private readonly windowBoundsPath: string;
   // 根据 Electron 用户数据目录初始化持久化路径。
   constructor(app: App) {
     // 读取当前应用隔离的用户数据目录。
     const dataDirectory = app.getPath('userData');
     this.settingsPath = join(dataDirectory, 'settings.json');
     this.logsPath = join(dataDirectory, 'shred-logs.json');
+    this.windowBoundsPath = join(dataDirectory, 'window-state.json');
   }
   // 读取持久化设置，只采用当前版本支持的字段并补齐默认值。
   async getSettings(): Promise<AppSettings> {
@@ -81,6 +92,10 @@ export class AppStore {
       alwaysOnTop: resolveStoredBoolean(
         storedSettings.alwaysOnTop,
         DEFAULT_SETTINGS.alwaysOnTop,
+      ),
+      rememberWindowPosition: resolveStoredBoolean(
+        storedSettings.rememberWindowPosition,
+        DEFAULT_SETTINGS.rememberWindowPosition,
       ),
       launchAtLogin: resolveStoredBoolean(
         storedSettings.launchAtLogin,
@@ -113,6 +128,32 @@ export class AppStore {
     const settings = { ...(await this.getSettings()), ...patch };
     await writeJsonFile(this.settingsPath, settings);
     return settings;
+  }
+  // 读取上次保存的主窗口位置与尺寸，数据缺失或非法时返回 undefined。
+  async getWindowBounds(): Promise<BoundsRect | undefined> {
+    // 读取可能被外部改写过的窗口状态数据。
+    const stored = await readJsonFile<Record<string, unknown>>(
+      this.windowBoundsPath,
+      {},
+    );
+    // 仅在四个坐标字段均为数字时采用，避免恢复出非法窗口。
+    if (
+      typeof stored.x !== 'number' ||
+      typeof stored.y !== 'number' ||
+      typeof stored.width !== 'number' ||
+      typeof stored.height !== 'number'
+    )
+      return undefined;
+    return {
+      x: stored.x,
+      y: stored.y,
+      width: stored.width,
+      height: stored.height,
+    };
+  }
+  // 持久化主窗口位置与尺寸。
+  async updateWindowBounds(bounds: BoundsRect): Promise<void> {
+    await writeJsonFile(this.windowBoundsPath, bounds);
   }
   // 读取全部本地粉碎记录。
   async getLogs(): Promise<ShredLog[]> {
@@ -155,6 +196,7 @@ export class AppStore {
     await Promise.all([
       rm(this.settingsPath, { force: true }),
       rm(this.logsPath, { force: true }),
+      rm(this.windowBoundsPath, { force: true }),
     ]);
   }
 }

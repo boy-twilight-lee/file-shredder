@@ -1,4 +1,1 @@
-export {
-  createMainWindowManager,
-  type MainWindowManager,
-} from './main-window';
+export { createMainWindowManager, type MainWindowManager } from './main-window';

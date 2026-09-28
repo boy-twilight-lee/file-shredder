@@ -1,0 +1,79 @@
+.record-drawer {
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-12;
+  .record-drawer-list {
+    display: flex;
+    flex-direction: column;
+    .record-drawer-row {
+      padding: @spacing-8 0;
+      border-bottom: 1px solid @color-gray-500;
+      color: @color-gray-900;
+      font-size: @font-size-14;
+      line-height: @line-height-multiple;
+      display: flex;
+      align-items: flex-start;
+      gap: @spacing-12;
+      &:last-child {
+        border-bottom: none;
+      }
+      .record-drawer-label {
+        flex-shrink: 0;
+        width: 72px;
+        color: @color-gray-800;
+        font-size: @font-size-12;
+        line-height: @line-height-multiple;
+      }
+      .record-drawer-value {
+        flex: 1;
+        min-width: 0;
+        overflow-wrap: break-word;
+      }
+    }
+  }
+  .record-drawer-block {
+    display: flex;
+    flex-direction: column;
+    gap: @spacing-4;
+    .record-drawer-block-title {
+      margin-top: @spacing-4;
+      color: @color-gray-1000;
+      font-size: @font-size-14;
+      font-weight: 500;
+      line-height: @line-height-100;
+    }
+  }
+  .record-drawer-reason {
+    max-width: 100%;
+    height: auto;
+    padding: @spacing-4 @spacing-8;
+    white-space: normal;
+    line-height: @line-height-multiple;
+    text-align: left;
+  }
+  .record-drawer-logs {
+    display: flex;
+    flex-direction: column;
+    gap: @spacing-8;
+    .record-drawer-log {
+      display: flex;
+      align-items: flex-start;
+      gap: @spacing-8;
+      .record-drawer-log-time {
+        flex-shrink: 0;
+        color: @color-gray-800;
+        font-family: @font-family-number;
+        font-size: @font-size-12;
+        line-height: @line-height-multiple;
+      }
+      .record-drawer-log-text {
+        flex: 1;
+        min-width: 0;
+        color: @color-gray-900;
+        font-size: @font-size-12;
+        line-height: @line-height-multiple;
+        overflow-wrap: break-word;
+      }
+    }
+  }
+}

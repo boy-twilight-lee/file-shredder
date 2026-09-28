@@ -1,0 +1,34 @@
+.settings-page {
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: @spacing-16;
+  .settings-card {
+    flex-shrink: 0;
+    border-radius: @radius-16;
+    background: @color-gray-100;
+    display: flex;
+    flex-direction: column;
+    .settings-card-header {
+      flex-shrink: 0;
+      height: 56px;
+      padding: 0 @spacing-16;
+      display: flex;
+      align-items: center;
+      .settings-card-title {
+        color: @color-gray-1000;
+        font-size: @font-size-16;
+        font-weight: 500;
+        line-height: @line-height-100;
+      }
+    }
+    .setting-row {
+      border-top: 1px solid @color-gray-500;
+    }
+    .settings-card-header + .setting-row {
+      border-top: none;
+    }
+  }
+}

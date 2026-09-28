@@ -1,5 +1,5 @@
-import _Pagination from './index.vue'
+import _Pagination from './index.vue';
 
-export type paginationInstance = InstanceType<typeof _Pagination>
+export type paginationInstance = InstanceType<typeof _Pagination>;
 
-export { default } from './index.vue'
+export { default } from './index.vue';

@@ -102,7 +102,7 @@ export function createShredSession(
       // 截取允许向调用方返回的详细结果。
       const retainedResults = results.slice(0, MAX_RETAINED_SHRED_RESULTS);
       await dependencies.store.appendLogs(
-        createShredLogs(targetMetadata, results),
+        createShredLogs(targetMetadata, results, passes, durationMs),
       );
       // 汇总未成功处理的结果数量。
       const failedCount = results.reduce(
@@ -144,7 +144,7 @@ export function createShredSession(
       );
       if (retainedResults.length > 0)
         await dependencies.store.appendLogs(
-          createShredLogs(targetMetadata, error.results),
+          createShredLogs(targetMetadata, error.results, passes, durationMs),
         );
       dependencies.windowManager.send('task:state', 'idle');
       dependencies.windowManager.send('task:complete', {

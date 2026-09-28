@@ -24,3 +24,11 @@ export async function mapWithConcurrency<T, R>(
   await Promise.all(Array.from({ length: workerCount }, runWorker));
   return results;
 }
+// 将底层异常转换为可直接展示给用户的提示文案。
+export function resolveErrorMessage(
+  error: unknown,
+  fallback = '操作失败，请稍后重试',
+): string {
+  if (error instanceof Error && error.message) return error.message;
+  return fallback;
+}

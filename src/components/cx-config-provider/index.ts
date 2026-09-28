@@ -1,3 +1,3 @@
-import CxConfigProvider from './index.vue'
+import CxConfigProvider from './index.vue';
 
-export default CxConfigProvider
+export default CxConfigProvider;

@@ -1,0 +1,290 @@
+.shred-progress {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  gap: @spacing-16;
+  .shred-progress-header {
+    flex-shrink: 0;
+    height: 56px;
+    padding: 0 @spacing-20;
+    display: flex;
+    align-items: center;
+    gap: @spacing-8;
+    .shred-progress-header-icon {
+      color: @color-aux-600;
+    }
+    .shred-progress-title {
+      color: @color-gray-1000;
+      font-size: @font-size-16;
+      font-weight: 500;
+      line-height: @line-height-100;
+    }
+    .shred-progress-hint {
+      margin-left: auto;
+      color: @color-gray-800;
+      font-size: @font-size-12;
+      line-height: @line-height-100;
+    }
+  }
+  .shred-progress-card {
+    flex-shrink: 0;
+    width: 320px;
+    padding: @spacing-20;
+    border-radius: @radius-16;
+    background: @color-gray-100;
+    display: flex;
+    flex-direction: column;
+    gap: @spacing-16;
+    .shred-progress-header {
+      padding: 0;
+    }
+    .shred-progress-ring {
+      display: flex;
+      justify-content: center;
+      .shred-progress-ring-info {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: @spacing-4;
+        .shred-progress-ring-percent {
+          color: @color-gray-1000;
+          font-family: @font-family-number;
+          font-size: @font-size-32;
+          font-weight: 500;
+          line-height: @line-height-100;
+        }
+        .shred-progress-ring-caption {
+          color: @color-gray-800;
+          font-size: @font-size-12;
+          line-height: @line-height-100;
+        }
+      }
+    }
+    .shred-progress-stages {
+      display: flex;
+      gap: @spacing-8;
+      .shred-progress-chip {
+        height: 28px;
+        padding: 0 @spacing-12;
+        border-radius: @radius-pill;
+        background: @color-gray-300;
+        color: @color-gray-800;
+        font-size: @font-size-12;
+        line-height: @line-height-100;
+        display: flex;
+        align-items: center;
+        &.shred-progress-chip-done {
+          background: @color-success-200;
+          color: @color-success-700;
+        }
+        &.shred-progress-chip-current {
+          background: @color-brand-200;
+          color: @color-brand-600;
+          font-weight: 500;
+        }
+      }
+    }
+    .shred-progress-file {
+      padding: @spacing-12;
+      border-radius: @radius-8;
+      background: @color-brand-100;
+      display: flex;
+      flex-direction: column;
+      gap: @spacing-4;
+      .shred-progress-file-status {
+        color: @color-gray-800;
+        font-size: @font-size-12;
+        line-height: @line-height-100;
+      }
+      .shred-progress-file-name {
+        overflow: hidden;
+        display: flex;
+        align-items: center;
+        gap: @spacing-8;
+        .shred-progress-file-icon {
+          flex-shrink: 0;
+        }
+        .shred-progress-file-text {
+          flex: 1;
+          min-width: 0;
+          overflow: hidden;
+          color: @color-gray-900;
+          font-size: @font-size-14;
+          line-height: @line-height-100;
+          white-space: nowrap;
+          text-overflow: ellipsis;
+        }
+      }
+      .shred-progress-file-path {
+        overflow: hidden;
+        color: @color-gray-800;
+        font-size: @font-size-12;
+        line-height: @line-height-100;
+        white-space: nowrap;
+        text-overflow: ellipsis;
+      }
+    }
+    .shred-progress-track {
+      display: flex;
+      flex-direction: column;
+      gap: @spacing-8;
+      .shred-progress-track-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        .shred-progress-track-title {
+          color: @color-gray-800;
+          font-size: @font-size-12;
+          line-height: @line-height-100;
+        }
+        .shred-progress-track-value {
+          color: @color-progress-600;
+          font-family: @font-family-number;
+          font-size: @font-size-12;
+          line-height: @line-height-100;
+        }
+      }
+      .shred-progress-track-bar {
+        overflow: hidden;
+        height: 8px;
+        border-radius: @radius-pill;
+        background: @color-gray-400;
+        .shred-progress-track-fill {
+          height: 100%;
+          border-radius: @radius-pill;
+          background: linear-gradient(
+            90deg,
+            @color-brand-600 0%,
+            @color-progress-600 100%
+          );
+          transition: width 0.2s ease;
+          display: block;
+        }
+      }
+    }
+    .shred-progress-metrics {
+      display: flex;
+      .shred-progress-metric {
+        flex: 1;
+        min-width: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: @spacing-4;
+        .shred-progress-metric-value {
+          color: @color-gray-900;
+          font-family: @font-family-number;
+          font-size: @font-size-16;
+          font-weight: 500;
+          line-height: @line-height-100;
+        }
+        .shred-progress-metric-label {
+          color: @color-gray-800;
+          font-size: @font-size-12;
+          line-height: @line-height-100;
+        }
+      }
+    }
+    .shred-progress-stop {
+      flex-shrink: 0;
+    }
+    .shred-progress-note {
+      color: @color-gray-800;
+      font-size: @font-size-12;
+      line-height: @line-height-100;
+      text-align: center;
+    }
+  }
+  .shred-progress-aside {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: @spacing-16;
+    .shred-progress-queue {
+      flex-shrink: 0;
+      border-radius: @radius-16;
+      background: @color-gray-100;
+      display: flex;
+      flex-direction: column;
+      .shred-progress-queue-body {
+        padding: @spacing-16;
+        display: flex;
+        flex-direction: column;
+        gap: @spacing-12;
+        .shred-progress-queue-bar {
+          display: flex;
+          gap: @spacing-8;
+          .shred-progress-queue-segment {
+            flex: 1;
+            min-width: 0;
+            height: 12px;
+            border-radius: @radius-pill;
+          }
+        }
+        .shred-progress-queue-legend {
+          display: flex;
+          align-items: center;
+          gap: @spacing-16;
+          .shred-progress-legend-item {
+            color: @color-gray-800;
+            font-size: @font-size-12;
+            line-height: @line-height-100;
+            display: flex;
+            align-items: center;
+            gap: @spacing-4;
+            .shred-progress-legend-dot {
+              width: 8px;
+              height: 8px;
+              border-radius: @radius-pill;
+              display: block;
+            }
+          }
+        }
+      }
+    }
+    .shred-progress-detail {
+      flex: 1;
+      min-height: 0;
+      border-radius: @radius-16;
+      background: @color-gray-100;
+      display: flex;
+      flex-direction: column;
+      .shred-progress-detail-body {
+        flex: 1;
+        min-height: 0;
+        padding: @spacing-16 @spacing-16 0 0;
+        display: flex;
+      }
+    }
+    .shred-progress-rule {
+      flex-shrink: 0;
+      border-radius: @radius-16;
+      background: @color-gray-100;
+      display: flex;
+      flex-direction: column;
+      .shred-progress-rule-list {
+        padding: @spacing-16;
+        display: flex;
+        flex-direction: column;
+        gap: @spacing-12;
+        .shred-progress-rule-item {
+          display: flex;
+          flex-direction: column;
+          gap: @spacing-4;
+          .shred-progress-rule-name {
+            color: @color-gray-900;
+            font-size: @font-size-14;
+            font-weight: 500;
+            line-height: @line-height-100;
+          }
+          .shred-progress-rule-desc {
+            color: @color-gray-800;
+            font-size: @font-size-12;
+            line-height: @line-height-multiple;
+          }
+        }
+      }
+    }
+  }
+}

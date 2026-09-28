@@ -1,5 +1,6 @@
 import { contextBridge, ipcRenderer, webUtils } from 'electron';
 import {
+  ShredPasses,
   ShredProgress,
   ShredSummary,
   ShredTarget,
@@ -26,7 +27,7 @@ contextBridge.exposeInMainWorld('shredderApi', {
   // 校验候选路径并读取粉碎目标元数据。
   prepareShred: (paths: string[]) => ipcRenderer.invoke('shred:prepare', paths),
   // 启动指定清理强度的粉碎任务。
-  shred: (paths: string[], passes: 0 | 3 | 7 | 35) =>
+  shred: (paths: string[], passes: ShredPasses) =>
     ipcRenderer.invoke('shred:start', paths, passes),
   // 请求取消当前粉碎任务。
   cancelShred: () => ipcRenderer.invoke('shred:cancel'),
@@ -49,13 +50,26 @@ contextBridge.exposeInMainWorld('shredderApi', {
   exitApp: () => ipcRenderer.invoke('app:exit'),
   // 请求清理应用数据后退出。
   cleanupAndExit: () => ipcRenderer.invoke('app:cleanup-exit'),
+  // 使用系统默认浏览器打开外部链接。
+  openExternal: (url: string) => ipcRenderer.invoke('app:open-external', url),
+  // 最小化主窗口。
+  minimizeWindow: () => ipcRenderer.invoke('window:minimize'),
+  // 切换主窗口最大化与还原状态。
+  toggleMaximizeWindow: () => ipcRenderer.invoke('window:maximize-toggle'),
+  // 关闭主窗口。
+  closeWindow: () => ipcRenderer.invoke('window:close'),
+  // 查询主窗口当前是否处于最大化状态。
+  isWindowMaximized: () => ipcRenderer.invoke('window:is-maximized'),
+  // 订阅主窗口最大化状态变化。
+  onWindowMaximized: (callback: (maximized: boolean) => void) =>
+    subscribe<[boolean]>('window:maximized', callback),
   // 订阅主进程粉碎任务状态变化。
   onTaskState: (callback: (state: TaskState) => void) =>
     subscribe<[TaskState]>('task:state', callback),
   // 订阅外部目标触发的粉碎确认请求。
   onTaskConfirm: (
-    callback: (targets: ShredTarget[], passes: 0 | 3 | 7 | 35) => void,
-  ) => subscribe<[ShredTarget[], 0 | 3 | 7 | 35]>('task:confirm', callback),
+    callback: (targets: ShredTarget[], passes: ShredPasses) => void,
+  ) => subscribe<[ShredTarget[], ShredPasses]>('task:confirm', callback),
   // 订阅当前粉碎任务的实时进度。
   onTaskProgress: (callback: (progress: ShredProgress) => void) =>
     subscribe<[ShredProgress]>('task:progress', callback),

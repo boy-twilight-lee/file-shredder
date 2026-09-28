@@ -92,7 +92,10 @@
         </a-button>
       </demo-item>
     </demo-case>
-    <demo-case title="link" description="链接统一 4px 圆角，默认使用主题色，图标与文字间距 4px">
+    <demo-case
+      title="link"
+      description="链接统一 4px 圆角，默认使用主题色，图标与文字间距 4px"
+    >
       <demo-item label="基础">
         <a-link>查看清理记录</a-link>
         <a-link :hoverable="false">无悬浮效果</a-link>
@@ -135,7 +138,10 @@
         <a-tag class="gradient"><span>AI 智能清理</span></a-tag>
       </demo-item>
     </demo-case>
-    <demo-case title="tooltip" description="气泡统一 8px 圆角、6px 8px 内边距与 0.9 不透明度">
+    <demo-case
+      title="tooltip"
+      description="气泡统一 8px 圆角、6px 8px 内边距与 0.9 不透明度"
+    >
       <demo-item label="位置">
         <a-tooltip content="顶部提示">
           <a-button>上</a-button>
@@ -160,7 +166,9 @@
         </a-tooltip>
       </demo-item>
       <demo-item label="长内容">
-        <a-tooltip content="清理强度越高，覆写次数越多，大文件执行时间会明显变长">
+        <a-tooltip
+          content="清理强度越高，覆写次数越多，大文件执行时间会明显变长"
+        >
           <a-tag class="auxiliary">清理强度说明</a-tag>
         </a-tooltip>
       </demo-item>
@@ -173,7 +181,7 @@
         <a-spin :loading="spinLoading" />
         <a-spin
           :loading="true"
-          size="small"
+          :size="20"
         />
         <a-spin
           :loading="true"

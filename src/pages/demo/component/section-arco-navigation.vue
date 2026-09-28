@@ -89,7 +89,7 @@
       >
         <a-scrollbar
           class="section-arco-navigation-scroll"
-          type="page"
+          type="track"
         >
           <div
             v-for="item in scrollItems"

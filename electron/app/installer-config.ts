@@ -48,7 +48,9 @@ export function parseInstallerConfiguration(
     }
     // 当前版本安装器以逗号分隔的键值对一次性下发全部初始设置。
     if (!argument.startsWith(INSTALL_DEFAULTS_FLAG)) continue;
-    for (const pair of argument.slice(INSTALL_DEFAULTS_FLAG.length).split(',')) {
+    for (const pair of argument
+      .slice(INSTALL_DEFAULTS_FLAG.length)
+      .split(',')) {
       const setting = parseSettingPair(pair);
       if (setting) configuration[setting[0]] = setting[1];
     }

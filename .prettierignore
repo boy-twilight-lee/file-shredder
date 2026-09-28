@@ -3,6 +3,9 @@ dist-electron/
 dist-renderer/
 release/
 coverage/
+.workbuddy/
+src/type/auto-imports.d.ts
+src/type/components.d.ts
 *.ico
 *.png
 *.webp

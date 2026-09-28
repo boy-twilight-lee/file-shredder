@@ -63,6 +63,8 @@ export async function getShredTargetMetadata(
 export function createShredLogs(
   targets: ShredTargetMetadata[],
   results: ShredResult[],
+  passes: 0 | 3 | 7 | 35,
+  durationMs: number,
 ): Array<Omit<ShredLog, 'id' | 'timestamp'>> {
   // 收集本次任务生成的顶层粉碎日志。
   const logs: Array<Omit<ShredLog, 'id' | 'timestamp'>> = [];
@@ -81,6 +83,8 @@ export function createShredLogs(
       logs.push({
         ...classifyResult(result.path, result.success, result.error),
         targetType: 'file',
+        passes,
+        durationMs,
       });
       continue;
     }
@@ -101,6 +105,8 @@ export function createShredLogs(
       targetType: 'directory',
       succeededCount,
       failedCount,
+      passes,
+      durationMs,
       message: `成功 ${succeededCount} 个，失败 ${failedCount} 个`,
     });
   }

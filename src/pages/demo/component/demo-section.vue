@@ -5,7 +5,11 @@
         <i class="demo-section-mark" />
         <span class="demo-section-title">{{ title }}</span>
       </div>
-      <span v-if="description" class="demo-section-desc">{{ description }}</span>
+      <span
+        v-if="description"
+        class="demo-section-desc"
+        >{{ description }}</span
+      >
       <slot name="extra" />
     </div>
     <div class="demo-section-body">

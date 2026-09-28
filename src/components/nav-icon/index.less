@@ -1,0 +1,63 @@
+// 侧边导航的填充式图标：颜色由宿主按钮的 color 继承，动效只作用于内部图元。
+// 所有动效都以设计静态稿为起点，静止状态下不会偏离设计稿。
+.nav-icon {
+  display: block;
+  overflow: visible;
+  path {
+    fill: currentColor;
+  }
+}
+// 参与动效的图元共用同一段过渡曲线。
+.nav-icon-shred-sheet,
+.nav-icon-shred-strip-1,
+.nav-icon-shred-strip-2,
+.nav-icon-shred-strip-3,
+.nav-icon-records-row,
+.nav-icon-settings-gear,
+.nav-icon-about-body {
+  transform-box: view-box;
+  transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+// 绕图标中心做旋转与缩放，需要显式指定变换原点。
+.nav-icon-settings-gear,
+.nav-icon-about-body {
+  transform-origin: 12px 12px;
+}
+.nav-icon-animated {
+  // 清理任务：纸张落入进纸口，三条碎纸条依次下落。
+  .nav-icon-shred-sheet {
+    transform: translateY(1.6px);
+  }
+  .nav-icon-shred-strip-1 {
+    transform: translateY(1.1px);
+    transition-delay: 0.04s;
+  }
+  .nav-icon-shred-strip-2 {
+    transform: translateY(1.8px);
+    transition-delay: 0.08s;
+  }
+  .nav-icon-shred-strip-3 {
+    transform: translateY(1.1px);
+    transition-delay: 0.12s;
+  }
+  // 清理记录：三行内容依次上浮，形成扫读列表的节奏。
+  .nav-icon-records-row-1 {
+    transform: translateY(-0.9px);
+  }
+  .nav-icon-records-row-2 {
+    transform: translateY(-0.9px);
+    transition-delay: 0.05s;
+  }
+  .nav-icon-records-row-3 {
+    transform: translateY(-0.9px);
+    transition-delay: 0.1s;
+  }
+  // 设置：齿轮转 60 度，错开八齿 45 度的对称周期，保证转动肉眼可见。
+  .nav-icon-settings-gear {
+    transform: rotate(60deg);
+  }
+  // 关于：信息圆轻微放大，强调当前所在页面。
+  .nav-icon-about-body {
+    transform: scale(1.07);
+  }
+}

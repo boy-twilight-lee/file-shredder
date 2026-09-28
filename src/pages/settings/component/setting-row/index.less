@@ -1,0 +1,29 @@
+.setting-row {
+  height: 56px;
+  padding: 0 @spacing-16;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: @spacing-16;
+  .setting-row-info {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: @spacing-4;
+    .setting-row-title {
+      color: @color-gray-900;
+      font-size: @font-size-14;
+      line-height: @line-height-100;
+    }
+    .setting-row-description {
+      color: @color-gray-800;
+      font-size: @font-size-12;
+      line-height: @line-height-100;
+    }
+  }
+  .setting-row-control {
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+  }
+}

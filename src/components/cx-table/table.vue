@@ -135,7 +135,7 @@
 import { isBoolean, isEmpty, isNumber, isUndefined } from 'lodash-es';
 import { ref, toRefs } from 'vue';
 import { useControlValue } from '@/hooks';
-import { TableInstance } from 'element-plus';
+import { TableColumnCtx, TableInstance } from 'element-plus';
 import { TableColumnData } from './type';
 import TableColumn from './table-column.vue';
 import YcEmpty from '@/components/cx-empty';
@@ -281,7 +281,7 @@ const handleSortChange = (field: string) => {
 const handleHeaderDragend = async (
   newWidth: number,
   _oldWidth: number,
-  column: TableColumnData,
+  column: TableColumnCtx<Record<string, any>>,
   _e: Event,
 ) => {
   const minWidth = +(column.minWidth || column.width || 120);
